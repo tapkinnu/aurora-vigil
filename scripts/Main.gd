@@ -1,8 +1,11 @@
 extends Node3D
 
 const ProgressionModel = preload("res://scripts/ProgressionModel.gd")
+const LUMEN_SCENE = preload("res://assets/3d/characters/lumen/lumen_body.glb")
+const ROGUE_DRONE_SCENE = preload("res://assets/3d/characters/enemies/drone_rogue.glb")
 
 var hero: Node3D
+var rogue_drone_actor: Node3D
 var camera: Camera3D
 var hud_label: Label
 var mission_label: Label
@@ -183,19 +186,44 @@ func _add_rooftop_beacon(parent: Node3D, pos: Vector3) -> void:
 	parent.add_child(beacon)
 
 func _build_hero() -> void:
-	hero = Node3D.new()
-	hero.name = "TheLumen_ProceduralArticulatedHero"
+	hero = LUMEN_SCENE.instantiate() as Node3D
+	if hero == null:
+		push_error("Failed to load Meshy hero asset: res://assets/3d/characters/lumen/lumen_body.glb")
+		hero = Node3D.new()
+	hero.name = "TheLumen_MeshyHero"
 	hero.position = Vector3(0, 28, 36)
+	hero.scale = Vector3(1.35, 1.35, 1.35)
+	_apply_actor_visibility_overrides(hero, Color(0.05, 0.9, 1.0, 1), Color(0.0, 0.75, 0.9, 1), 0.08)
 	add_child(hero)
-	_add_part(hero, "Torso", CapsuleMesh.new(), Vector3(0, 0, 0), Vector3(0.8, 1.25, 0.45), Color(0.02, 0.35, 0.42, 1), Color(0.0, 0.7, 0.75, 1), 0.18)
-	_add_part(hero, "Head", SphereMesh.new(), Vector3(0, 1.55, 0), Vector3(0.46, 0.46, 0.46), Color(0.94, 0.78, 0.56, 1), Color(1.0, 0.82, 0.4, 1), 0.05)
-	_add_part(hero, "LeftArm", CylinderMesh.new(), Vector3(-0.78, 0.28, 0), Vector3(0.18, 0.85, 0.18), Color(0.0, 0.65, 0.66, 1), Color(0.0, 0.9, 0.85, 1), 0.14)
-	_add_part(hero, "RightArm", CylinderMesh.new(), Vector3(0.78, 0.28, 0), Vector3(0.18, 0.85, 0.18), Color(0.0, 0.65, 0.66, 1), Color(0.0, 0.9, 0.85, 1), 0.14)
-	_add_part(hero, "LeftLeg", CylinderMesh.new(), Vector3(-0.28, -1.08, 0), Vector3(0.2, 0.98, 0.2), Color(0.04, 0.12, 0.22, 1), Color(0.0, 0.5, 0.85, 1), 0.08)
-	_add_part(hero, "RightLeg", CylinderMesh.new(), Vector3(0.28, -1.08, 0), Vector3(0.2, 0.98, 0.2), Color(0.04, 0.12, 0.22, 1), Color(0.0, 0.5, 0.85, 1), 0.08)
-	_add_part(hero, "ChestAuroraSigil", BoxMesh.new(), Vector3(0, 0.48, -0.42), Vector3(0.46, 0.14, 0.05), Color(1.0, 0.82, 0.18, 1), Color(1.0, 0.78, 0.2, 1), 0.7)
-	_add_part(hero, "LeftIonMantleFin", BoxMesh.new(), Vector3(-0.58, 0.22, 0.48), Vector3(0.13, 1.4, 0.65), Color(0.95, 0.65, 0.12, 0.75), Color(1.0, 0.65, 0.1, 1), 0.35)
-	_add_part(hero, "RightIonMantleFin", BoxMesh.new(), Vector3(0.58, 0.22, 0.48), Vector3(0.13, 1.4, 0.65), Color(0.95, 0.65, 0.12, 0.75), Color(1.0, 0.65, 0.1, 1), 0.35)
+
+func _apply_actor_visibility_overrides(actor: Node3D, albedo: Color, emission: Color, energy: float) -> void:
+	var mesh_count := 0
+	for child in actor.find_children("*", "MeshInstance3D", true, true):
+		var mesh := child as MeshInstance3D
+		if mesh == null or mesh.mesh == null:
+			continue
+		mesh_count += 1
+		var mat := mesh.get_surface_override_material(0)
+		if mat == null:
+			mat = mesh.mesh.surface_get_material(0)
+		if mat is StandardMaterial3D:
+			var copy := mat.duplicate() as StandardMaterial3D
+			copy.albedo_color = Color(1.35, 1.35, 1.35, 1)
+			copy.specular = 0.45
+			copy.roughness = 0.42
+			copy.emission_enabled = false
+			mesh.set_surface_override_material(0, copy)
+		else:
+			mesh.material_override = _mat(albedo, emission, energy)
+	if mesh_count == 0:
+		push_warning("No MeshInstance3D found for actor visibility pass: ", actor.name)
+	var light := OmniLight3D.new()
+	light.name = "ActorVisibilityLight"
+	light.position = Vector3(0, 2.2, 0)
+	light.light_color = emission
+	light.light_energy = 20.0
+	light.omni_range = 22.0
+	actor.add_child(light)
 
 func _stage_capture_scene() -> void:
 	var mode := OS.get_environment("AURORA_CAPTURE_MODE")
@@ -208,9 +236,12 @@ func _stage_capture_scene() -> void:
 		# camera frames the pair instead of only the event volume.
 		hero.position = Vector3(-12, 46, 52)
 	elif mode == "closeup":
+		camera.fov = 55
 		# Pull the close-up back into the central avenue so the hero silhouettes
 		# against sky/open street depth, not a skyscraper wall.
 		hero.position = Vector3(0, 34, 4)
+		hero.rotation_degrees = Vector3(0, 180, 0)
+		hero.scale = Vector3(2.0, 2.0, 2.0)
 
 func _add_part(parent: Node3D, part_name: String, mesh: Mesh, pos: Vector3, scale_v: Vector3, albedo: Color, emission: Color, energy: float) -> void:
 	var mi := MeshInstance3D.new()
@@ -354,36 +385,16 @@ func _spawn_event(kind: String, pos: Vector3) -> void:
 		marker.set_meta("orbit_center", pos)
 		marker.set_meta("drift_radius", 10.0)
 		marker.set_meta("drift_speed", 0.7)
-		var drone_actor := Node3D.new()
-		drone_actor.name = "NonLethalDroneActor"
-		drone_actor.position = Vector3(0, 12.0, 0)
+		var drone_actor := ROGUE_DRONE_SCENE.instantiate() as Node3D
+		if drone_actor == null:
+			push_error("Failed to load Meshy drone asset: res://assets/3d/characters/enemies/drone_rogue.glb")
+			drone_actor = Node3D.new()
+		drone_actor.name = "RogueCivicDrone_MeshyActor"
+		drone_actor.position = Vector3(0, 18.0, 0)
+		drone_actor.scale = Vector3(5.0, 5.0, 5.0)
+		_apply_actor_visibility_overrides(drone_actor, Color(1.25, 0.65, 1.45, 1), Color(0.95, 0.25, 1.0, 1), 0.35)
+		rogue_drone_actor = drone_actor
 		marker.add_child(drone_actor)
-		_add_part(drone_actor, "NonLethalDroneBody", BoxMesh.new(), Vector3(0, 0, 0), Vector3(4.2, 1.1, 2.4), Color(0.25, 0.18, 0.38, 1), Color(0.8, 0.25, 1.0, 1), 0.45)
-		_add_part(drone_actor, "NonLethalDroneWingL", BoxMesh.new(), Vector3(-4.4, 0, 0), Vector3(2.8, 0.18, 0.6), Color(0.36, 0.24, 0.52, 1), Color(0.8, 0.25, 1.0, 1), 0.35)
-		_add_part(drone_actor, "NonLethalDroneWingR", BoxMesh.new(), Vector3(4.4, 0, 0), Vector3(2.8, 0.18, 0.6), Color(0.36, 0.24, 0.52, 1), Color(0.8, 0.25, 1.0, 1), 0.35)
-		var rotor_l := MeshInstance3D.new()
-		rotor_l.name = "NonLethalDroneRotorL"
-		var rotor_l_mesh := CylinderMesh.new()
-		rotor_l_mesh.top_radius = 1.45
-		rotor_l_mesh.bottom_radius = 1.45
-		rotor_l_mesh.height = 0.12
-		rotor_l.mesh = rotor_l_mesh
-		rotor_l.position = Vector3(-4.4, 0.25, 0)
-		rotor_l.material_override = _transparent_mat(Color(0.75, 0.85, 1.0, 0.65), Color(0.75, 0.9, 1.0, 1.0), 0.8)
-		drone_actor.add_child(rotor_l)
-		var rotor_r := MeshInstance3D.new()
-		rotor_r.name = "NonLethalDroneRotorR"
-		var rotor_r_mesh := CylinderMesh.new()
-		rotor_r_mesh.top_radius = 1.45
-		rotor_r_mesh.bottom_radius = 1.45
-		rotor_r_mesh.height = 0.12
-		rotor_r.mesh = rotor_r_mesh
-		rotor_r.position = Vector3(4.4, 0.25, 0)
-		rotor_r.material_override = rotor_l.material_override
-		drone_actor.add_child(rotor_r)
-		var rotor_spin := create_tween().set_loops()
-		rotor_spin.tween_property(rotor_l, "rotation:y", TAU, 0.18)
-		rotor_spin.tween_property(rotor_r, "rotation:y", -TAU, 0.18)
 	elif kind == "tower_fire":
 		for i in range(4):
 			var spark := MeshInstance3D.new()
@@ -768,6 +779,8 @@ func _update_rogue_drone(marker: Node3D, delta: float) -> void:
 	marker.set_meta("drift_angle", angle)
 	marker.position = center + Vector3(cos(angle) * radius, sin(angle * 0.7) * 4.0, sin(angle) * radius)
 	marker.rotate_y(delta * 1.8)
+	if is_instance_valid(rogue_drone_actor):
+		rogue_drone_actor.rotate_y(delta * 2.4)
 
 func _mat(albedo: Color, emission: Color, energy: float) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()

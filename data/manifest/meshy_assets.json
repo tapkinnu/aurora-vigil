@@ -1,0 +1,32 @@
+{
+  "_comment": "Reusable Meshy AI generation manifest for Aurora Vigil 3D actors. Driven by tools/meshy_assets.py. Pipeline per asset: text-to-3d preview -> refine (textured) -> remesh (mandatory, controls topology/polycount) -> download GLB. All content is original IP: no Superman/DC names, logos, capes, red-and-blue costumes, cities, villains, or story beats.",
+  "provider": "Meshy AI",
+  "api_base": "https://api.meshy.ai/openapi",
+  "art_style": "realistic",
+  "ai_model": "meshy-6",
+  "negative_prompt": "cape, flowing cloak, red and blue costume, superman, batman, marvel, dc comics, copyrighted superhero, brand logo, text, watermark, low quality, deformed, extra limbs",
+  "assets": [
+    {
+      "id": "lumen",
+      "name": "The Lumen",
+      "kind": "hero",
+      "prompt": "Original near-future superhero character, full body standing T-pose, athletic adult figure in a sleek teal and matte-black armored bodysuit, glowing gold hexagonal chest emblem, swept-back gold ion mantle fins mounted on the shoulders and back, smooth helmetless head with short hair, no cape, heroic confident proportions, stylized game-ready character, clean silhouette",
+      "target_polycount": 20000,
+      "topology": "triangle",
+      "target_height_m": 1.85,
+      "out_path": "assets/3d/characters/lumen/lumen_body.glb",
+      "manifest_ref": "characters.hero[lumen]"
+    },
+    {
+      "id": "drone_rogue",
+      "name": "Rogue Civic Drone",
+      "kind": "enemy",
+      "prompt": "Small non-humanoid civic security quadrotor drone, dark purple and gunmetal angular chassis, four short rotor arms with ducted fans, a single glowing teal cyclops sensor eye on the front, compact hovering sci-fi robot, no humanoid features, game-ready prop, clean design",
+      "target_polycount": 10000,
+      "topology": "triangle",
+      "target_height_m": 0.9,
+      "out_path": "assets/3d/characters/enemies/drone_rogue.glb",
+      "manifest_ref": "characters.enemies[drone_scout]"
+    }
+  ]
+}

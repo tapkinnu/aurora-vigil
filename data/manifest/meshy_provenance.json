@@ -1,0 +1,27 @@
+{
+  "provider": "Meshy AI",
+  "assets": [
+    {
+      "id": "drone_rogue",
+      "name": "Rogue Civic Drone",
+      "kind": "enemy",
+      "provider": "Meshy AI",
+      "prompt": "Small non-humanoid civic security quadrotor drone, dark purple and gunmetal angular chassis, four short rotor arms with ducted fans, a single glowing teal cyclops sensor eye on the front, compact hovering sci-fi robot, no humanoid features, game-ready prop, clean design",
+      "negative_prompt": "cape, flowing cloak, red and blue costume, superman, batman, marvel, dc comics, copyrighted superhero, brand logo, text, watermark, low quality, deformed, extra limbs",
+      "art_style": "realistic",
+      "ai_model": "meshy-6",
+      "target_polycount": 10000,
+      "topology": "triangle",
+      "remesh_resize_height_m": 0.9,
+      "preview_task_id": "019ecfc2-d765-767f-bce8-7e0dbe29dfe2",
+      "refine_task_id": "019ecfc3-dfa0-7e1c-b6b9-24c1b4a041ef",
+      "remesh_task_id": "019ecfc5-4703-7166-af9e-4b59d5451e1f",
+      "glb_path": "assets/3d/characters/enemies/drone_rogue.glb",
+      "bytes": 17449220,
+      "sha256": "7d8c96632cd87ce00eb2c1b94e441a7b90366a611f487fd871f0ad30c5929053",
+      "license": "Meshy AI generated asset (per Meshy ToS) - original IP, no third-party characters",
+      "downloaded_at": "2026-06-16T09:32:19Z"
+    }
+  ],
+  "generated_at": "2026-06-16T09:32:19Z"
+}

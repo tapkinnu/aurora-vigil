@@ -2,8 +2,10 @@
 .godot_validation/
 .import/
 *.import
+*.uid
 export_presets.cfg
 artifacts/screenshots/*.png
 artifacts/screenshots/*.jpg
+artifacts/screenshots/*.log
 /tmp/
 .studio/*.log
