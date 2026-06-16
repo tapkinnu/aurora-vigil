@@ -872,12 +872,17 @@ func _update_camera(delta: float) -> void:
 	# positive-Z offset could spawn the camera inside the first skyline ring.
 	var offset := Vector3(0, 10, -22)
 	if mode == "city":
-		offset = Vector3(18, 18, 34)
+		# City capture should show a readable skyline overview, not a wall the
+		# camera starts inside. Use an open high-angle position over the central
+		# avenue and pull the camera above the skyline ring.
+		offset = Vector3(-24, 46, -58)
 	elif mode == "closeup":
 		camera.fov = 62
 		offset = Vector3(6, 1.2, -14)
 	var target := hero.position + Vector3(0, 1.2, 0)
-	if mode == "closeup":
+	if mode == "city":
+		target = Vector3(0, 24, 0)
+	elif mode == "closeup":
 		target = hero.position + Vector3(0, 1.55, 0)
 	var desired := hero.position + offset
 	var resolved := _resolve_camera_collision(target, desired)
