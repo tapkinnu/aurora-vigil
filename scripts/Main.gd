@@ -63,6 +63,7 @@ func _physics_process(delta: float) -> void:
 	_handle_flight(delta)
 	_update_camera(delta)
 	_update_events(delta)
+	_update_contact_shadows()
 	_update_hud()
 
 func _input(event: InputEvent) -> void:
@@ -145,6 +146,7 @@ func _build_city() -> void:
 
 			_add_floor_strips(tower_body, width, depth, h)
 			_add_vertical_ribs(tower_body, width, depth, h, is_collector)
+			_add_crown_neon(tower_body, width, depth, h)
 			_add_roof_detail(tower_body, width, depth, h, x, z, is_collector)
 
 			var shape := CollisionShape3D.new()
@@ -162,40 +164,75 @@ func _build_city() -> void:
 	_add_transit_corridor(district)
 
 func _add_city_avenues(parent: Node3D) -> void:
-	var road_mat := _mat(Color(0.012, 0.016, 0.022, 1.0), Color(0.015, 0.05, 0.075, 1.0), 0.02)
-	var lane_mat := _mat(Color(0.55, 0.85, 1.0, 1.0), Color(0.25, 0.75, 1.0, 1.0), 0.55)
+	# Avenues get a brighter, slightly emissive surface so they read from high capture
+	# angles as glowing streets instead of vanishing into the dark ground plane.
+	var road_mat := _mat(Color(0.025, 0.04, 0.06, 1.0), Color(0.04, 0.18, 0.26, 1.0), 0.18)
+	var lane_mat := _mat(Color(0.7, 0.95, 1.0, 1.0), Color(0.4, 0.85, 1.0, 1.0), 0.95)
+	var curb_mat := _mat(Color(0.04, 0.07, 0.09, 1.0), Color(0.0, 0.5, 0.7, 1.0), 0.45)
 	for i in range(-5, 6):
 		var road_x := MeshInstance3D.new()
 		road_x.name = "AvenueEastWest_%d" % i
 		var mx := BoxMesh.new()
-		mx.size = Vector3(270, 0.12, 4.2)
+		mx.size = Vector3(270, 0.16, 6.0)
 		road_x.mesh = mx
-		road_x.position = Vector3(0, 0.07, i * 22.0)
+		road_x.position = Vector3(0, 0.08, i * 22.0)
 		road_x.material_override = road_mat
 		parent.add_child(road_x)
+		var curb_n := MeshInstance3D.new()
+		curb_n.name = "CurbN_%d" % i
+		var cn_mesh := BoxMesh.new()
+		cn_mesh.size = Vector3(270, 0.18, 0.45)
+		curb_n.mesh = cn_mesh
+		curb_n.position = Vector3(0, 0.09, i * 22.0 + 3.05)
+		curb_n.material_override = curb_mat
+		parent.add_child(curb_n)
+		var curb_s := MeshInstance3D.new()
+		curb_s.name = "CurbS_%d" % i
+		var cs_mesh := BoxMesh.new()
+		cs_mesh.size = Vector3(270, 0.18, 0.45)
+		curb_s.mesh = cs_mesh
+		curb_s.position = Vector3(0, 0.09, i * 22.0 - 3.05)
+		curb_s.material_override = curb_mat
+		parent.add_child(curb_s)
 		var road_z := MeshInstance3D.new()
 		road_z.name = "AvenueNorthSouth_%d" % i
 		var mz := BoxMesh.new()
-		mz.size = Vector3(4.2, 0.12, 270)
+		mz.size = Vector3(6.0, 0.16, 270)
 		road_z.mesh = mz
 		road_z.position = Vector3(i * 22.0, 0.08, 0)
 		road_z.material_override = road_mat
 		parent.add_child(road_z)
+		var curb_e := MeshInstance3D.new()
+		curb_e.name = "CurbE_%d" % i
+		var ce_mesh := BoxMesh.new()
+		ce_mesh.size = Vector3(0.45, 0.18, 270)
+		curb_e.mesh = ce_mesh
+		curb_e.position = Vector3(i * 22.0 + 3.05, 0.09, 0)
+		curb_e.material_override = curb_mat
+		parent.add_child(curb_e)
+		var curb_w := MeshInstance3D.new()
+		curb_w.name = "CurbW_%d" % i
+		var cw_mesh := BoxMesh.new()
+		cw_mesh.size = Vector3(0.45, 0.18, 270)
+		curb_w.mesh = cw_mesh
+		curb_w.position = Vector3(i * 22.0 - 3.05, 0.09, 0)
+		curb_w.material_override = curb_mat
+		parent.add_child(curb_w)
 		for j in range(-5, 6):
 			var dash_x := MeshInstance3D.new()
 			dash_x.name = "LaneDashEW_%d_%d" % [i, j]
 			var dx := BoxMesh.new()
-			dx.size = Vector3(5.0, 0.05, 0.22)
+			dx.size = Vector3(5.0, 0.06, 0.32)
 			dash_x.mesh = dx
-			dash_x.position = Vector3(j * 22.0, 0.16, i * 22.0)
+			dash_x.position = Vector3(j * 22.0, 0.22, i * 22.0)
 			dash_x.material_override = lane_mat
 			parent.add_child(dash_x)
 			var dash_z := MeshInstance3D.new()
 			dash_z.name = "LaneDashNS_%d_%d" % [i, j]
 			var dz := BoxMesh.new()
-			dz.size = Vector3(0.22, 0.05, 5.0)
+			dz.size = Vector3(0.32, 0.06, 5.0)
 			dash_z.mesh = dz
-			dash_z.position = Vector3(i * 22.0, 0.17, j * 22.0)
+			dash_z.position = Vector3(i * 22.0, 0.23, j * 22.0)
 			dash_z.material_override = lane_mat
 			parent.add_child(dash_z)
 		if i in [-4, -2, 2, 4]:
@@ -203,6 +240,11 @@ func _add_city_avenues(parent: Node3D) -> void:
 			_add_streetlight(parent, Vector3(11.0, 0.0, i * 22.0), PI)
 			_add_streetlight(parent, Vector3(i * 22.0, 0.0, -11.0), PI * 0.5)
 			_add_streetlight(parent, Vector3(i * 22.0, 0.0, 11.0), -PI * 0.5)
+			_add_street_trees(parent, i * 22.0, true)
+			_add_street_trees(parent, i * 22.0, false)
+		if abs(i) <= 1:
+			_add_crosswalk(parent, i * 22.0, true)
+			_add_crosswalk(parent, i * 22.0, false)
 
 func _add_civic_grid(parent: Node3D) -> void:
 	var grid := Decal.new()
@@ -355,6 +397,74 @@ func _add_streetlight(parent: Node3D, pos: Vector3, rot: float) -> void:
 	omni.omni_range = 10.0
 	light.add_child(omni)
 
+func _add_street_trees(parent: Node3D, avenue_z: float, north_side: bool) -> void:
+	# Stylised street trees: dark trunk + glowing canopy sphere. Placed every other
+	# block so they don't choke the avenue. Trees sit between the road and the
+	# tower footprints, breaking up the long flat curb line.
+	var trunk_mat := _mat(Color(0.05, 0.08, 0.1, 1.0), Color(0.0, 0.18, 0.25, 1.0), 0.08)
+	var canopy_a := _mat(Color(0.04, 0.5, 0.32, 1.0), Color(0.1, 0.85, 0.6, 1.0), 0.6)
+	var canopy_b := _mat(Color(0.18, 0.05, 0.42, 1.0), Color(0.6, 0.18, 0.95, 1.0), 0.55)
+	var side_sign := 1.0 if north_side else -1.0
+	var base_x := -11.0 * side_sign
+	for step in [-3, -1, 1, 3]:
+		if step == 0:
+			continue
+		var offset := float(step) * 11.0
+		var x := base_x
+		var z := avenue_z + offset
+		# Skip tree if it would land inside the central plaza block.
+		if abs(x) < 4.5 and abs(z) < 4.5:
+			continue
+		var tree := Node3D.new()
+		tree.name = "StreetTree_%s_%d" % [("N" if north_side else "S"), step]
+		tree.position = Vector3(x, 0.0, z)
+		parent.add_child(tree)
+		var trunk := MeshInstance3D.new()
+		trunk.name = "TreeTrunk"
+		var trunk_mesh := CylinderMesh.new()
+		trunk_mesh.top_radius = 0.18
+		trunk_mesh.bottom_radius = 0.25
+		trunk_mesh.height = 2.6
+		trunk.mesh = trunk_mesh
+		trunk.position = Vector3(0, 1.3, 0)
+		trunk.material_override = trunk_mat
+		tree.add_child(trunk)
+		var canopy_mat := canopy_a if step > 0 else canopy_b
+		var canopy := MeshInstance3D.new()
+		canopy.name = "TreeCanopy"
+		var canopy_mesh := SphereMesh.new()
+		canopy_mesh.radius = 1.4
+		canopy_mesh.height = 2.6
+		canopy.mesh = canopy_mesh
+		canopy.position = Vector3(0, 3.3, 0)
+		canopy.material_override = canopy_mat
+		tree.add_child(canopy)
+		var glow := OmniLight3D.new()
+		glow.name = "TreeGlow"
+		glow.position = Vector3(0, 3.3, 0)
+		glow.light_color = canopy_mat.emission
+		glow.light_energy = 1.8
+		glow.omni_range = 6.0
+		tree.add_child(glow)
+
+func _add_crosswalk(parent: Node3D, avenue_z: float, east_west: bool) -> void:
+	# Zebra-striped crosswalk blocks placed where two avenues intersect so the
+	# dark road network picks up a brighter graphic accent under the camera.
+	var stripe_mat := _mat(Color(0.85, 0.95, 1.0, 1.0), Color(0.5, 0.9, 1.0, 1.0), 0.85)
+	for k in range(-3, 4):
+		var stripe := MeshInstance3D.new()
+		stripe.name = "CrosswalkStripe_%s_%d" % [("EW" if east_west else "NS"), k]
+		var s_mesh := BoxMesh.new()
+		if east_west:
+			s_mesh.size = Vector3(0.9, 0.06, 4.4)
+			stripe.position = Vector3(float(k) * 5.5, 0.27, avenue_z)
+		else:
+			s_mesh.size = Vector3(4.4, 0.06, 0.9)
+			stripe.position = Vector3(avenue_z, 0.27, float(k) * 5.5)
+		stripe.mesh = s_mesh
+		stripe.material_override = stripe_mat
+		parent.add_child(stripe)
+
 func _add_floor_strips(parent: Node3D, width: float, depth: float, h: float) -> void:
 	var rows := int(clamp(h / 4.2, 5.0, 11.0))
 	var window_mat := _mat(Color(0.42, 0.88, 1.0, 1.0), Color(0.28, 0.8, 1.0, 1.0), 0.42)
@@ -370,6 +480,31 @@ func _add_floor_strips(parent: Node3D, width: float, depth: float, h: float) -> 
 		var y := -h * 0.32 + float(r) * h / float(rows)
 		_add_box(parent, "FrontServicePod_%d" % r, Vector3(2.4, 0.75, 1.15), Vector3(-width * 0.22, y, depth * 0.5 + 0.48), pod_mat)
 		_add_box(parent, "BackServicePod_%d" % r, Vector3(2.4, 0.75, 1.15), Vector3(width * 0.22, y, -depth * 0.5 - 0.48), pod_mat)
+
+func _add_crown_neon(parent: Node3D, width: float, depth: float, h: float) -> void:
+	# Bright neon rim band wrapped around the top of the tower so the skyline
+	# silhouettes read against the dark sky from any capture altitude. Variants
+	# cycle cyan / magenta per tower so the city feels populated.
+	var hue := fposmod(width + depth + h, 4.0)
+	var crown_mat: StandardMaterial3D
+	if hue < 1.5:
+		crown_mat = _mat(Color(0.25, 0.95, 1.0, 1.0), Color(0.25, 0.95, 1.0, 1.0), 1.0)
+	elif hue < 3.0:
+		crown_mat = _mat(Color(0.95, 0.25, 0.85, 1.0), Color(0.95, 0.25, 0.85, 1.0), 0.95)
+	else:
+		crown_mat = _mat(Color(1.0, 0.85, 0.3, 1.0), Color(1.0, 0.85, 0.3, 1.0), 0.9)
+	var y := h * 0.5 - 0.18
+	_add_box(parent, "CrownBandFront", Vector3(width + 0.4, 0.16, 0.18), Vector3(0, y, depth * 0.5 + 0.16), crown_mat)
+	_add_box(parent, "CrownBandBack", Vector3(width + 0.4, 0.16, 0.18), Vector3(0, y, -depth * 0.5 - 0.16), crown_mat)
+	_add_box(parent, "CrownBandLeft", Vector3(0.18, 0.16, depth + 0.4), Vector3(-width * 0.5 - 0.16, y, 0), crown_mat)
+	_add_box(parent, "CrownBandRight", Vector3(0.18, 0.16, depth + 0.4), Vector3(width * 0.5 + 0.16, y, 0), crown_mat)
+	var crown_light := OmniLight3D.new()
+	crown_light.name = "CrownNeonLight"
+	crown_light.position = Vector3(0, y, 0)
+	crown_light.light_color = crown_mat.emission
+	crown_light.light_energy = 1.4
+	crown_light.omni_range = 12.0
+	parent.add_child(crown_light)
 
 func _add_vertical_ribs(parent: Node3D, width: float, depth: float, h: float, collector: bool) -> void:
 	var rib_mat := _mat(Color(0.16, 0.24, 0.29, 1.0), Color(0.0, 0.25, 0.34, 1.0), 0.1)
@@ -484,6 +619,40 @@ func _add_box(parent: Node3D, name: String, size: Vector3, pos: Vector3, mat: Ma
 	parent.add_child(box)
 	return box
 
+func _attach_contact_shadow(target: Node3D, radius: float, height: float) -> void:
+	# Soft circular shadow disc parented to the actor. Updates in _process so
+	# the disc always sits directly beneath the actor's XZ position at ground
+	# level (height=0.04 above the road plane). Pulls the actor visually onto
+	# the streets instead of leaving it floating in dark space.
+	if target == null:
+		return
+	var disc := MeshInstance3D.new()
+	disc.name = "ContactShadowDisc"
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = radius
+	cyl.bottom_radius = radius
+	cyl.height = 0.06
+	disc.mesh = cyl
+	disc.position = Vector3(0, -target.position.y + 0.04, 0)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.0, 0.0, 0.0, 0.55)
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.disable_receive_shadows = true
+	disc.material_override = mat
+	add_child(disc)
+	target.set_meta("contact_shadow", disc)
+	target.set_meta("contact_shadow_height", height)
+
+func _update_contact_shadows() -> void:
+	for actor in [hero]:
+		if actor == null or not is_instance_valid(actor):
+			continue
+		var disc = actor.get_meta("contact_shadow", null)
+		if disc == null or not is_instance_valid(disc):
+			continue
+		disc.position = Vector3(actor.position.x, 0.04, actor.position.z)
+
 func _build_hero() -> void:
 	hero = LUMEN_SCENE.instantiate() as Node3D
 	if hero == null:
@@ -494,6 +663,7 @@ func _build_hero() -> void:
 	hero.scale = Vector3(1.35, 1.35, 1.35)
 	_apply_actor_visibility_overrides(hero, Color(0.05, 0.9, 1.0, 1), Color(0.0, 0.75, 0.9, 1), 0.08)
 	add_child(hero)
+	_attach_contact_shadow(hero, 2.6, 1.4)
 
 func _apply_actor_visibility_overrides(actor: Node3D, albedo: Color, emission: Color, energy: float) -> void:
 	var mesh_count := 0
