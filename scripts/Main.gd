@@ -107,89 +107,377 @@ func _build_world() -> void:
 
 func _build_city() -> void:
 	var district := Node3D.new()
-	district.name = "MeridianCity_DynamicSandboxBlockout"
+	district.name = "MeridianCity_ModularSkyline"
 	add_child(district)
+	_add_ground_plate(district)
 	for x in range(-5, 6):
 		for z in range(-5, 6):
 			if abs(x) <= 1 and abs(z) <= 1:
 				continue
 			if (x + z) % 3 == 0:
 				continue
+			var is_collector: bool = abs(x) == 5 and abs(z) == 5
+			var width: float = 8.5 + float((abs(x * 7 + z * 11) % 4))
+			var depth: float = 8.5 + float((abs(x * 13 + z * 5) % 4))
+			if is_collector:
+				width = 11.0
+				depth = 11.0
 			var h: float = 18.0 + float((abs(x * 17 + z * 31) % 38))
+			if is_collector:
+				h += 18.0
 			var tower_body := StaticBody3D.new()
 			tower_body.name = "SkylineTower_%d_%d" % [x, z]
 			tower_body.position = Vector3(x * 22.0, h * 0.5, z * 22.0)
 			district.add_child(tower_body)
 
 			var tower := MeshInstance3D.new()
-			tower.name = "TowerShell"
+			tower.name = "TexturedTowerShell"
 			var mesh := BoxMesh.new()
-			mesh.size = Vector3(9.0, h, 9.0)
+			mesh.size = Vector3(width, h, depth)
 			tower.mesh = mesh
-			var tone: float = 0.13 + float((x * x + z * z) % 6) * 0.025
-			tower.material_override = _mat(Color(tone, tone + 0.05, tone + 0.08, 1.0), Color(0.0, 0.22, 0.32, 1.0), 0.05)
+			tower.material_override = _city_facade_material(h, x, z, width, depth, is_collector)
 			tower_body.add_child(tower)
 
-			var roof := MeshInstance3D.new()
-			roof.name = "RooftopCap"
-			var roof_mesh := BoxMesh.new()
-			roof_mesh.size = Vector3(10.0, 0.45, 10.0)
-			roof.mesh = roof_mesh
-			roof.position = Vector3(0, h * 0.5 + 0.22, 0)
-			roof.material_override = _mat(Color(0.18, 0.28, 0.34, 1.0), Color(0.0, 0.32, 0.42, 1.0), 0.12)
-			tower_body.add_child(roof)
-
-			var antenna := MeshInstance3D.new()
-			antenna.name = "RooftopAntenna"
-			var antenna_mesh := CylinderMesh.new()
-			antenna_mesh.top_radius = 0.18
-			antenna_mesh.bottom_radius = 0.18
-			antenna_mesh.height = 3.0
-			antenna.mesh = antenna_mesh
-			antenna.position = Vector3(0, h * 0.5 + 1.9, 0)
-			antenna.material_override = _mat(Color(0.2, 0.9, 1.0, 1.0), Color(0.2, 0.9, 1.0, 1.0), 0.9)
-			tower_body.add_child(antenna)
+			_add_floor_strips(tower_body, width, depth, h)
+			_add_vertical_ribs(tower_body, width, depth, h, is_collector)
+			_add_roof_detail(tower_body, width, depth, h, x, z, is_collector)
 
 			var shape := CollisionShape3D.new()
 			shape.name = "TowerCollision"
 			var box := BoxShape3D.new()
-			box.size = Vector3(9.0, h, 9.0)
+			box.size = Vector3(width, h, depth)
 			shape.shape = box
 			tower_body.add_child(shape)
 
-			if (x - z) % 2 == 0:
-				_add_rooftop_beacon(tower_body, Vector3(0, h * 0.5 + 3.6, 0))
+			if is_collector or (x - z) % 2 == 0:
+				_add_rooftop_beacon(tower_body, Vector3(0, h * 0.5 + 3.8, 0), is_collector)
+	_add_civic_grid(district)
+	_add_skyline_props(district)
 	_add_city_avenues(district)
+	_add_transit_corridor(district)
 
 func _add_city_avenues(parent: Node3D) -> void:
+	var road_mat := _mat(Color(0.012, 0.016, 0.022, 1.0), Color(0.015, 0.05, 0.075, 1.0), 0.02)
+	var lane_mat := _mat(Color(0.55, 0.85, 1.0, 1.0), Color(0.25, 0.75, 1.0, 1.0), 0.55)
 	for i in range(-5, 6):
 		var road_x := MeshInstance3D.new()
 		road_x.name = "AvenueEastWest_%d" % i
 		var mx := BoxMesh.new()
-		mx.size = Vector3(270, 0.12, 4.0)
+		mx.size = Vector3(270, 0.12, 4.2)
 		road_x.mesh = mx
 		road_x.position = Vector3(0, 0.07, i * 22.0)
-		road_x.material_override = _mat(Color(0.015, 0.018, 0.022, 1), Color(0.02, 0.06, 0.08, 1), 0.02)
+		road_x.material_override = road_mat
 		parent.add_child(road_x)
 		var road_z := MeshInstance3D.new()
 		road_z.name = "AvenueNorthSouth_%d" % i
 		var mz := BoxMesh.new()
-		mz.size = Vector3(4.0, 0.12, 270)
+		mz.size = Vector3(4.2, 0.12, 270)
 		road_z.mesh = mz
 		road_z.position = Vector3(i * 22.0, 0.08, 0)
-		road_z.material_override = road_x.material_override
+		road_z.material_override = road_mat
 		parent.add_child(road_z)
+		for j in range(-5, 6):
+			var dash_x := MeshInstance3D.new()
+			dash_x.name = "LaneDashEW_%d_%d" % [i, j]
+			var dx := BoxMesh.new()
+			dx.size = Vector3(5.0, 0.05, 0.22)
+			dash_x.mesh = dx
+			dash_x.position = Vector3(j * 22.0, 0.16, i * 22.0)
+			dash_x.material_override = lane_mat
+			parent.add_child(dash_x)
+			var dash_z := MeshInstance3D.new()
+			dash_z.name = "LaneDashNS_%d_%d" % [i, j]
+			var dz := BoxMesh.new()
+			dz.size = Vector3(0.22, 0.05, 5.0)
+			dash_z.mesh = dz
+			dash_z.position = Vector3(i * 22.0, 0.17, j * 22.0)
+			dash_z.material_override = lane_mat
+			parent.add_child(dash_z)
+		if i in [-4, -2, 2, 4]:
+			_add_streetlight(parent, Vector3(-11.0, 0.0, i * 22.0), 0.0)
+			_add_streetlight(parent, Vector3(11.0, 0.0, i * 22.0), PI)
+			_add_streetlight(parent, Vector3(i * 22.0, 0.0, -11.0), PI * 0.5)
+			_add_streetlight(parent, Vector3(i * 22.0, 0.0, 11.0), -PI * 0.5)
 
-func _add_rooftop_beacon(parent: Node3D, pos: Vector3) -> void:
+func _add_civic_grid(parent: Node3D) -> void:
+	var grid := Decal.new()
+	grid.name = "CivicGrid_Decal"
+	grid.position = Vector3(0, 0.42, 0)
+	grid.size = Vector3(128.0, 0.2, 128.0)
+	grid.texture_albedo = _city_texture("grid", Color(0.0, 0.0, 0.0, 0.0), Color(0.28, 0.9, 1.0, 0.9), Color(0.04, 0.16, 0.22, 0.35))
+	parent.add_child(grid)
+
+func _add_ground_plate(parent: Node3D) -> void:
+	var ground := MeshInstance3D.new()
+	ground.name = "ModularDistrictGroundPlate"
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(260.0, 0.18, 260.0)
+	ground.mesh = mesh
+	ground.position = Vector3(0, -0.09, 0)
+	ground.material_override = _mat(Color(0.035, 0.045, 0.055, 1.0), Color(0.0, 0.03, 0.05, 1.0), 0.02)
+	ground.material_override.albedo_texture = _city_texture("ground", Color(0.03, 0.045, 0.055, 1.0), Color(0.18, 0.55, 0.7, 0.75), Color(0.0, 0.0, 0.0, 0.0))
+	parent.add_child(ground)
+
+func _add_skyline_props(parent: Node3D) -> void:
+	var accent_mat := _mat(Color(0.25, 0.9, 1.0, 1.0), Color(0.15, 0.75, 1.0, 1.0), 0.85)
+	var magenta_mat := _mat(Color(0.9, 0.25, 0.75, 1.0), Color(0.7, 0.05, 0.45, 1.0), 0.75)
+	for x in [-66.0, 66.0]:
+		for z in [-66.0, 66.0]:
+			_add_plaza_pylon(parent, Vector3(x, 0.0, z), accent_mat if x > 0.0 else magenta_mat)
+	_add_city_prop(parent, "NorthSignalArray", Vector3(0, 0.0, -112.0), Vector3(0, 90, 0), accent_mat)
+	_add_city_prop(parent, "SouthSignalArray", Vector3(0, 0.0, 112.0), Vector3(0, 90, 0), magenta_mat)
+	_add_city_prop(parent, "WestRelayStack", Vector3(-112.0, 0.0, 0), Vector3(0, 0, 0), accent_mat)
+	_add_city_prop(parent, "EastRelayStack", Vector3(112.0, 0.0, 0), Vector3(0, 0, 0), magenta_mat)
+	_add_box(parent, "SkybridgeWestEast", Vector3(120.0, 0.55, 0.55), Vector3(0, 24.0, 0), accent_mat)
+	_add_box(parent, "SkybridgeNorthSouth", Vector3(0.55, 0.55, 120.0), Vector3(0, 24.0, 0), magenta_mat)
+	var arch := MeshInstance3D.new()
+	arch.name = "CentralSkyArch"
+	var arch_mesh := TorusMesh.new()
+	arch_mesh.inner_radius = 28.0
+	arch_mesh.outer_radius = 28.35
+	arch.mesh = arch_mesh
+	arch.position = Vector3(0, 24.0, 0)
+	arch.rotation_degrees = Vector3(90, 0, 0)
+	arch.material_override = _transparent_mat(Color(0.25, 0.9, 1.0, 0.12), Color(0.2, 0.8, 1.0, 1.0), 0.9)
+	parent.add_child(arch)
+
+func _add_plaza_pylon(parent: Node3D, pos: Vector3, mat: Material) -> void:
+	var pylon := Node3D.new()
+	pylon.name = "PlazaPylon"
+	pylon.position = pos
+	parent.add_child(pylon)
+	_add_box(pylon, "PylonShaft", Vector3(1.2, 18.0, 1.2), Vector3(0, 9.0, 0), _mat(Color(0.06, 0.12, 0.16, 1.0), Color(0.0, 0.25, 0.35, 1.0), 0.12))
+	var cap := MeshInstance3D.new()
+	cap.name = "PylonCore"
+	var cap_mesh := SphereMesh.new()
+	cap_mesh.radius = 1.5
+	cap_mesh.height = 3.0
+	cap.mesh = cap_mesh
+	cap.position = Vector3(0, 18.5, 0)
+	cap.material_override = mat
+	pylon.add_child(cap)
+	var light := OmniLight3D.new()
+	light.name = "PylonGlow"
+	light.position = cap.position
+	light.light_color = Color(0.2, 0.85, 1.0, 1.0)
+	light.light_energy = 7.0
+	light.omni_range = 20.0
+	pylon.add_child(light)
+
+func _add_city_prop(parent: Node3D, name: String, pos: Vector3, rot: Vector3, mat: Material) -> void:
+	var prop := Node3D.new()
+	prop.name = name
+	prop.position = pos
+	prop.rotation_degrees = rot
+	parent.add_child(prop)
+	_add_box(prop, "RelayBase", Vector3(12.0, 1.0, 8.0), Vector3(0, 0.5, 0), _mat(Color(0.05, 0.1, 0.14, 1.0), Color(0.0, 0.2, 0.28, 1.0), 0.12))
+	_add_box(prop, "RelayCore", Vector3(5.0, 14.0, 5.0), Vector3(0, 7.0, 0), mat)
+	_add_box(prop, "RelayCrossA", Vector3(16.0, 0.55, 0.55), Vector3(0, 14.0, 0), mat)
+	_add_box(prop, "RelayCrossB", Vector3(0.55, 0.55, 16.0), Vector3(0, 14.0, 0), mat)
+	for side in [-1.0, 1.0]:
+		var dish := MeshInstance3D.new()
+		dish.name = "SignalDish_%s" % str(side)
+		var dish_mesh := CylinderMesh.new()
+		dish_mesh.top_radius = 1.0
+		dish_mesh.bottom_radius = 1.4
+		dish_mesh.height = 0.45
+		dish.mesh = dish_mesh
+		dish.position = Vector3(side * 6.2, 14.0, 0)
+		dish.rotation_degrees = Vector3(90, 0, 0)
+		dish.material_override = mat
+		prop.add_child(dish)
+	var light := OmniLight3D.new()
+	light.name = "RelayGlow"
+	light.position = Vector3(0, 14.0, 0)
+	light.light_color = Color(0.2, 0.85, 1.0, 1.0)
+	light.light_energy = 10.0
+	light.omni_range = 24.0
+	prop.add_child(light)
+
+func _add_transit_corridor(parent: Node3D) -> void:
+	for i in [-4, -2, 2, 4]:
+		_add_transit_support(parent, Vector3(0, 0.0, i * 22.0), false)
+		_add_transit_support(parent, Vector3(i * 22.0, 0.0, 0), true)
+	var gate := _add_transit_support(parent, Vector3(0, 0.0, 0), false)
+	gate.name = "CentralTransitGate"
+	var beam := gate.get_node_or_null("TransitBeam") as MeshInstance3D
+	if beam != null:
+		beam.scale = Vector3(1.35, 1.0, 1.0)
+
+func _add_transit_support(parent: Node3D, pos: Vector3, rotate_beam: bool) -> Node3D:
+	var support := Node3D.new()
+	support.name = "TransitSupport"
+	support.position = pos
+	parent.add_child(support)
+	var mast_mat := _mat(Color(0.08, 0.13, 0.18, 1.0), Color(0.0, 0.25, 0.38, 1.0), 0.12)
+	var glow_mat := _mat(Color(0.25, 0.9, 1.0, 1.0), Color(0.2, 0.8, 1.0, 1.0), 0.8)
+	_add_box(support, "LeftMast", Vector3(0.35, 16.0, 0.35), Vector3(-3.6, 8.0, 0.0), mast_mat)
+	_add_box(support, "RightMast", Vector3(0.35, 16.0, 0.35), Vector3(3.6, 8.0, 0.0), mast_mat)
+	var beam := _add_box(support, "TransitBeam", Vector3(8.2, 0.45, 0.45), Vector3(0, 16.0, 0.0), glow_mat)
+	if rotate_beam:
+		beam.rotation_degrees = Vector3(0, 90, 0)
+	var light := OmniLight3D.new()
+	light.name = "TransitGlow"
+	light.position = Vector3(0, 15.8, 0)
+	light.light_color = Color(0.2, 0.85, 1.0, 1.0)
+	light.light_energy = 8.0
+	light.omni_range = 18.0
+	support.add_child(light)
+	return support
+
+func _add_streetlight(parent: Node3D, pos: Vector3, rot: float) -> void:
+	var light := Node3D.new()
+	light.name = "StreetLight"
+	light.position = pos
+	light.rotation_degrees = Vector3(0, rad_to_deg(rot), 0)
+	parent.add_child(light)
+	_add_box(light, "StreetLightPole", Vector3(0.18, 5.5, 0.18), Vector3(0, 2.75, 0), _mat(Color(0.05, 0.08, 0.11, 1.0), Color(0.0, 0.18, 0.25, 1.0), 0.08))
+	_add_box(light, "StreetLightArm", Vector3(1.8, 0.16, 0.16), Vector3(0.85, 5.35, 0.0), _mat(Color(0.08, 0.12, 0.16, 1.0), Color(0.0, 0.18, 0.25, 1.0), 0.08))
+	var bulb := MeshInstance3D.new()
+	bulb.name = "StreetLightGlow"
+	var bulb_mesh := SphereMesh.new()
+	bulb_mesh.radius = 0.35
+	bulb_mesh.height = 0.7
+	bulb.mesh = bulb_mesh
+	bulb.position = Vector3(1.85, 5.35, 0)
+	bulb.material_override = _mat(Color(0.9, 0.95, 1.0, 1.0), Color(0.55, 0.85, 1.0, 1.0), 1.1)
+	light.add_child(bulb)
+	var omni := OmniLight3D.new()
+	omni.name = "StreetLightOmni"
+	omni.position = bulb.position
+	omni.light_color = Color(0.55, 0.85, 1.0, 1.0)
+	omni.light_energy = 3.0
+	omni.omni_range = 10.0
+	light.add_child(omni)
+
+func _add_floor_strips(parent: Node3D, width: float, depth: float, h: float) -> void:
+	var rows := int(clamp(h / 4.2, 5.0, 11.0))
+	var window_mat := _mat(Color(0.42, 0.88, 1.0, 1.0), Color(0.28, 0.8, 1.0, 1.0), 0.42)
+	var pod_mat := _mat(Color(0.18, 0.32, 0.38, 1.0), Color(0.0, 0.45, 0.6, 1.0), 0.28)
+	for r in range(rows):
+		var y := -h * 0.45 + (float(r) + 0.5) * h / float(rows)
+		_add_box(parent, "WindowStripFront_%d" % r, Vector3(width + 0.08, 0.07, 0.13), Vector3(0, y, depth * 0.5 + 0.08), window_mat)
+		_add_box(parent, "WindowStripBack_%d" % r, Vector3(width + 0.08, 0.07, 0.13), Vector3(0, y, -depth * 0.5 - 0.08), window_mat)
+		if width >= depth:
+			_add_box(parent, "WindowStripLeft_%d" % r, Vector3(0.13, 0.07, depth + 0.08), Vector3(-width * 0.5 - 0.08, y, 0), window_mat)
+			_add_box(parent, "WindowStripRight_%d" % r, Vector3(0.13, 0.07, depth + 0.08), Vector3(width * 0.5 + 0.08, y, 0), window_mat)
+	for r in range(2, max(3, rows - 1), 3):
+		var y := -h * 0.32 + float(r) * h / float(rows)
+		_add_box(parent, "FrontServicePod_%d" % r, Vector3(2.4, 0.75, 1.15), Vector3(-width * 0.22, y, depth * 0.5 + 0.48), pod_mat)
+		_add_box(parent, "BackServicePod_%d" % r, Vector3(2.4, 0.75, 1.15), Vector3(width * 0.22, y, -depth * 0.5 - 0.48), pod_mat)
+
+func _add_vertical_ribs(parent: Node3D, width: float, depth: float, h: float, collector: bool) -> void:
+	var rib_mat := _mat(Color(0.16, 0.24, 0.29, 1.0), Color(0.0, 0.25, 0.34, 1.0), 0.1)
+	if collector:
+		rib_mat = _mat(Color(0.18, 0.34, 0.42, 1.0), Color(0.0, 0.45, 0.65, 1.0), 0.2)
+	_add_box(parent, "FrontLeftRib", Vector3(0.18, h + 0.3, 0.18), Vector3(-width * 0.48, 0.0, depth * 0.48), rib_mat)
+	_add_box(parent, "FrontRightRib", Vector3(0.18, h + 0.3, 0.18), Vector3(width * 0.48, 0.0, depth * 0.48), rib_mat)
+	_add_box(parent, "BackLeftRib", Vector3(0.18, h + 0.3, 0.18), Vector3(-width * 0.48, 0.0, -depth * 0.48), rib_mat)
+	_add_box(parent, "BackRightRib", Vector3(0.18, h + 0.3, 0.18), Vector3(width * 0.48, 0.0, -depth * 0.48), rib_mat)
+
+func _add_roof_detail(parent: Node3D, width: float, depth: float, h: float, x: int, z: int, collector: bool) -> void:
+	var cap_mat := _mat(Color(0.18, 0.28, 0.34, 1.0), Color(0.0, 0.32, 0.42, 1.0), 0.12)
+	var roof := _add_box(parent, "RooftopCap", Vector3(width + 0.8, 0.45, depth + 0.8), Vector3(0, h * 0.5 + 0.22, 0), cap_mat)
+	var antenna := MeshInstance3D.new()
+	antenna.name = "RooftopAntenna"
+	var antenna_mesh := CylinderMesh.new()
+	antenna_mesh.top_radius = 0.18
+	antenna_mesh.bottom_radius = 0.18
+	antenna_mesh.height = 3.0
+	antenna.mesh = antenna_mesh
+	antenna.position = Vector3(0, h * 0.5 + 1.9, 0)
+	antenna.material_override = _mat(Color(0.2, 0.9, 1.0, 1.0), Color(0.2, 0.9, 1.0, 1.0), 0.9)
+	parent.add_child(antenna)
+	if collector:
+		_add_box(parent, "CollectorCrown", Vector3(width * 0.7, 3.2, depth * 0.7), Vector3(0, h * 0.5 + 2.2, 0), _mat(Color(0.12, 0.32, 0.42, 1.0), Color(0.0, 0.7, 1.0, 1.0), 0.7))
+		var spire := MeshInstance3D.new()
+		spire.name = "CollectorSpire"
+		var spire_mesh := CylinderMesh.new()
+		spire_mesh.top_radius = 0.18
+		spire_mesh.bottom_radius = 0.55
+		spire_mesh.height = 7.5
+		spire.mesh = spire_mesh
+		spire.position = Vector3(0, h * 0.5 + 6.1, 0)
+		spire.material_override = _mat(Color(0.25, 0.95, 1.0, 1.0), Color(0.1, 0.8, 1.0, 1.0), 1.0)
+		parent.add_child(spire)
+	elif (x + z) % 4 == 0:
+		_add_box(parent, "CrownBlock", Vector3(width * 0.55, 2.8, depth * 0.55), Vector3(0, h * 0.5 + 1.85, 0), _mat(Color(0.22, 0.3, 0.36, 1.0), Color(0.0, 0.35, 0.48, 1.0), 0.25))
+	elif (x - z) % 4 == 0:
+		var spire := MeshInstance3D.new()
+		spire.name = "SignalSpire"
+		var spire_mesh := CylinderMesh.new()
+		spire_mesh.top_radius = 0.18
+		spire_mesh.bottom_radius = 0.7
+		spire_mesh.height = 5.5
+		spire.mesh = spire_mesh
+		spire.position = Vector3(0, h * 0.5 + 3.3, 0)
+		spire.material_override = _mat(Color(0.22, 0.88, 1.0, 1.0), Color(0.1, 0.7, 1.0, 1.0), 0.85)
+		parent.add_child(spire)
+	if collector or (abs(x) + abs(z)) % 5 == 0:
+		var pad := MeshInstance3D.new()
+		pad.name = "RooftopDronePad"
+		var pad_mesh := CylinderMesh.new()
+		pad_mesh.top_radius = 2.2
+		pad_mesh.bottom_radius = 2.2
+		pad_mesh.height = 0.18
+		pad.mesh = pad_mesh
+		pad.position = Vector3(0, h * 0.5 + 0.42, 0)
+		pad.material_override = _mat(Color(0.04, 0.11, 0.16, 1.0), Color(0.0, 0.35, 0.5, 1.0), 0.25)
+		parent.add_child(pad)
+		var ring := MeshInstance3D.new()
+		ring.name = "DronePadRing"
+		var ring_mesh := TorusMesh.new()
+		ring_mesh.inner_radius = 2.0
+		ring_mesh.outer_radius = 2.25
+		ring.mesh = ring_mesh
+		ring.position = Vector3(0, h * 0.5 + 0.58, 0)
+		ring.rotation_degrees = Vector3(90, 0, 0)
+		ring.material_override = _mat(Color(0.35, 0.9, 1.0, 1.0), Color(0.25, 0.8, 1.0, 1.0), 0.9)
+		parent.add_child(ring)
+	if collector:
+		for offset in [3.0, 5.0]:
+			var ring := MeshInstance3D.new()
+			ring.name = "CollectorEnergyRing_%s" % str(offset)
+			var ring_mesh := TorusMesh.new()
+			ring_mesh.inner_radius = max(width, depth) * 0.55 + offset
+			ring_mesh.outer_radius = ring_mesh.inner_radius + 0.18
+			ring.mesh = ring_mesh
+			ring.position = Vector3(0, h * 0.5 + offset, 0)
+			ring.rotation_degrees = Vector3(90, 0, 0)
+			ring.material_override = _transparent_mat(Color(0.0, 0.55, 0.9, 0.28), Color(0.0, 0.9, 1.0, 1.0), 0.75)
+			parent.add_child(ring)
+		var core := MeshInstance3D.new()
+		core.name = "CollectorCoreGlow"
+		var core_mesh := CylinderMesh.new()
+		core_mesh.top_radius = 1.2
+		core_mesh.bottom_radius = 1.2
+		core_mesh.height = h + 4.0
+		core.mesh = core_mesh
+		core.position = Vector3(0, 0, 0)
+		core.material_override = _transparent_mat(Color(0.0, 0.45, 0.8, 0.08), Color(0.0, 0.8, 1.0, 1.0), 0.65)
+		parent.add_child(core)
+
+func _add_rooftop_beacon(parent: Node3D, pos: Vector3, collector: bool = false) -> void:
 	var beacon := MeshInstance3D.new()
 	beacon.name = "RooftopBeacon"
 	var mesh := SphereMesh.new()
-	mesh.radius = 0.7
-	mesh.height = 1.4
+	mesh.radius = 1.0 if collector else 0.7
+	mesh.height = 2.0 if collector else 1.4
 	beacon.mesh = mesh
 	beacon.position = pos
-	beacon.material_override = _mat(Color(0.2, 0.9, 1.0, 1.0), Color(0.2, 0.9, 1.0, 1.0), 0.9)
+	beacon.material_override = _mat(Color(0.2, 0.9, 1.0, 1.0), Color(0.2, 0.9, 1.0, 1.0), 1.1 if collector else 0.9)
 	parent.add_child(beacon)
+
+func _add_box(parent: Node3D, name: String, size: Vector3, pos: Vector3, mat: Material) -> MeshInstance3D:
+	var box := MeshInstance3D.new()
+	box.name = name
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	box.mesh = mesh
+	box.position = pos
+	box.material_override = mat
+	parent.add_child(box)
+	return box
 
 func _build_hero() -> void:
 	hero = LUMEN_SCENE.instantiate() as Node3D
@@ -843,6 +1131,50 @@ func _update_rogue_drone(marker: Node3D, delta: float) -> void:
 	marker.rotate_y(delta * 1.8)
 	if is_instance_valid(rogue_drone_actor):
 		rogue_drone_actor.rotate_y(delta * 2.4)
+
+func _city_facade_material(h: float, x: int, z: int, width: float, depth: float, collector: bool) -> StandardMaterial3D:
+	var base := Color(0.09 + float(abs(x + z) % 4) * 0.018, 0.13 + float(abs(x - z) % 5) * 0.015, 0.18 + float(abs(x * z) % 4) * 0.014, 1.0)
+	var accent := Color(0.32, 0.88 + float(abs(x - z) % 3) * 0.03, 1.0, 1.0)
+	if collector:
+		base = Color(0.07, 0.22, 0.32, 1.0)
+		accent = Color(0.35, 1.0, 1.0, 1.0)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_texture = _city_texture("facade", base, accent, Color(0.03, 0.08, 0.11, 1.0))
+	mat.albedo_color = Color(0.95, 1.0, 1.0, 1.0)
+	mat.emission_enabled = collector or h > 42.0
+	mat.emission = Color(0.0, 0.18, 0.25, 1.0) if collector else Color(0.0, 0.08, 0.12, 1.0)
+	mat.emission_energy_multiplier = 0.16 if collector else 0.07
+	mat.roughness = 0.42
+	mat.metallic = 0.14
+	return mat
+
+func _city_texture(kind: String, base: Color, accent: Color, grid: Color) -> ImageTexture:
+	var img := Image.create(128, 128, false, Image.FORMAT_RGBA8)
+	for y in range(128):
+		for x in range(128):
+			var c := base
+			if kind == "facade":
+				var px := x % 16
+				var py := y % 16
+				if px == 0 or py == 0:
+					c = grid
+				elif px >= 5 and px <= 10 and py >= 3 and py <= 12:
+					c = accent
+				elif py >= 13 and py <= 14:
+					c = Color(base.r * 0.75, base.g * 0.85, base.b * 0.95, 1.0)
+			else:
+				var on_line := x % 16 == 0 or y % 16 == 0
+				var on_node := (x % 32 >= 14 and x % 32 <= 17) and (y % 32 >= 14 and y % 32 <= 17)
+				if on_node:
+					c = accent
+				elif on_line:
+					c = grid
+				else:
+					c.a = 0.0
+			img.set_pixel(x, y, c)
+	var tex := ImageTexture.new()
+	tex.create_from_image(img)
+	return tex
 
 func _mat(albedo: Color, emission: Color, energy: float) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
