@@ -23,6 +23,7 @@ var mission_step: int = 0
 var event_timer: float = 0.0
 var next_event_seconds: float = 6.0
 var rng := RandomNumberGenerator.new()
+var _cleanup_tweens: Array[Tween] = []
 
 const EVENT_RESOLVE_RADIUS: float = 18.0
 
@@ -48,6 +49,10 @@ func _ready() -> void:
 		call_deferred("_capture_after_delay")
 	elif OS.get_environment("AURORA_AUTO_QUIT") == "1":
 		call_deferred("_quit_after_delay")
+
+func _remember_tween(t: Tween) -> Tween:
+	_cleanup_tweens.append(t)
+	return t
 
 func _build_audio() -> void:
 	AuroraAudio.start_loop("ambience_city_base_loop")
@@ -666,7 +671,7 @@ func _spawn_event(kind: String, pos: Vector3) -> void:
 	marker.add_child(beacon)
 
 	# --- Pulsing animation ---
-	var tween := create_tween().set_loops()
+	var tween := _remember_tween(create_tween().set_loops())
 	tween.tween_property(beacon, "scale", beacon_scale * 1.35, 0.8)
 	tween.tween_property(beacon, "scale", beacon_scale, 0.8)
 
@@ -680,7 +685,7 @@ func _spawn_event(kind: String, pos: Vector3) -> void:
 	glow_ring.position = Vector3(0, -pos.y * 0.3, 0)
 	glow_ring.material_override = _transparent_mat(Color(color.r, color.g, color.b, 0.15), color, 1.0)
 	marker.add_child(glow_ring)
-	var ring_tween := create_tween().set_loops()
+	var ring_tween := _remember_tween(create_tween().set_loops())
 	ring_tween.tween_property(glow_ring, "rotation:y", TAU, 4.0)
 
 	# --- Type-specific visuals ---
@@ -715,7 +720,7 @@ func _spawn_event(kind: String, pos: Vector3) -> void:
 			var spark_color := Color(1.0, 0.3 + float(i) * 0.15, 0.0, 1.0)
 			spark.material_override = _mat(spark_color, spark_color, 2.5)
 			marker.add_child(spark)
-			var spark_tween := create_tween().set_loops()
+			var spark_tween := _remember_tween(create_tween().set_loops())
 			spark_tween.tween_property(spark, "position:y", spark.position.y + 3.0, 0.3 + float(i) * 0.1)
 			spark_tween.tween_property(spark, "position:y", spark.position.y, 0.3 + float(i) * 0.1)
 	elif kind == "power_surge":
@@ -729,7 +734,7 @@ func _spawn_event(kind: String, pos: Vector3) -> void:
 			arc.position = Vector3(0, float(i) * 1.5, 0)
 			arc.material_override = _transparent_mat(Color(0.2, 0.85, 1.0, 0.3), Color(0.2, 0.85, 1.0, 1.0), 1.5)
 			marker.add_child(arc)
-			var arc_tween := create_tween().set_loops()
+			var arc_tween := _remember_tween(create_tween().set_loops())
 			arc_tween.tween_property(arc, "rotation:x", arc.rotation.x + TAU, 1.0 + float(i) * 0.5)
 	elif kind == "rescue_signal":
 		var cross_h := MeshInstance3D.new()
@@ -927,7 +932,7 @@ func _spawn_power_flash(power_id: String) -> void:
 	if power_id == "aegis_field": c = Color(0.2, 0.65, 1.0, 1.0)
 	flash.material_override = _mat(c, c, 1.8)
 	add_child(flash)
-	var tween := create_tween()
+	var tween := _remember_tween(create_tween())
 	tween.tween_property(flash, "scale", Vector3(7, 7, 7), 0.35)
 	tween.parallel().tween_property(flash, "transparency", 1.0, 0.35)
 	tween.tween_callback(flash.queue_free)
@@ -1206,9 +1211,29 @@ func _capture_after_delay() -> void:
 	var err: Error = image.save_png(path)
 	print("AURORA_SCREENSHOT: ", path, " err=", err, " size=", image.get_width(), "x", image.get_height())
 	await get_tree().create_timer(0.2).timeout
+	await _cleanup_for_quit()
 	get_tree().quit(0)
 
 func _quit_after_delay() -> void:
 	await get_tree().create_timer(2.0).timeout
 	print("AURORA_SMOKE: level=", progression.level, " events=", event_nodes.size(), " hero_y=", hero.position.y)
+	await _cleanup_for_quit()
 	get_tree().quit(0)
+
+func _cleanup_for_quit() -> void:
+	set_process(false)
+	set_physics_process(false)
+	set_process_input(false)
+	set_process_unhandled_input(false)
+	set_process_unhandled_key_input(false)
+	for tween in _cleanup_tweens:
+		if is_instance_valid(tween):
+			tween.stop()
+			tween.kill()
+	var was_paused: bool = get_tree().paused
+	get_tree().paused = true
+	AuroraAudio.stop_all()
+	for child in get_children():
+		child.free()
+	get_tree().paused = was_paused
+	await get_tree().process_frame
