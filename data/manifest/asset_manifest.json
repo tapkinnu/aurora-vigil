@@ -1,0 +1,268 @@
+{
+  "pack": "aurora-vigil",
+  "version": "0.1.0",
+  "generated_at": "2026-06-16",
+  "status": "backlog",
+  "style": "stylized near-future superhero, teal-black-gold palette",
+  "providers": {
+    "3d_characters": {
+      "primary": "Meshy AI",
+      "fallback": "FAL Hunyuan3D / Hyper3D Rodin / Trellis / TripoSR",
+      "stand_in": "Godot CSG + primitives [STAND-IN]"
+    },
+    "3d_props": {
+      "primary": "FAL 3D endpoints",
+      "fallback": "Godot CSG + primitives [STAND-IN]"
+    },
+    "sfx_mechanical_ui": {
+      "source": "Kenney CC0",
+      "packs": ["sci-fi-sounds", "impact-sounds", "interface-sounds"],
+      "license": "CC0"
+    },
+    "sfx_creatures_stingers": {
+      "source": "FAL stable-audio (Open)",
+      "endpoint": "fal-ai/stable-audio",
+      "field": "seconds_total",
+      "result_key": "audio_file",
+      "output_format": "WAV",
+      "license": "Stability AI Community License"
+    },
+    "music": {
+      "source": "FAL stable-audio-25",
+      "endpoint": "fal-ai/stable-audio-25/text-to-audio",
+      "field": "seconds_total",
+      "result_key": "audio",
+      "output_format": "WAV",
+      "license": "Stability AI Community License"
+    },
+    "voices": {
+      "primary": "FAL ElevenLabs TTS (turbo-v2.5)",
+      "fallback": "FAL MiniMax / direct MiniMax speech-2.8-hd",
+      "last_resort": "Google Gemini TTS (gemini-2.5-flash-preview-tts)",
+      "rule": "Every recurring character gets a distinct voice"
+    }
+  },
+  "characters": {
+    "hero": [
+      {
+        "id": "lumen",
+        "name": "The Lumen",
+        "asset_path": "res://assets/3d/characters/lumen/lumen_body.glb",
+        "provider": "Meshy AI",
+        "status": "backlog",
+        "scale_verification": "MUST verify bounding-box height ≈ 1.8 m in Godot before scene integration",
+        "target_triangles": "~20000",
+        "animations": ["idle", "walk", "run", "flight_idle", "flight_boost", "flight_ascend", "flight_descend", "attack_pose", "hit_react", "death", "rescue_carry"],
+        "measured_height_m": null,
+        "notes": "Teal-black armor, gold ion mantle fins. No caped red-blue iconography."
+      }
+    ],
+    "civilians": [
+      {
+        "id": "civilian_male",
+        "name": "Civilian (Male)",
+        "asset_path": "res://assets/3d/characters/civilians/civilian_male.glb",
+        "provider": "Meshy AI",
+        "status": "backlog",
+        "scale_verification": "MUST verify bounding-box height ≈ 1.7–1.8 m",
+        "target_triangles": "~15000",
+        "animations": ["idle", "walk", "run", "panic_flee", "rescue_taken"],
+        "measured_height_m": null,
+        "variant_count": "1–3"
+      },
+      {
+        "id": "civilian_female",
+        "name": "Civilian (Female)",
+        "asset_path": "res://assets/3d/characters/civilians/civilian_female.glb",
+        "provider": "Meshy AI",
+        "status": "backlog",
+        "scale_verification": "MUST verify bounding-box height ≈ 1.7–1.8 m",
+        "target_triangles": "~15000",
+        "animations": ["idle", "walk", "run", "panic_flee", "rescue_taken"],
+        "measured_height_m": null,
+        "variant_count": "1–3"
+      },
+      {
+        "id": "civilian_child",
+        "name": "Civilian (Child)",
+        "asset_path": "res://assets/3d/characters/civilians/civilian_child.glb",
+        "provider": "Meshy AI",
+        "status": "backlog",
+        "scale_verification": "MUST verify bounding-box height ≈ 1.1–1.3 m",
+        "target_triangles": "~10000",
+        "animations": ["idle", "walk", "cling"],
+        "measured_height_m": null,
+        "variant_count": "1"
+      }
+    ],
+    "enemies": [
+      {
+        "id": "drone_scout",
+        "name": "Scout Drone",
+        "asset_path": "res://assets/3d/characters/enemies/drone_scout.glb",
+        "provider": "Meshy AI or FAL 3D (non-humanoid)",
+        "status": "backlog",
+        "scale_verification": "MUST verify scale relative to hero (small, ~0.5 m)",
+        "target_triangles": "~8000",
+        "animations": ["idle", "fly_patrol", "fly_attack", "hit", "death_spiral", "deactivated"],
+        "measured_height_m": null,
+        "notes": "Small civic drone, repurposed hostile. Glowing teal eye."
+      },
+      {
+        "id": "drone_heavy",
+        "name": "Heavy Combat Drone",
+        "asset_path": "res://assets/3d/characters/enemies/drone_heavy.glb",
+        "provider": "Meshy AI or FAL 3D (non-humanoid)",
+        "status": "backlog",
+        "scale_verification": "MUST verify scale (large, ~2–3 m)",
+        "target_triangles": "~12000",
+        "animations": ["idle", "fly_patrol", "charge_attack", "hit", "death_explode"],
+        "measured_height_m": null,
+        "notes": "Null Choir acoustic combat drone with resonator horns."
+      },
+      {
+        "id": "null_choir_soldier",
+        "name": "Null Choir Soldier",
+        "asset_path": "res://assets/3d/characters/enemies/null_choir_soldier.glb",
+        "provider": "Meshy AI",
+        "status": "backlog",
+        "scale_verification": "MUST verify bounding-box height ≈ 1.8 m (humanoid in exo-armor)",
+        "target_triangles": "~18000",
+        "animations": ["idle", "walk", "run", "attack_melee", "attack_ranged", "hit", "death"],
+        "measured_height_m": null,
+        "notes": "Matte-black exo-armor with resonator backpack."
+      },
+      {
+        "id": "heliostat_enforcer",
+        "name": "Heliostat Enforcer",
+        "asset_path": "res://assets/3d/characters/enemies/heliostat_enforcer.glb",
+        "provider": "Meshy AI",
+        "status": "backlog",
+        "scale_verification": "MUST verify bounding-box height ≈ 1.8 m",
+        "target_triangles": "~18000",
+        "animations": ["idle", "walk", "run", "attack_ranged", "hit", "death"],
+        "measured_height_m": null,
+        "notes": "Sleek dark green armor with gold trim."
+      },
+      {
+        "id": "storm_child_charger",
+        "name": "Storm Child Charger",
+        "asset_path": "res://assets/3d/characters/enemies/storm_child_charger.glb",
+        "provider": "Meshy AI",
+        "status": "backlog",
+        "scale_verification": "MUST verify bounding-box height ≈ 1.8 m",
+        "target_triangles": "~18000",
+        "animations": ["idle", "lunge", "attack_energy", "hit", "death_dissipate"],
+        "measured_height_m": null,
+        "notes": "Civilian transformed by atmospheric event — unstable energy aura."
+      }
+    ]
+  },
+  "props": [
+    {"id": "aurora_collector_tower", "name": "Aurora Collector Tower", "path": "res://assets/3d/props/aurora_collector_tower.glb", "provider": "FAL 3D", "status": "backlog", "variants": "2–3"},
+    {"id": "transit_line_support", "name": "Transit Line Support", "path": "res://assets/3d/props/transit_line_support.glb", "provider": "FAL 3D", "status": "backlog", "variants": "4+"},
+    {"id": "street_lamp_meridian", "name": "Meridian Street Lamp", "path": "res://assets/3d/props/street_lamp_meridian.glb", "provider": "FAL 3D", "status": "backlog", "variants": "3+"},
+    {"id": "civic_terminal", "name": "Civic Terminal", "path": "res://assets/3d/props/civic_terminal.glb", "provider": "FAL 3D", "status": "backlog", "variants": "1–2"},
+    {"id": "residential_block_modular", "name": "Residential Block (Modular Kit)", "path": "res://assets/3d/props/residential_block_modular.glb", "provider": "FAL 3D", "status": "backlog", "variants": "4–6 pieces"},
+    {"id": "commercial_tower_modular", "name": "Commercial Tower (Modular Kit)", "path": "res://assets/3d/props/commercial_tower_modular.glb", "provider": "FAL 3D", "status": "backlog", "variants": "3–5 pieces"},
+    {"id": "construction_crane", "name": "Construction Crane", "path": "res://assets/3d/props/construction_crane.glb", "provider": "FAL 3D", "status": "backlog", "variants": "1–2"},
+    {"id": "fire_escape_ladder", "name": "Fire Escape Ladder", "path": "res://assets/3d/props/fire_escape_ladder.glb", "provider": "FAL 3D", "status": "backlog", "variants": "1–2"},
+    {"id": "vehicle_parked_car", "name": "Parked Car", "path": "res://assets/3d/props/vehicle_parked_car.glb", "provider": "FAL 3D", "status": "backlog", "variants": "2–3"},
+    {"id": "vehicle_transit_pod", "name": "Transit Pod", "path": "res://assets/3d/props/vehicle_transit_pod.glb", "provider": "FAL 3D", "status": "backlog", "variants": "1–2"},
+    {"id": "drone_pad", "name": "Drone Pad", "path": "res://assets/3d/props/drone_pad.glb", "provider": "FAL 3D", "status": "backlog", "variants": "1–2"},
+    {"id": "null_resonator_emitter", "name": "Null Resonator Emitter", "path": "res://assets/3d/props/null_resonator_emitter.glb", "provider": "FAL 3D", "status": "backlog", "variants": "1–2"}
+  ],
+  "vfx": [
+    {"id": "vfx_ion_trail", "name": "Ion Flight Trail", "path": "res://assets/3d/vfx/vfx_ion_trail.png", "size": [512, 256], "status": "backlog"},
+    {"id": "vfx_aurora_beam", "name": "Aurora Beam VFX", "path": "res://assets/3d/vfx/vfx_aurora_beam.png", "size": [512, 512], "status": "backlog"},
+    {"id": "vfx_sonic_ring", "name": "Sonic Burst Ring", "path": "res://assets/3d/vfx/vfx_sonic_ring.png", "size": [512, 512], "status": "backlog"},
+    {"id": "vfx_aegis_shield", "name": "Aegis Shield Overlay", "path": "res://assets/3d/vfx/vfx_aegis_shield.png", "size": [512, 512], "status": "backlog"},
+    {"id": "vfx_explosion_generic", "name": "Generic Explosion", "path": "res://assets/3d/vfx/vfx_explosion_generic.png", "type": "spritesheet", "status": "backlog"},
+    {"id": "vfx_energy_impact", "name": "Energy Impact", "path": "res://assets/3d/vfx/vfx_energy_impact.png", "size": [256, 256], "status": "backlog"},
+    {"id": "decal_scorch_mark", "name": "Scorch Mark Decal", "path": "res://assets/3d/decal/decal_scorch_mark.png", "size": [256, 256], "status": "backlog"},
+    {"id": "decal_hologram_flicker", "name": "Hologram Flicker", "path": "res://assets/3d/decal/decal_hologram_flicker.png", "type": "spritesheet", "status": "backlog"}
+  ],
+  "ui": [
+    {"id": "hud_power_flight", "name": "HUD: Flight Icon", "path": "res://assets/ui/icons/hud_power_flight.png", "size": [128, 128], "status": "backlog"},
+    {"id": "hud_power_boost", "name": "HUD: Boost Icon", "path": "res://assets/ui/icons/hud_power_boost.png", "size": [128, 128], "status": "backlog"},
+    {"id": "hud_power_radiant_beam", "name": "HUD: Radiant Beam Icon", "path": "res://assets/ui/icons/hud_power_radiant_beam.png", "size": [128, 128], "status": "backlog"},
+    {"id": "hud_power_sonic_burst", "name": "HUD: Sonic Burst Icon", "path": "res://assets/ui/icons/hud_power_sonic_burst.png", "size": [128, 128], "status": "backlog"},
+    {"id": "hud_power_aegis", "name": "HUD: Aegis Icon", "path": "res://assets/ui/icons/hud_power_aegis.png", "size": [128, 128], "status": "backlog"},
+    {"id": "hud_power_rescue", "name": "HUD: Rescue Icon", "path": "res://assets/ui/icons/hud_power_rescue.png", "size": [128, 128], "status": "backlog"},
+    {"id": "hud_power_orbit_sprint", "name": "HUD: Orbit Sprint Icon", "path": "res://assets/ui/icons/hud_power_orbit_sprint.png", "size": [128, 128], "status": "backlog"},
+    {"id": "hud_objective_marker", "name": "HUD: Objective Marker", "path": "res://assets/ui/icons/hud_objective_marker.png", "size": [64, 64], "status": "backlog"}
+  ],
+  "audio": {
+    "sfx": {
+      "flight": [
+        {"id": "flight_whoosh_loop", "path": "res://assets/audio/sfx/flight/flight_whoosh_loop.ogg", "source": "Kenney sci-fi-sounds", "status": "backlog"},
+        {"id": "flight_boost_burst", "path": "res://assets/audio/sfx/flight/flight_boost_burst.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "flight_ascend", "path": "res://assets/audio/sfx/flight/flight_ascend.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "flight_descend", "path": "res://assets/audio/sfx/flight/flight_descend.ogg", "source": "Kenney sci-fi-sounds", "status": "backlog"}
+      ],
+      "powers": [
+        {"id": "power_radiant_beam_fire", "path": "res://assets/audio/sfx/powers/power_radiant_beam_fire.ogg", "source": "Kenney sci-fi-sounds", "status": "backlog"},
+        {"id": "power_radiant_beam_charge", "path": "res://assets/audio/sfx/powers/power_radiant_beam_charge.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "power_sonic_burst", "path": "res://assets/audio/sfx/powers/power_sonic_burst.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "power_aegis_activate", "path": "res://assets/audio/sfx/powers/power_aegis_activate.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "power_aegis_impact", "path": "res://assets/audio/sfx/powers/power_aegis_impact.ogg", "source": "Kenney impact-sounds", "status": "backlog"},
+        {"id": "power_rescue_lift", "path": "res://assets/audio/sfx/powers/power_rescue_lift.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "power_orbit_sprint", "path": "res://assets/audio/sfx/powers/power_orbit_sprint.ogg", "source": "FAL stable-audio", "status": "backlog"}
+      ],
+      "ui": [
+        {"id": "ui_click", "path": "res://assets/audio/sfx/ui/ui_click.ogg", "source": "Kenney interface-sounds", "status": "backlog"},
+        {"id": "ui_confirm", "path": "res://assets/audio/sfx/ui/ui_confirm.ogg", "source": "Kenney interface-sounds", "status": "backlog"},
+        {"id": "ui_error", "path": "res://assets/audio/sfx/ui/ui_error.ogg", "source": "Kenney interface-sounds", "status": "backlog"},
+        {"id": "ui_level_up", "path": "res://assets/audio/sfx/ui/ui_level_up.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "ui_power_unlock", "path": "res://assets/audio/sfx/ui/ui_power_unlock.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "ui_mission_start", "path": "res://assets/audio/sfx/ui/ui_mission_start.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "ui_mission_complete", "path": "res://assets/audio/sfx/ui/ui_mission_complete.ogg", "source": "FAL stable-audio", "status": "backlog"}
+      ],
+      "events": [
+        {"id": "event_alert_incoming", "path": "res://assets/audio/sfx/events/event_alert_incoming.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "event_alert_rescue_needed", "path": "res://assets/audio/sfx/events/event_alert_rescue_needed.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "event_alert_disaster", "path": "res://assets/audio/sfx/events/event_alert_disaster.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "event_alert_drone_swarm", "path": "res://assets/audio/sfx/events/event_alert_drone_swarm.ogg", "source": "FAL stable-audio", "status": "backlog"}
+      ],
+      "stingers": [
+        {"id": "stinger_mission_intro", "path": "res://assets/audio/sfx/stingers/stinger_mission_intro.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "stinger_victory", "path": "res://assets/audio/sfx/stingers/stinger_victory.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "stinger_defeat", "path": "res://assets/audio/sfx/stingers/stinger_defeat.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "stinger_boss_reveal", "path": "res://assets/audio/sfx/stingers/stinger_boss_reveal.ogg", "source": "FAL stable-audio", "status": "backlog"}
+      ]
+    },
+    "ambience": [
+      {"id": "ambience_city_base_loop", "path": "res://assets/audio/ambience/ambience_city_base_loop.ogg", "source": "FAL stable-audio", "status": "backlog"},
+      {"id": "ambience_city_night_loop", "path": "res://assets/audio/ambience/ambience_city_night_loop.ogg", "source": "FAL stable-audio", "status": "backlog"}
+    ],
+    "music": [
+      {"id": "music_menu_theme", "path": "res://assets/audio/music/music_menu_theme.ogg", "source": "FAL stable-audio-25", "bpm": 90, "key": "D minor", "status": "backlog"},
+      {"id": "music_city_exploration", "path": "res://assets/audio/music/music_city_exploration.ogg", "source": "FAL stable-audio-25", "bpm": 90, "key": "D minor", "status": "backlog"},
+      {"id": "music_combat", "path": "res://assets/audio/music/music_combat.ogg", "source": "FAL stable-audio-25", "bpm": 90, "key": "D minor", "status": "backlog"},
+      {"id": "music_story_mission", "path": "res://assets/audio/music/music_story_mission.ogg", "source": "FAL stable-audio-25", "bpm": 90, "key": "D minor", "status": "backlog"},
+      {"id": "music_victory_theme", "path": "res://assets/audio/music/music_victory_theme.ogg", "source": "FAL stable-audio-25", "bpm": 90, "key": "D minor", "status": "backlog"}
+    ],
+    "voices": [
+      {"id": "civic_grid", "name": "Civic Grid AI", "path": "res://assets/audio/voices/civic_grid/", "source": "FAL ElevenLabs TTS", "voice_profile": "Calm synthetic alto, clipped, radio-bandpass", "status": "backlog", "line_count": "10–15"},
+      {"id": "civilian_panicked", "name": "Civilian (Panicked)", "path": "res://assets/audio/voices/civilian_panicked/", "source": "FAL ElevenLabs TTS", "voice_profile": "Young adult female, breathy, urgent", "status": "backlog", "line_count": "8–12"},
+      {"id": "civilian_grateful", "name": "Civilian (Grateful)", "path": "res://assets/audio/voices/civilian_grateful/", "source": "FAL ElevenLabs TTS", "voice_profile": "Middle-aged male, warm, relieved", "status": "backlog", "line_count": "6–10"},
+      {"id": "null_choir_cmdr", "name": "Null Choir Commander", "path": "res://assets/audio/voices/null_choir_cmdr/", "source": "FAL ElevenLabs TTS", "voice_profile": "Deep male, distorted through resonator mask, threatening", "status": "backlog", "line_count": "8–12"},
+      {"id": "heliostat_lt", "name": "Heliostat Lieutenant", "path": "res://assets/audio/voices/heliostat_lt/", "source": "FAL ElevenLabs TTS", "voice_profile": "Female, corporate-cold, precise", "status": "backlog", "line_count": "6–10"},
+      {"id": "emergency_dispatcher", "name": "Emergency Dispatcher", "path": "res://assets/audio/voices/emergency_dispatcher/", "source": "FAL ElevenLabs TTS", "voice_profile": "Male, professional, rapid-fire", "status": "backlog", "line_count": "8–12"}
+    ]
+  },
+  "provenance": {
+    "kenney_license": "CC0 — no attribution required",
+    "fal_license": "Stability AI Community License — verify current terms before commercial release",
+    "tts_license": "FAL ElevenLabs — verify commercial use terms",
+    "sources_file": "res://assets/SOURCES.md"
+  },
+  "open_questions": [
+    "Confirm Meshy API key and credit budget for character generation",
+    "Confirm FAL_KEY is set and which FAL plan (free vs. paid)",
+    "Confirm ElevenLabs voice IDs for each character role",
+    "Confirm target polygon budgets per character class",
+    "Confirm whether to generate all 6 music tracks now or defer to polish phase",
+    "Confirm Meridian City district count for full release"
+  ]
+}
