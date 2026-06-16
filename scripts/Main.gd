@@ -37,6 +37,7 @@ func _ready() -> void:
 	_build_city()
 	_build_hero()
 	_build_events_seed()
+	_stage_capture_scene()
 	_build_hud()
 	_update_hud()
 	if OS.get_environment("AURORA_CAPTURE_PATH") != "":
@@ -195,6 +196,21 @@ func _build_hero() -> void:
 	_add_part(hero, "ChestAuroraSigil", BoxMesh.new(), Vector3(0, 0.48, -0.42), Vector3(0.46, 0.14, 0.05), Color(1.0, 0.82, 0.18, 1), Color(1.0, 0.78, 0.2, 1), 0.7)
 	_add_part(hero, "LeftIonMantleFin", BoxMesh.new(), Vector3(-0.58, 0.22, 0.48), Vector3(0.13, 1.4, 0.65), Color(0.95, 0.65, 0.12, 0.75), Color(1.0, 0.65, 0.1, 1), 0.35)
 	_add_part(hero, "RightIonMantleFin", BoxMesh.new(), Vector3(0.58, 0.22, 0.48), Vector3(0.13, 1.4, 0.65), Color(0.95, 0.65, 0.12, 0.75), Color(1.0, 0.65, 0.1, 1), 0.35)
+
+func _stage_capture_scene() -> void:
+	var mode := OS.get_environment("AURORA_CAPTURE_MODE")
+	if mode == "gameplay":
+		# Stage gameplay captures in the open central avenue so the chase camera
+		# reads as city flight instead of starting with a tower face behind the hero.
+		hero.position = Vector3(-8, 34, 10)
+	elif mode == "drone":
+		# Put the hero in the same air corridor as the seeded rogue drone; the drone
+		# camera frames the pair instead of only the event volume.
+		hero.position = Vector3(-12, 46, 52)
+	elif mode == "closeup":
+		# Pull the close-up back into the central avenue so the hero silhouettes
+		# against sky/open street depth, not a skyscraper wall.
+		hero.position = Vector3(0, 34, 4)
 
 func _add_part(parent: Node3D, part_name: String, mesh: Mesh, pos: Vector3, scale_v: Vector3, albedo: Color, emission: Color, energy: float) -> void:
 	var mi := MeshInstance3D.new()
@@ -523,23 +539,29 @@ func _handle_flight(delta: float) -> void:
 
 func _update_camera(delta: float) -> void:
 	var nearest := _nearest_event()
-	if OS.get_environment("AURORA_CAPTURE_MODE") == "drone" and nearest != null:
-		var target := nearest.position + Vector3(0, 8.0, 0)
-		var desired := target + Vector3(-28, 18.0, -32)
+	var mode := OS.get_environment("AURORA_CAPTURE_MODE")
+	if mode == "drone" and nearest != null:
+		var target := (hero.position + nearest.position) * 0.5 + Vector3(0, 7.0, 0)
+		var desired := target + Vector3(-46, 24.0, -44)
+		camera.fov = 76
 		camera.global_position = camera.global_position.lerp(desired, clamp(delta * 5.0, 0, 1))
 		camera.look_at(target, Vector3.UP)
 		return
 	# Keep the playable chase camera in the central flight corridor; the previous
 	# positive-Z offset could spawn the camera inside the first skyline ring.
 	var offset := Vector3(0, 10, -22)
-	if OS.get_environment("AURORA_CAPTURE_MODE") == "city":
+	if mode == "city":
 		offset = Vector3(18, 18, 34)
-	elif OS.get_environment("AURORA_CAPTURE_MODE") == "closeup":
-		offset = Vector3(4, 4.0, -10)
+	elif mode == "closeup":
+		camera.fov = 62
+		offset = Vector3(6, 1.2, -14)
+	var target := hero.position + Vector3(0, 1.2, 0)
+	if mode == "closeup":
+		target = hero.position + Vector3(0, 1.55, 0)
 	var desired := hero.position + offset
-	var resolved := _resolve_camera_collision(hero.position + Vector3(0, 1.2, 0), desired)
+	var resolved := _resolve_camera_collision(target, desired)
 	camera.global_position = camera.global_position.lerp(resolved, clamp(delta * 5.0, 0, 1))
-	camera.look_at(hero.position + Vector3(0, 1.2, 0), Vector3.UP)
+	camera.look_at(target, Vector3.UP)
 
 func _resolve_camera_collision(from_pos: Vector3, desired_camera_pos: Vector3) -> Vector3:
 	var space := get_world_3d().direct_space_state
