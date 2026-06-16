@@ -24,10 +24,10 @@ var rng := RandomNumberGenerator.new()
 const EVENT_RESOLVE_RADIUS: float = 18.0
 
 var missions: Array[Dictionary] = [
-	{"id": "awakening_patrol", "title": "Dawn Patrol", "objective": "Fly through Meridian and answer the first emergency.", "reward_xp": 80},
-	{"id": "spire_rescue", "title": "The Burning Spire", "objective": "Rescue civilians from a tower fire before panic spreads.", "reward_xp": 140},
-	{"id": "drone_chase", "title": "Ghosts in the Grid", "objective": "Disable rogue civic drones without harming the city.", "reward_xp": 180},
-	{"id": "stormwall", "title": "Stormwall Protocol", "objective": "Use unlocked powers to protect Meridian during a citywide surge.", "reward_xp": 260}
+	{"id": "awakening_patrol", "title": "Dawn Patrol", "objective": "Fly through Meridian and answer the first emergency.", "target_kind": "tower_fire", "reward_xp": 80},
+	{"id": "spire_rescue", "title": "The Burning Spire", "objective": "Rescue civilians from a tower fire before panic spreads.", "target_kind": "rescue_signal", "reward_xp": 140},
+	{"id": "drone_chase", "title": "Ghosts in the Grid", "objective": "Disable rogue civic drones without harming the city.", "target_kind": "rogue_drone", "reward_xp": 180},
+	{"id": "stormwall", "title": "Stormwall Protocol", "objective": "Use unlocked powers to protect Meridian during a citywide surge.", "target_kind": "power_surge", "reward_xp": 260}
 ]
 
 func _ready() -> void:
@@ -106,17 +106,49 @@ func _build_city() -> void:
 			if (x + z) % 3 == 0:
 				continue
 			var h: float = 18.0 + float((abs(x * 17 + z * 31) % 38))
+			var tower_body := StaticBody3D.new()
+			tower_body.name = "SkylineTower_%d_%d" % [x, z]
+			tower_body.position = Vector3(x * 22.0, h * 0.5, z * 22.0)
+			district.add_child(tower_body)
+
 			var tower := MeshInstance3D.new()
-			tower.name = "SkylineTower_%d_%d" % [x, z]
+			tower.name = "TowerShell"
 			var mesh := BoxMesh.new()
 			mesh.size = Vector3(9.0, h, 9.0)
 			tower.mesh = mesh
-			tower.position = Vector3(x * 22.0, h * 0.5, z * 22.0)
 			var tone: float = 0.13 + float((x * x + z * z) % 6) * 0.025
 			tower.material_override = _mat(Color(tone, tone + 0.05, tone + 0.08, 1.0), Color(0.0, 0.22, 0.32, 1.0), 0.05)
-			district.add_child(tower)
+			tower_body.add_child(tower)
+
+			var roof := MeshInstance3D.new()
+			roof.name = "RooftopCap"
+			var roof_mesh := BoxMesh.new()
+			roof_mesh.size = Vector3(10.0, 0.45, 10.0)
+			roof.mesh = roof_mesh
+			roof.position = Vector3(0, h * 0.5 + 0.22, 0)
+			roof.material_override = _mat(Color(0.18, 0.28, 0.34, 1.0), Color(0.0, 0.32, 0.42, 1.0), 0.12)
+			tower_body.add_child(roof)
+
+			var antenna := MeshInstance3D.new()
+			antenna.name = "RooftopAntenna"
+			var antenna_mesh := CylinderMesh.new()
+			antenna_mesh.top_radius = 0.18
+			antenna_mesh.bottom_radius = 0.18
+			antenna_mesh.height = 3.0
+			antenna.mesh = antenna_mesh
+			antenna.position = Vector3(0, h * 0.5 + 1.9, 0)
+			antenna.material_override = _mat(Color(0.2, 0.9, 1.0, 1.0), Color(0.2, 0.9, 1.0, 1.0), 0.9)
+			tower_body.add_child(antenna)
+
+			var shape := CollisionShape3D.new()
+			shape.name = "TowerCollision"
+			var box := BoxShape3D.new()
+			box.size = Vector3(9.0, h, 9.0)
+			shape.shape = box
+			tower_body.add_child(shape)
+
 			if (x - z) % 2 == 0:
-				_add_rooftop_beacon(district, tower.position + Vector3(0, h * 0.5 + 1.0, 0))
+				_add_rooftop_beacon(tower_body, Vector3(0, h * 0.5 + 3.6, 0))
 	_add_city_avenues(district)
 
 func _add_city_avenues(parent: Node3D) -> void:
@@ -175,8 +207,8 @@ func _add_part(parent: Node3D, part_name: String, mesh: Mesh, pos: Vector3, scal
 
 func _build_events_seed() -> void:
 	_spawn_event("tower_fire", Vector3(-66, 48, -22))
-	_spawn_event("rogue_drone", Vector3(42, 34, -65))
-	_spawn_event("bridge_collapse", Vector3(0, 4, 74))
+	_spawn_event("rogue_drone", Vector3(0, 44, 80))
+	_spawn_event("bridge_collapse", Vector3(0, 4, 160))
 
 func _update_events(delta: float) -> void:
 	event_timer += delta
@@ -185,10 +217,13 @@ func _update_events(delta: float) -> void:
 			event_nodes.erase(marker)
 			continue
 		var kind := str(marker.get_meta("kind", "city_event"))
+		if kind == "rogue_drone":
+			_update_rogue_drone(marker, delta)
 		var dist := hero.position.distance_to(marker.position)
 		var label := marker.get_node_or_null("EventLabel") as Label3D
 		if label != null:
-			label.text = "%s\n%.0fm" % [kind.replace("_", " ").to_upper(), dist]
+			var label_name := "Non-lethal civic drone" if kind == "rogue_drone" else _format_event_name(kind)
+			label.text = "%s\n%.0fm" % [label_name.to_upper(), dist]
 			var color := _event_color(kind)
 			label.modulate = Color(1.0, 1.0, 1.0, 1.0) if dist <= EVENT_RESOLVE_RADIUS else Color(color.r, color.g, color.b, 0.86)
 	if event_timer >= next_event_seconds:
@@ -300,9 +335,39 @@ func _spawn_event(kind: String, pos: Vector3) -> void:
 
 	# --- Type-specific visuals ---
 	if kind == "rogue_drone":
-		_add_part(marker, "NonLethalDroneBody", BoxMesh.new(), Vector3(0, 0, 0), Vector3(2.2, 0.6, 1.4), Color(0.25, 0.18, 0.38, 1), Color(0.8, 0.25, 1.0, 1), 0.45)
-		_add_part(marker, "NonLethalDroneWingL", BoxMesh.new(), Vector3(-2.4, 0, 0), Vector3(1.5, 0.12, 0.4), Color(0.36, 0.24, 0.52, 1), Color(0.8, 0.25, 1.0, 1), 0.35)
-		_add_part(marker, "NonLethalDroneWingR", BoxMesh.new(), Vector3(2.4, 0, 0), Vector3(1.5, 0.12, 0.4), Color(0.36, 0.24, 0.52, 1), Color(0.8, 0.25, 1.0, 1), 0.35)
+		marker.set_meta("orbit_center", pos)
+		marker.set_meta("drift_radius", 10.0)
+		marker.set_meta("drift_speed", 0.7)
+		var drone_actor := Node3D.new()
+		drone_actor.name = "NonLethalDroneActor"
+		drone_actor.position = Vector3(0, 12.0, 0)
+		marker.add_child(drone_actor)
+		_add_part(drone_actor, "NonLethalDroneBody", BoxMesh.new(), Vector3(0, 0, 0), Vector3(4.2, 1.1, 2.4), Color(0.25, 0.18, 0.38, 1), Color(0.8, 0.25, 1.0, 1), 0.45)
+		_add_part(drone_actor, "NonLethalDroneWingL", BoxMesh.new(), Vector3(-4.4, 0, 0), Vector3(2.8, 0.18, 0.6), Color(0.36, 0.24, 0.52, 1), Color(0.8, 0.25, 1.0, 1), 0.35)
+		_add_part(drone_actor, "NonLethalDroneWingR", BoxMesh.new(), Vector3(4.4, 0, 0), Vector3(2.8, 0.18, 0.6), Color(0.36, 0.24, 0.52, 1), Color(0.8, 0.25, 1.0, 1), 0.35)
+		var rotor_l := MeshInstance3D.new()
+		rotor_l.name = "NonLethalDroneRotorL"
+		var rotor_l_mesh := CylinderMesh.new()
+		rotor_l_mesh.top_radius = 1.45
+		rotor_l_mesh.bottom_radius = 1.45
+		rotor_l_mesh.height = 0.12
+		rotor_l.mesh = rotor_l_mesh
+		rotor_l.position = Vector3(-4.4, 0.25, 0)
+		rotor_l.material_override = _transparent_mat(Color(0.75, 0.85, 1.0, 0.65), Color(0.75, 0.9, 1.0, 1.0), 0.8)
+		drone_actor.add_child(rotor_l)
+		var rotor_r := MeshInstance3D.new()
+		rotor_r.name = "NonLethalDroneRotorR"
+		var rotor_r_mesh := CylinderMesh.new()
+		rotor_r_mesh.top_radius = 1.45
+		rotor_r_mesh.bottom_radius = 1.45
+		rotor_r_mesh.height = 0.12
+		rotor_r.mesh = rotor_r_mesh
+		rotor_r.position = Vector3(4.4, 0.25, 0)
+		rotor_r.material_override = rotor_l.material_override
+		drone_actor.add_child(rotor_r)
+		var rotor_spin := create_tween().set_loops()
+		rotor_spin.tween_property(rotor_l, "rotation:y", TAU, 0.18)
+		rotor_spin.tween_property(rotor_r, "rotation:y", -TAU, 0.18)
 	elif kind == "tower_fire":
 		for i in range(4):
 			var spark := MeshInstance3D.new()
@@ -354,8 +419,8 @@ func _spawn_event(kind: String, pos: Vector3) -> void:
 	label.name = "EventLabel"
 	label.text = kind.replace("_", " ").to_upper()
 	label.font_size = 64
-	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.position = Vector3(0, 12.0, 0)
+	label.billboard = 1
+	label.position = Vector3(0, 8.0, 0)
 	label.modulate = color
 	label.outline_modulate = Color(0, 0, 0, 1)
 	label.outline_size = 4
@@ -457,27 +522,47 @@ func _handle_flight(delta: float) -> void:
 		hero.look_at(hero.position - Vector3(velocity.x, 0.0, velocity.z).normalized(), Vector3.UP)
 
 func _update_camera(delta: float) -> void:
-	var offset := Vector3(0, 8, 18)
+	var nearest := _nearest_event()
+	if OS.get_environment("AURORA_CAPTURE_MODE") == "drone" and nearest != null:
+		var target := nearest.position + Vector3(0, 8.0, 0)
+		var desired := target + Vector3(-28, 18.0, -32)
+		camera.global_position = camera.global_position.lerp(desired, clamp(delta * 5.0, 0, 1))
+		camera.look_at(target, Vector3.UP)
+		return
+	# Keep the playable chase camera in the central flight corridor; the previous
+	# positive-Z offset could spawn the camera inside the first skyline ring.
+	var offset := Vector3(0, 10, -22)
 	if OS.get_environment("AURORA_CAPTURE_MODE") == "city":
 		offset = Vector3(18, 18, 34)
 	elif OS.get_environment("AURORA_CAPTURE_MODE") == "closeup":
-		offset = Vector3(4, 3.0, 8)
-	var target := hero.position + offset
-	camera.global_position = camera.global_position.lerp(target, clamp(delta * 5.0, 0, 1))
+		offset = Vector3(4, 4.0, -10)
+	var desired := hero.position + offset
+	var resolved := _resolve_camera_collision(hero.position + Vector3(0, 1.2, 0), desired)
+	camera.global_position = camera.global_position.lerp(resolved, clamp(delta * 5.0, 0, 1))
 	camera.look_at(hero.position + Vector3(0, 1.2, 0), Vector3.UP)
+
+func _resolve_camera_collision(from_pos: Vector3, desired_camera_pos: Vector3) -> Vector3:
+	var space := get_world_3d().direct_space_state
+	# Cast from the desired camera back toward the hero. If a building blocks the
+	# view, place the camera just outside that obstruction on the camera side.
+	var query := PhysicsRayQueryParameters3D.create(desired_camera_pos, from_pos, 1, [])
+	var hit := space.intersect_ray(query)
+	if hit.is_empty():
+		return desired_camera_pos
+	var away := (desired_camera_pos - from_pos).normalized()
+	return Vector3(hit["position"]) + away * 1.4
 
 func _trigger_power(power_id: String) -> void:
 	if not progression.has_power(power_id):
 		var gained: Array[String] = progression.add_xp(110)
+		last_event_text = "%s training surge: +110 XP%s" % [power_id.replace("_", " ").capitalize(), " and new power unlocked" if gained.has(power_id) else ""]
 		if gained.has(power_id):
 			_spawn_power_flash(power_id)
 		return
 	_spawn_power_flash(power_id)
-	if event_nodes.size() > 0:
-		var resolved: Node3D = event_nodes.pop_front()
-		if is_instance_valid(resolved):
-			resolved.queue_free()
-			progression.add_xp(65)
+	var resolved := _attempt_resolve_nearest(power_id)
+	if not resolved:
+		last_event_text = "%s fired, but no matching city event is within %.0fm." % [power_id.replace("_", " ").capitalize(), EVENT_RESOLVE_RADIUS]
 
 func _spawn_power_flash(power_id: String) -> void:
 	var flash := MeshInstance3D.new()
@@ -515,7 +600,7 @@ func _update_hud() -> void:
 		var kind := str(nearest.get_meta("kind", "city_event"))
 		var dist := hero.position.distance_to(nearest.position)
 		var proximity := "IN RANGE" if dist <= EVENT_RESOLVE_RADIUS else "approach %.0fm" % max(dist - EVENT_RESOLVE_RADIUS, 0.0)
-		event_cue_label.text = "Nearest: %s — %.0fm (%s). Last: %s" % [kind.replace("_", " ").capitalize(), dist, proximity, last_event_text]
+		event_cue_label.text = "Nearest: %s — %.0fm (%s). %s. Last: %s" % [_format_event_name(kind), dist, proximity, _required_action_for_event(kind), last_event_text]
 
 func _nearest_event() -> Node3D:
 	var best: Node3D = null
@@ -567,6 +652,100 @@ func _update_waypoint_arrows() -> void:
 		arrow.add_child(arrow_label)
 		event_waypoint_layer.add_child(arrow)
 		waypoint_arrows.append(arrow)
+
+func _event_reward(kind: String) -> int:
+	match kind:
+		"tower_fire":
+			return 70
+		"rescue_signal":
+			return 95
+		"rogue_drone":
+			return 110
+		"power_surge":
+			return 125
+		"bridge_collapse":
+			return 85
+		_:
+			return 60
+
+func _format_event_name(kind: String) -> String:
+	return kind.replace("_", " ").capitalize()
+
+func _required_action_for_event(kind: String) -> String:
+	match kind:
+		"tower_fire":
+			return "Use F radiant beam to vent heat"
+		"rescue_signal", "bridge_collapse":
+			return "Use R rescue lift near civilians"
+		"rogue_drone":
+			return "Use Q sonic burst for non-lethal shutdown"
+		"power_surge":
+			return "Use E aegis field to ground the surge"
+		_:
+			return "Use any unlocked power in the volume"
+
+func _power_matches_event(power_id: String, kind: String) -> bool:
+	match kind:
+		"tower_fire":
+			return power_id == "radiant_beam"
+		"rescue_signal", "bridge_collapse":
+			return power_id == "rescue_lift"
+		"rogue_drone":
+			return power_id == "sonic_burst"
+		"power_surge":
+			return power_id == "aegis_field"
+		_:
+			return true
+
+func _attempt_resolve_nearest(power_id: String) -> bool:
+	var marker := _nearest_event()
+	if marker == null:
+		return false
+	var kind := str(marker.get_meta("kind", "city_event"))
+	var dist := hero.position.distance_to(marker.position)
+	if dist > EVENT_RESOLVE_RADIUS:
+		last_event_text = "%s is %.0fm away; enter the %.0fm resolution volume first." % [_format_event_name(kind), dist, EVENT_RESOLVE_RADIUS]
+		return false
+	if not _power_matches_event(power_id, kind):
+		last_event_text = "%s needs: %s." % [_format_event_name(kind), _required_action_for_event(kind)]
+		return false
+	_resolve_event(marker, power_id)
+	return true
+
+func _resolve_event(marker: Node3D, power_id: String) -> void:
+	var kind := str(marker.get_meta("kind", "city_event"))
+	var event_xp := int(marker.get_meta("reward_xp", _event_reward(kind)))
+	var gained: Array[String] = progression.add_xp(event_xp)
+	resolved_events += 1
+	event_nodes.erase(marker)
+	last_event_text = "Resolved %s with %s: +%d XP" % [_format_event_name(kind), power_id.replace("_", " "), event_xp]
+	if gained.size() > 0:
+		last_event_text += " | unlocked %s" % ", ".join(gained)
+	_advance_story_for_event(kind)
+	if is_instance_valid(marker):
+		marker.queue_free()
+
+func _advance_story_for_event(kind: String) -> void:
+	if mission_step >= missions.size():
+		return
+	var m: Dictionary = missions[mission_step]
+	if str(m.get("target_kind", "")) != kind and mission_step != 0:
+		return
+	var reward := int(m.get("reward_xp", 0))
+	if reward > 0:
+		var gained: Array[String] = progression.add_xp(reward)
+		last_event_text += " | Story step '%s' complete: +%d XP" % [m["title"], reward]
+		if gained.size() > 0:
+			last_event_text += " | story unlock %s" % ", ".join(gained)
+	mission_step = min(mission_step + 1, missions.size())
+
+func _update_rogue_drone(marker: Node3D, delta: float) -> void:
+	var center: Vector3 = marker.get_meta("orbit_center", marker.position)
+	var angle := float(marker.get_meta("drift_angle", 0.0)) + delta * float(marker.get_meta("drift_speed", 0.65))
+	var radius := float(marker.get_meta("drift_radius", 10.0))
+	marker.set_meta("drift_angle", angle)
+	marker.position = center + Vector3(cos(angle) * radius, sin(angle * 0.7) * 4.0, sin(angle) * radius)
+	marker.rotate_y(delta * 1.8)
 
 func _mat(albedo: Color, emission: Color, energy: float) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()

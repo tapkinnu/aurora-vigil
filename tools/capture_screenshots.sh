@@ -5,7 +5,7 @@ ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 OUT=${1:-$ROOT/artifacts/screenshots}
 mkdir -p "$OUT"
 cd "$ROOT"
-for mode in gameplay city closeup; do
+for mode in gameplay city drone closeup; do
   LOG="$OUT/${mode}.log"
   PNG="$OUT/${mode}.png"
   AURORA_CAPTURE_PATH="$PNG" AURORA_CAPTURE_MODE="$mode" timeout 25 xvfb-run -a -s "-screen 0 1280x720x24" "$GODOT" --path . --rendering-driver opengl3 >"$LOG" 2>&1 || { cat "$LOG"; exit 1; }
