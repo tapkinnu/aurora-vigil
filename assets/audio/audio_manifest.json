@@ -1,0 +1,176 @@
+{
+  "pack": "aurora-vigil-p0-audio",
+  "generated_at": "2026-06-16T15:57:10Z",
+  "entries": [
+    {
+      "id": "ui_click",
+      "path": "res://assets/audio/sfx/ui/ui_click.ogg",
+      "source": "Kenney CC0 interface-sounds",
+      "source_file": "kenney_interface-sounds/Audio/click_001.ogg",
+      "provider": "Kenney",
+      "endpoint": "https://kenney.nl/assets/interface-sounds",
+      "prompt_or_source": "CC0 mechanical/UI sound selected from Kenney pack",
+      "license": "CC0"
+    },
+    {
+      "id": "ui_confirm",
+      "path": "res://assets/audio/sfx/ui/ui_confirm.ogg",
+      "source": "Kenney CC0 interface-sounds",
+      "source_file": "kenney_interface-sounds/Audio/confirmation_001.ogg",
+      "provider": "Kenney",
+      "endpoint": "https://kenney.nl/assets/interface-sounds",
+      "prompt_or_source": "CC0 mechanical/UI sound selected from Kenney pack",
+      "license": "CC0"
+    },
+    {
+      "id": "flight_boost_burst",
+      "path": "res://assets/audio/sfx/flight/flight_boost_burst.ogg",
+      "provider": "FAL stable-audio (Open)",
+      "endpoint": "fal-ai/stable-audio",
+      "prompt": "short futuristic superhero flight boost whoosh, fast air rush and rising pressure, clean game sound effect, no music, no voice",
+      "output_path": "res://assets/audio/sfx/flight/flight_boost_burst.ogg",
+      "license": "Stability AI Community License \u2014 verify current terms before commercial release",
+      "status": "existing"
+    },
+    {
+      "id": "power_radiant_beam_fire",
+      "path": "res://assets/audio/sfx/powers/power_radiant_beam_fire.ogg",
+      "provider": "FAL stable-audio (Open)",
+      "endpoint": "fal-ai/stable-audio",
+      "prompt": "bright heroic energy beam firing through air, warm golden plasma burst, superhero game sound effect, no voice",
+      "output_path": "res://assets/audio/sfx/powers/power_radiant_beam_fire.ogg",
+      "license": "Stability AI Community License \u2014 verify current terms before commercial release",
+      "status": "existing"
+    },
+    {
+      "id": "power_sonic_burst",
+      "path": "res://assets/audio/sfx/powers/power_sonic_burst.ogg",
+      "provider": "FAL stable-audio (Open)",
+      "endpoint": "fal-ai/stable-audio",
+      "prompt": "sharp violet sonic shockwave burst, concussive air ripple, non-lethal shutdown pulse, game sound effect",
+      "output_path": "res://assets/audio/sfx/powers/power_sonic_burst.ogg",
+      "license": "Stability AI Community License \u2014 verify current terms before commercial release",
+      "status": "existing"
+    },
+    {
+      "id": "power_aegis_activate",
+      "path": "res://assets/audio/sfx/powers/power_aegis_activate.ogg",
+      "provider": "FAL stable-audio (Open)",
+      "endpoint": "fal-ai/stable-audio",
+      "prompt": "protective blue energy shield activating around a hero, crystalline forcefield bloom, short game sound effect",
+      "output_path": "res://assets/audio/sfx/powers/power_aegis_activate.ogg",
+      "license": "Stability AI Community License \u2014 verify current terms before commercial release",
+      "status": "existing"
+    },
+    {
+      "id": "event_alert_rescue_needed",
+      "path": "res://assets/audio/sfx/events/event_alert_rescue_needed.ogg",
+      "provider": "FAL stable-audio (Open)",
+      "endpoint": "fal-ai/stable-audio",
+      "prompt": "urgent civic rescue alert stinger, clear emergency callout tone, heroic city defense game cue, no voice",
+      "output_path": "res://assets/audio/sfx/events/event_alert_rescue_needed.ogg",
+      "license": "Stability AI Community License \u2014 verify current terms before commercial release",
+      "status": "existing"
+    },
+    {
+      "id": "drone_alert",
+      "path": "res://assets/audio/sfx/enemies/drone_alert.ogg",
+      "provider": "FAL stable-audio (Open)",
+      "endpoint": "fal-ai/stable-audio",
+      "prompt": "small hostile civic drone alert chirp, scanning target lock warning, sci-fi game sound effect, no voice",
+      "output_path": "res://assets/audio/sfx/enemies/drone_alert.ogg",
+      "license": "Stability AI Community License \u2014 verify current terms before commercial release",
+      "status": "existing"
+    },
+    {
+      "id": "drone_death",
+      "path": "res://assets/audio/sfx/enemies/drone_death.ogg",
+      "provider": "FAL stable-audio (Open)",
+      "endpoint": "fal-ai/stable-audio",
+      "prompt": "small civic drone power-down death spark, electronic failure pop and falling debris, game sound effect",
+      "output_path": "res://assets/audio/sfx/enemies/drone_death.ogg",
+      "license": "Stability AI Community License \u2014 verify current terms before commercial release",
+      "status": "existing"
+    },
+    {
+      "id": "stinger_mission_intro",
+      "path": "res://assets/audio/sfx/stingers/stinger_mission_intro.ogg",
+      "provider": "FAL stable-audio (Open)",
+      "endpoint": "fal-ai/stable-audio",
+      "prompt": "short heroic Aurora Vigil mission intro stinger, hopeful teal and gold city defense fanfare, no voice",
+      "output_path": "res://assets/audio/sfx/stingers/stinger_mission_intro.ogg",
+      "license": "Stability AI Community License \u2014 verify current terms before commercial release",
+      "status": "existing"
+    },
+    {
+      "id": "ambience_city_base_loop",
+      "path": "res://assets/audio/ambience/ambience_city_base_loop.ogg",
+      "provider": "FAL stable-audio (Open)",
+      "endpoint": "fal-ai/stable-audio",
+      "prompt": "near future city ambience loop, distant traffic hum, soft electric grid noise, gentle wind between towers, no music, no voice",
+      "output_path": "res://assets/audio/ambience/ambience_city_base_loop.ogg",
+      "license": "Stability AI Community License \u2014 verify current terms before commercial release",
+      "status": "existing"
+    },
+    {
+      "id": "music_city_exploration",
+      "path": "res://assets/audio/music/music_city_exploration.ogg",
+      "provider": "FAL stable-audio-25",
+      "endpoint": "fal-ai/stable-audio-25/text-to-audio",
+      "prompt": "instrumental near-future superhero city exploration music, hopeful teal and gold synth pads, light pulse percussion, 90 BPM, D minor, seamless loop, no vocals",
+      "output_path": "res://assets/audio/music/music_city_exploration.ogg",
+      "license": "Stability AI Community License \u2014 verify current terms before commercial release",
+      "status": "existing"
+    },
+    {
+      "id": "civic_grid_alert",
+      "path": "res://assets/audio/voices/civic_grid/civic_grid_alert.ogg",
+      "provider": "FAL ElevenLabs TTS turbo-v2.5",
+      "endpoint": "fal-ai/elevenlabs/tts/turbo-v2.5",
+      "prompt": "Voice=Aria; casting=Civic Grid AI: calm synthetic alto, clipped radio-bandpass delivery; line=City grid alert. Emergency vector marked. Respond with caution.",
+      "output_path": "res://assets/audio/voices/civic_grid/civic_grid_alert.ogg",
+      "license": "FAL ElevenLabs \u2014 verify commercial use terms",
+      "status": "existing"
+    },
+    {
+      "id": "civilian_panicked_help",
+      "path": "res://assets/audio/voices/civilian_panicked/civilian_panicked_help.ogg",
+      "provider": "FAL ElevenLabs TTS turbo-v2.5",
+      "endpoint": "fal-ai/elevenlabs/tts/turbo-v2.5",
+      "prompt": "Voice=Sarah; casting=Civilian Panicked: young adult female, breathy urgent plea; line=Help! The drone has me pinned near the bridge!",
+      "output_path": "res://assets/audio/voices/civilian_panicked/civilian_panicked_help.ogg",
+      "license": "FAL ElevenLabs \u2014 verify commercial use terms",
+      "status": "existing"
+    },
+    {
+      "id": "civilian_grateful_thanks",
+      "path": "res://assets/audio/voices/civilian_grateful/civilian_grateful_thanks.ogg",
+      "provider": "FAL ElevenLabs TTS turbo-v2.5",
+      "endpoint": "fal-ai/elevenlabs/tts/turbo-v2.5",
+      "prompt": "Voice=Charlie; casting=Civilian Grateful: warm middle-aged male, relieved and shaken; line=Thank you, Vigil. I can breathe again.",
+      "output_path": "res://assets/audio/voices/civilian_grateful/civilian_grateful_thanks.ogg",
+      "license": "FAL ElevenLabs \u2014 verify commercial use terms",
+      "status": "existing"
+    },
+    {
+      "id": "emergency_dispatcher_dispatch",
+      "path": "res://assets/audio/voices/emergency_dispatcher/emergency_dispatcher_dispatch.ogg",
+      "provider": "FAL ElevenLabs TTS turbo-v2.5",
+      "endpoint": "fal-ai/elevenlabs/tts/turbo-v2.5",
+      "prompt": "Voice=Callum; casting=Emergency Dispatcher: professional male, rapid-fire radio clarity; line=All units, contain the surge. Let the hero clear the block.",
+      "output_path": "res://assets/audio/voices/emergency_dispatcher/emergency_dispatcher_dispatch.ogg",
+      "license": "FAL ElevenLabs \u2014 verify commercial use terms",
+      "status": "existing"
+    },
+    {
+      "id": "null_choir_cmdr_threat",
+      "path": "res://assets/audio/voices/null_choir_cmdr/null_choir_cmdr_threat.ogg",
+      "provider": "FAL ElevenLabs TTS turbo-v2.5",
+      "endpoint": "fal-ai/elevenlabs/tts/turbo-v2.5",
+      "prompt": "Voice=George; casting=Null Choir Commander: deep masked male, resonator-filtered threat; line=Aegis or not, the grid will sing for us.",
+      "output_path": "res://assets/audio/voices/null_choir_cmdr/null_choir_cmdr_threat.ogg",
+      "license": "FAL ElevenLabs \u2014 verify commercial use terms",
+      "status": "existing"
+    }
+  ]
+}

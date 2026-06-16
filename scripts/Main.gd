@@ -35,6 +35,7 @@ var missions: Array[Dictionary] = [
 
 func _ready() -> void:
 	rng.seed = 20260616
+	_build_audio()
 	progression = ProgressionModel.new()
 	_build_world()
 	_build_city()
@@ -47,6 +48,11 @@ func _ready() -> void:
 		call_deferred("_capture_after_delay")
 	elif OS.get_environment("AURORA_AUTO_QUIT") == "1":
 		call_deferred("_quit_after_delay")
+
+func _build_audio() -> void:
+	AuroraAudio.start_loop("ambience_city_base_loop")
+	AuroraAudio.start_loop("music_city_exploration")
+	AuroraAudio.trigger("stinger_mission_intro")
 
 func _physics_process(delta: float) -> void:
 	_handle_flight(delta)
@@ -305,6 +311,7 @@ func _spawn_event(kind: String, pos: Vector3) -> void:
 	marker.set_meta("kind", kind)
 	add_child(marker)
 	event_nodes.append(marker)
+	_play_event_spawn_audio(kind)
 	var color := _event_color(kind)
 
 	# --- Resolution volume ---
@@ -556,6 +563,8 @@ func _handle_flight(delta: float) -> void:
 	if Input.is_key_pressed(KEY_SHIFT):
 		speed = 62.0
 	velocity = velocity.lerp(input_vec * speed, 4.0 * delta)
+	if Input.is_key_pressed(KEY_SHIFT) and velocity.length() > 1.0:
+		AuroraAudio.trigger("flight_boost_burst")
 	hero.position += velocity * delta
 	hero.position.y = clamp(hero.position.y, 5.0, 120.0)
 	if velocity.length() > 1.0:
@@ -606,6 +615,7 @@ func _trigger_power(power_id: String) -> void:
 			_spawn_power_flash(power_id)
 		return
 	_spawn_power_flash(power_id)
+	_play_power_audio(power_id)
 	var resolved := _attempt_resolve_nearest(power_id)
 	if not resolved:
 		last_event_text = "%s fired, but no matching city event is within %.0fm." % [power_id.replace("_", " ").capitalize(), EVENT_RESOLVE_RADIUS]
@@ -628,6 +638,17 @@ func _spawn_power_flash(power_id: String) -> void:
 	tween.tween_property(flash, "scale", Vector3(7, 7, 7), 0.35)
 	tween.parallel().tween_property(flash, "transparency", 1.0, 0.35)
 	tween.tween_callback(flash.queue_free)
+
+func _play_power_audio(power_id: String) -> void:
+	match power_id:
+		"radiant_beam":
+			AuroraAudio.trigger("power_radiant_beam_fire")
+		"sonic_burst":
+			AuroraAudio.trigger("power_sonic_burst")
+		"aegis_field":
+			AuroraAudio.trigger("power_aegis_activate")
+		"rescue_lift":
+			AuroraAudio.trigger("event_alert_rescue_needed")
 
 func _update_hud() -> void:
 	if hud_label == null: return
@@ -765,11 +786,39 @@ func _resolve_event(marker: Node3D, power_id: String) -> void:
 	resolved_events += 1
 	event_nodes.erase(marker)
 	last_event_text = "Resolved %s with %s: +%d XP" % [_format_event_name(kind), power_id.replace("_", " "), event_xp]
+	_play_event_resolve_audio(kind)
 	if gained.size() > 0:
 		last_event_text += " | unlocked %s" % ", ".join(gained)
 	_advance_story_for_event(kind)
 	if is_instance_valid(marker):
 		marker.queue_free()
+
+func _play_event_spawn_audio(kind: String) -> void:
+	match kind:
+		"rogue_drone":
+			AuroraAudio.trigger("drone_alert")
+		"rescue_signal":
+			AuroraAudio.trigger("event_alert_rescue_needed")
+			AuroraAudio.trigger("civilian_panicked_help")
+		"tower_fire":
+			AuroraAudio.trigger("event_alert_rescue_needed")
+		"power_surge":
+			AuroraAudio.trigger("event_alert_rescue_needed")
+			AuroraAudio.trigger("null_choir_cmdr_threat")
+		"bridge_collapse":
+			AuroraAudio.trigger("event_alert_rescue_needed")
+			AuroraAudio.trigger("civilian_panicked_help")
+
+func _play_event_resolve_audio(kind: String) -> void:
+	match kind:
+		"rogue_drone":
+			AuroraAudio.trigger("drone_death")
+		"rescue_signal", "bridge_collapse":
+			AuroraAudio.trigger("civilian_grateful_thanks")
+		"tower_fire":
+			AuroraAudio.trigger("emergency_dispatcher_dispatch")
+		"power_surge":
+			AuroraAudio.trigger("civic_grid_alert")
 
 func _advance_story_for_event(kind: String) -> void:
 	if mission_step >= missions.size():

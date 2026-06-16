@@ -196,22 +196,22 @@
     "sfx": {
       "flight": [
         {"id": "flight_whoosh_loop", "path": "res://assets/audio/sfx/flight/flight_whoosh_loop.ogg", "source": "Kenney sci-fi-sounds", "status": "backlog"},
-        {"id": "flight_boost_burst", "path": "res://assets/audio/sfx/flight/flight_boost_burst.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "flight_boost_burst", "path": "res://assets/audio/sfx/flight/flight_boost_burst.ogg", "source": "FAL stable-audio", "status": "complete"},
         {"id": "flight_ascend", "path": "res://assets/audio/sfx/flight/flight_ascend.ogg", "source": "FAL stable-audio", "status": "backlog"},
         {"id": "flight_descend", "path": "res://assets/audio/sfx/flight/flight_descend.ogg", "source": "Kenney sci-fi-sounds", "status": "backlog"}
       ],
       "powers": [
         {"id": "power_radiant_beam_fire", "path": "res://assets/audio/sfx/powers/power_radiant_beam_fire.ogg", "source": "Kenney sci-fi-sounds", "status": "backlog"},
         {"id": "power_radiant_beam_charge", "path": "res://assets/audio/sfx/powers/power_radiant_beam_charge.ogg", "source": "FAL stable-audio", "status": "backlog"},
-        {"id": "power_sonic_burst", "path": "res://assets/audio/sfx/powers/power_sonic_burst.ogg", "source": "FAL stable-audio", "status": "backlog"},
-        {"id": "power_aegis_activate", "path": "res://assets/audio/sfx/powers/power_aegis_activate.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "power_sonic_burst", "path": "res://assets/audio/sfx/powers/power_sonic_burst.ogg", "source": "FAL stable-audio", "status": "complete"},
+        {"id": "power_aegis_activate", "path": "res://assets/audio/sfx/powers/power_aegis_activate.ogg", "source": "FAL stable-audio", "status": "complete"},
         {"id": "power_aegis_impact", "path": "res://assets/audio/sfx/powers/power_aegis_impact.ogg", "source": "Kenney impact-sounds", "status": "backlog"},
         {"id": "power_rescue_lift", "path": "res://assets/audio/sfx/powers/power_rescue_lift.ogg", "source": "FAL stable-audio", "status": "backlog"},
         {"id": "power_orbit_sprint", "path": "res://assets/audio/sfx/powers/power_orbit_sprint.ogg", "source": "FAL stable-audio", "status": "backlog"}
       ],
       "ui": [
-        {"id": "ui_click", "path": "res://assets/audio/sfx/ui/ui_click.ogg", "source": "Kenney interface-sounds", "status": "backlog"},
-        {"id": "ui_confirm", "path": "res://assets/audio/sfx/ui/ui_confirm.ogg", "source": "Kenney interface-sounds", "status": "backlog"},
+        {"id": "ui_click", "path": "res://assets/audio/sfx/ui/ui_click.ogg", "source": "Kenney interface-sounds", "status": "complete"},
+        {"id": "ui_confirm", "path": "res://assets/audio/sfx/ui/ui_confirm.ogg", "source": "Kenney interface-sounds", "status": "complete"},
         {"id": "ui_error", "path": "res://assets/audio/sfx/ui/ui_error.ogg", "source": "Kenney interface-sounds", "status": "backlog"},
         {"id": "ui_level_up", "path": "res://assets/audio/sfx/ui/ui_level_up.ogg", "source": "FAL stable-audio", "status": "backlog"},
         {"id": "ui_power_unlock", "path": "res://assets/audio/sfx/ui/ui_power_unlock.ogg", "source": "FAL stable-audio", "status": "backlog"},
@@ -220,42 +220,43 @@
       ],
       "events": [
         {"id": "event_alert_incoming", "path": "res://assets/audio/sfx/events/event_alert_incoming.ogg", "source": "FAL stable-audio", "status": "backlog"},
-        {"id": "event_alert_rescue_needed", "path": "res://assets/audio/sfx/events/event_alert_rescue_needed.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "event_alert_rescue_needed", "path": "res://assets/audio/sfx/events/event_alert_rescue_needed.ogg", "source": "FAL stable-audio", "status": "complete"},
         {"id": "event_alert_disaster", "path": "res://assets/audio/sfx/events/event_alert_disaster.ogg", "source": "FAL stable-audio", "status": "backlog"},
         {"id": "event_alert_drone_swarm", "path": "res://assets/audio/sfx/events/event_alert_drone_swarm.ogg", "source": "FAL stable-audio", "status": "backlog"}
       ],
       "stingers": [
-        {"id": "stinger_mission_intro", "path": "res://assets/audio/sfx/stingers/stinger_mission_intro.ogg", "source": "FAL stable-audio", "status": "backlog"},
+        {"id": "stinger_mission_intro", "path": "res://assets/audio/sfx/stingers/stinger_mission_intro.ogg", "source": "FAL stable-audio", "status": "complete"},
         {"id": "stinger_victory", "path": "res://assets/audio/sfx/stingers/stinger_victory.ogg", "source": "FAL stable-audio", "status": "backlog"},
         {"id": "stinger_defeat", "path": "res://assets/audio/sfx/stingers/stinger_defeat.ogg", "source": "FAL stable-audio", "status": "backlog"},
         {"id": "stinger_boss_reveal", "path": "res://assets/audio/sfx/stingers/stinger_boss_reveal.ogg", "source": "FAL stable-audio", "status": "backlog"}
       ]
     },
     "ambience": [
-      {"id": "ambience_city_base_loop", "path": "res://assets/audio/ambience/ambience_city_base_loop.ogg", "source": "FAL stable-audio", "status": "backlog"},
+      {"id": "ambience_city_base_loop", "path": "res://assets/audio/ambience/ambience_city_base_loop.ogg", "source": "FAL stable-audio", "status": "complete"},
       {"id": "ambience_city_night_loop", "path": "res://assets/audio/ambience/ambience_city_night_loop.ogg", "source": "FAL stable-audio", "status": "backlog"}
     ],
     "music": [
       {"id": "music_menu_theme", "path": "res://assets/audio/music/music_menu_theme.ogg", "source": "FAL stable-audio-25", "bpm": 90, "key": "D minor", "status": "backlog"},
-      {"id": "music_city_exploration", "path": "res://assets/audio/music/music_city_exploration.ogg", "source": "FAL stable-audio-25", "bpm": 90, "key": "D minor", "status": "backlog"},
+      {"id": "music_city_exploration", "path": "res://assets/audio/music/music_city_exploration.ogg", "source": "FAL stable-audio-25", "bpm": 90, "key": "D minor", "status": "complete"},
       {"id": "music_combat", "path": "res://assets/audio/music/music_combat.ogg", "source": "FAL stable-audio-25", "bpm": 90, "key": "D minor", "status": "backlog"},
       {"id": "music_story_mission", "path": "res://assets/audio/music/music_story_mission.ogg", "source": "FAL stable-audio-25", "bpm": 90, "key": "D minor", "status": "backlog"},
       {"id": "music_victory_theme", "path": "res://assets/audio/music/music_victory_theme.ogg", "source": "FAL stable-audio-25", "bpm": 90, "key": "D minor", "status": "backlog"}
     ],
     "voices": [
-      {"id": "civic_grid", "name": "Civic Grid AI", "path": "res://assets/audio/voices/civic_grid/", "source": "FAL ElevenLabs TTS", "voice_profile": "Calm synthetic alto, clipped, radio-bandpass", "status": "backlog", "line_count": "10–15"},
-      {"id": "civilian_panicked", "name": "Civilian (Panicked)", "path": "res://assets/audio/voices/civilian_panicked/", "source": "FAL ElevenLabs TTS", "voice_profile": "Young adult female, breathy, urgent", "status": "backlog", "line_count": "8–12"},
-      {"id": "civilian_grateful", "name": "Civilian (Grateful)", "path": "res://assets/audio/voices/civilian_grateful/", "source": "FAL ElevenLabs TTS", "voice_profile": "Middle-aged male, warm, relieved", "status": "backlog", "line_count": "6–10"},
-      {"id": "null_choir_cmdr", "name": "Null Choir Commander", "path": "res://assets/audio/voices/null_choir_cmdr/", "source": "FAL ElevenLabs TTS", "voice_profile": "Deep male, distorted through resonator mask, threatening", "status": "backlog", "line_count": "8–12"},
+      {"id": "civic_grid", "name": "Civic Grid AI", "path": "res://assets/audio/voices/civic_grid/", "source": "FAL ElevenLabs TTS", "voice_profile": "Calm synthetic alto, clipped, radio-bandpass", "status": "complete", "line_count": "10–15"},
+      {"id": "civilian_panicked", "name": "Civilian (Panicked)", "path": "res://assets/audio/voices/civilian_panicked/", "source": "FAL ElevenLabs TTS", "voice_profile": "Young adult female, breathy, urgent", "status": "complete", "line_count": "8–12"},
+      {"id": "civilian_grateful", "name": "Civilian (Grateful)", "path": "res://assets/audio/voices/civilian_grateful/", "source": "FAL ElevenLabs TTS", "voice_profile": "Middle-aged male, warm, relieved", "status": "complete", "line_count": "6–10"},
+      {"id": "null_choir_cmdr", "name": "Null Choir Commander", "path": "res://assets/audio/voices/null_choir_cmdr/", "source": "FAL ElevenLabs TTS", "voice_profile": "Deep male, distorted through resonator mask, threatening", "status": "complete", "line_count": "8–12"},
       {"id": "heliostat_lt", "name": "Heliostat Lieutenant", "path": "res://assets/audio/voices/heliostat_lt/", "source": "FAL ElevenLabs TTS", "voice_profile": "Female, corporate-cold, precise", "status": "backlog", "line_count": "6–10"},
-      {"id": "emergency_dispatcher", "name": "Emergency Dispatcher", "path": "res://assets/audio/voices/emergency_dispatcher/", "source": "FAL ElevenLabs TTS", "voice_profile": "Male, professional, rapid-fire", "status": "backlog", "line_count": "8–12"}
+      {"id": "emergency_dispatcher", "name": "Emergency Dispatcher", "path": "res://assets/audio/voices/emergency_dispatcher/", "source": "FAL ElevenLabs TTS", "voice_profile": "Male, professional, rapid-fire", "status": "complete", "line_count": "8–12"}
     ]
   },
   "provenance": {
     "kenney_license": "CC0 — no attribution required",
     "fal_license": "Stability AI Community License — verify current terms before commercial release",
     "tts_license": "FAL ElevenLabs — verify commercial use terms",
-    "sources_file": "res://assets/SOURCES.md"
+    "sources_file": "res://assets/audio/SOURCES.md",
+    "audio_manifest_file": "res://assets/audio/audio_manifest.json"
   },
   "open_questions": [
     "Confirm Meshy API key and credit budget for character generation",

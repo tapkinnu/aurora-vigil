@@ -23,6 +23,23 @@ to the target height). Scale is **not** hard-coded blindly.
 
 License: Meshy AI generated content, used per Meshy's Terms of Service.
 
+## Audio (P0)
+
+Generated and wired through `tools/audio_pipeline.py`. The audio manifest and
+per-file provenance live under `assets/audio/SOURCES.md` and
+`assets/audio/audio_manifest.json`.
+
+- Mechanical/UI sounds: Kenney CC0 packs.
+- SFX, stingers, alerts, ambience: FAL `stable-audio` / `stable-audio-25`.
+- Intelligible radio/civilian barks: FAL ElevenLabs TTS with distinct casting.
+
+Regenerate with:
+
+```bash
+python3 tools/audio_pipeline.py
+python3 tools/check_audio_wiring.py --require-existing-audio
+```
+
 ## Regenerating
 
 ```bash
