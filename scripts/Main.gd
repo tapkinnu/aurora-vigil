@@ -208,10 +208,10 @@ func _apply_actor_visibility_overrides(actor: Node3D, albedo: Color, emission: C
 			mat = mesh.mesh.surface_get_material(0)
 		if mat is StandardMaterial3D:
 			var copy := mat.duplicate() as StandardMaterial3D
-			copy.albedo_color = Color(1.35, 1.35, 1.35, 1)
-			copy.specular = 0.45
-			copy.roughness = 0.42
-			copy.emission_enabled = false
+			copy.albedo_color = albedo
+			copy.emission_enabled = energy > 0.0
+			copy.emission = emission
+			copy.emission_energy_multiplier = energy
 			mesh.set_surface_override_material(0, copy)
 		else:
 			mesh.material_override = _mat(albedo, emission, energy)
@@ -232,9 +232,17 @@ func _stage_capture_scene() -> void:
 		# reads as city flight instead of starting with a tower face behind the hero.
 		hero.position = Vector3(-8, 34, 10)
 	elif mode == "drone":
-		# Put the hero in the same air corridor as the seeded rogue drone; the drone
-		# camera frames the pair instead of only the event volume.
-		hero.position = Vector3(-12, 46, 52)
+		# Put the hero and seeded rogue drone in the same air corridor; the drone
+		# camera frames the pair and the actual Meshy drone actor, not just the
+		# event volume. Use a fixed high oblique capture pose so both actors sit
+		# below the HUD and remain readable at 1152×648.
+		var nearest_drone := _nearest_event()
+		if nearest_drone != null and str(nearest_drone.get_meta("kind", "")) == "rogue_drone":
+			nearest_drone.position = Vector3(0, 70, 60)
+			nearest_drone.set_meta("orbit_center", nearest_drone.position)
+			nearest_drone.set_meta("drift_radius", 4.0)
+			nearest_drone.set_meta("drift_angle", 0.4)
+		hero.position = Vector3(-10, 70, 55)
 	elif mode == "closeup":
 		camera.fov = 55
 		# Pull the close-up back into the central avenue so the hero silhouettes
@@ -391,8 +399,13 @@ func _spawn_event(kind: String, pos: Vector3) -> void:
 			drone_actor = Node3D.new()
 		drone_actor.name = "RogueCivicDrone_MeshyActor"
 		drone_actor.position = Vector3(0, 18.0, 0)
-		drone_actor.scale = Vector3(5.0, 5.0, 5.0)
-		_apply_actor_visibility_overrides(drone_actor, Color(1.25, 0.65, 1.45, 1), Color(0.95, 0.25, 1.0, 1), 0.35)
+		drone_actor.scale = Vector3(9.0, 9.0, 9.0)
+		drone_actor.rotation_degrees = Vector3(0, 35, -12)
+		_apply_actor_visibility_overrides(drone_actor, Color(1.4, 0.75, 2.0, 1), Color(1.2, 0.35, 1.8, 1), 1.15)
+		var drone_light := drone_actor.get_node_or_null("ActorVisibilityLight") as OmniLight3D
+		if drone_light != null:
+			drone_light.light_energy = 45.0
+			drone_light.omni_range = 28.0
 		rogue_drone_actor = drone_actor
 		marker.add_child(drone_actor)
 	elif kind == "tower_fire":
@@ -552,8 +565,8 @@ func _update_camera(delta: float) -> void:
 	var nearest := _nearest_event()
 	var mode := OS.get_environment("AURORA_CAPTURE_MODE")
 	if mode == "drone" and nearest != null:
-		var target := (hero.position + nearest.position) * 0.5 + Vector3(0, 7.0, 0)
-		var desired := target + Vector3(-46, 24.0, -44)
+		var target := Vector3(0, 75, 60)
+		var desired := Vector3(-35, 105, -20)
 		camera.fov = 76
 		camera.global_position = camera.global_position.lerp(desired, clamp(delta * 5.0, 0, 1))
 		camera.look_at(target, Vector3.UP)
