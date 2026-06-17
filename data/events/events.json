@@ -54,7 +54,7 @@
   "seed_events": [
     { "kind": "tower_fire", "position": [-66.0, 48.0, -22.0] },
     { "kind": "rogue_drone", "position": [0.0, 44.0, 80.0] },
-    { "kind": "bridge_collapse", "position": [0.0, 4.0, 160.0] }
+    { "kind": "bridge_collapse", "position": [0.0, 8.0, 64.0] }
   ],
   "timed_spawn": {
     "types": ["tower_fire", "rogue_drone", "power_surge", "rescue_signal"],

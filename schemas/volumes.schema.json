@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "aurora://schemas/volumes.schema.json",
+  "title": "Aurora Vigil interaction volumes and objective markers",
+  "type": "object",
+  "required": ["markers", "bridge_zone"],
+  "additionalProperties": false,
+  "definitions": {
+    "vec3": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "type": "number" }
+    },
+    "audio_list": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  },
+  "properties": {
+    "markers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["target_kind", "label", "icon", "enter_audio"],
+        "additionalProperties": false,
+        "properties": {
+          "target_kind": { "type": "string", "minLength": 1 },
+          "label": { "type": "string", "minLength": 1 },
+          "icon": { "type": "string", "minLength": 1 },
+          "enter_audio": { "$ref": "#/definitions/audio_list" }
+        }
+      }
+    },
+    "bridge_zone": {
+      "type": "object",
+      "required": ["position", "size", "enter_audio"],
+      "additionalProperties": false,
+      "properties": {
+        "position": { "$ref": "#/definitions/vec3" },
+        "size": { "$ref": "#/definitions/vec3" },
+        "enter_audio": { "$ref": "#/definitions/audio_list" }
+      }
+    }
+  }
+}

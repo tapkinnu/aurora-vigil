@@ -1,0 +1,39 @@
+{
+  "markers": [
+    {
+      "target_kind": "tower_fire",
+      "label": "OBJECTIVE: TOWER FIRE",
+      "icon": "flame",
+      "enter_audio": ["emergency_dispatcher_dispatch"]
+    },
+    {
+      "target_kind": "rogue_drone",
+      "label": "OBJECTIVE: ROGUE DRONE",
+      "icon": "drone",
+      "enter_audio": ["drone_alert"]
+    },
+    {
+      "target_kind": "power_surge",
+      "label": "OBJECTIVE: POWER SURGE",
+      "icon": "bolt",
+      "enter_audio": ["civic_grid_alert"]
+    },
+    {
+      "target_kind": "rescue_signal",
+      "label": "OBJECTIVE: RESCUE SIGNAL",
+      "icon": "cross",
+      "enter_audio": ["civilian_panicked_help"]
+    },
+    {
+      "target_kind": "bridge_collapse",
+      "label": "OBJECTIVE: BRIDGE COLLAPSE",
+      "icon": "hazard",
+      "enter_audio": ["event_alert_rescue_needed", "civilian_panicked_help"]
+    }
+  ],
+  "bridge_zone": {
+    "position": [0.0, 6.0, 64.0],
+    "size": [44.0, 10.0, 14.0],
+    "enter_audio": ["event_alert_rescue_needed", "civilian_panicked_help"]
+  }
+}

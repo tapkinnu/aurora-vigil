@@ -34,6 +34,7 @@ var flight: PlayerFlightController
 var events: CityEventSystem
 var missions: MissionDirector
 var powers: PowerSystem
+var objectives: ObjectiveDirector
 
 func _ready() -> void:
 	_build_audio()
@@ -45,6 +46,7 @@ func _ready() -> void:
 	if _persistence_enabled():
 		SaveGame.load_into(progression, missions, events)
 	events.seed_initial()
+	objectives.spawn_all()
 	_stage_capture_scene()
 	flight.attach_contact_shadow(hero, 2.6, 1.4)
 	_build_hud()
@@ -64,6 +66,8 @@ func _wire_systems() -> void:
 	powers.setup(self, hero, progression, events)
 	flight = PlayerFlightController.new()
 	flight.setup(self, hero, camera)
+	objectives = ObjectiveDirector.new()
+	objectives.setup(self, hero, camera, events, missions)
 
 # Persistence is disabled during headless capture/smoke runs so screenshots and the
 # smoke print stay deterministic regardless of any save file on disk.
@@ -89,6 +93,7 @@ func _physics_process(delta: float) -> void:
 	flight.handle_flight(delta)
 	flight.update_camera(delta, events.nearest_event())
 	events.update(delta)
+	objectives.update(delta)
 	flight.update_contact_shadows()
 	_update_hud()
 
@@ -710,6 +715,7 @@ func _stage_capture_scene() -> void:
 		hero.position = Vector3(0, 34, 4)
 		hero.rotation_degrees = Vector3(0, 180, 0)
 		hero.scale = Vector3(2.0, 2.0, 2.0)
+	objectives.stage_for_capture(mode)
 
 func _add_part(parent: Node3D, part_name: String, mesh: Mesh, pos: Vector3, scale_v: Vector3, albedo: Color, emission: Color, energy: float) -> void:
 	var mi := MeshInstance3D.new()
