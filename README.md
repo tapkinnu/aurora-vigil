@@ -4,9 +4,10 @@ Original 3D superhero sandbox game built in Godot 4.4.1.
 
 You play as **The Lumen**, an original solar-charged guardian learning to protect Meridian City without becoming an occupying force. The game targets open-city flight, dynamic rescue/crime/disaster events, story missions, and RPG-style power progression.
 
-## Current playable foundation
+## Current state
 
-- 3D city sandbox blockout with readable skyline and objective markers.
+- 3D city sandbox with neon-cyberpunk aesthetic, readable skyline, and objective markers.
+- Real 3D hero (The Lumen) and rogue drone models via Meshy AI pipeline (`tools/meshy_assets.py`).
 - Free-flight superhero controls:
   - `WASD` horizontal flight
   - `Space` ascend
@@ -18,7 +19,9 @@ You play as **The Lumen**, an original solar-charged guardian learning to protec
   - `R` rescue lift
 - Dynamic event seed system: tower fires, rogue drones, bridge collapse, and power surges.
 - Story mission spine: tutorial patrol → rescue → drone chase → level-up power unlock path.
-- Procedural articulated hero placeholder with original teal/gold visual identity.
+- Real audio pack: SFX, music, and TTS voice barks via FAL/Kenney/ElevenLabs (`tools/audio_pipeline.py`).
+- Data-driven missions, events, and powers under `data/` with schema validation.
+- Save/load system with v1→v2 migration and verifier.
 
 ## Verification
 
