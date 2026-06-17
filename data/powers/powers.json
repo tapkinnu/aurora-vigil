@@ -1,0 +1,24 @@
+{
+  "powers": [
+    {
+      "id": "radiant_beam",
+      "flash_color": [1.0, 0.72, 0.22, 1.0],
+      "audio_triggers": ["power_radiant_beam_fire"]
+    },
+    {
+      "id": "sonic_burst",
+      "flash_color": [0.7, 0.45, 1.0, 1.0],
+      "audio_triggers": ["power_sonic_burst"]
+    },
+    {
+      "id": "aegis_field",
+      "flash_color": [0.2, 0.65, 1.0, 1.0],
+      "audio_triggers": ["power_aegis_activate"]
+    },
+    {
+      "id": "rescue_lift",
+      "flash_color": [0.2, 1.0, 0.9, 1.0],
+      "audio_triggers": ["event_alert_rescue_needed"]
+    }
+  ]
+}

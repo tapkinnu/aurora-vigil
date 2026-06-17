@@ -1,0 +1,70 @@
+{
+  "kinds": [
+    {
+      "id": "tower_fire",
+      "display_name": "Tower fire",
+      "color": [1.0, 0.4, 0.1, 1.0],
+      "reward_xp": 70,
+      "required_power": "radiant_beam",
+      "required_action": "Use F radiant beam to vent heat",
+      "spawn_audio": ["event_alert_rescue_needed"],
+      "resolve_audio": ["emergency_dispatcher_dispatch"]
+    },
+    {
+      "id": "rogue_drone",
+      "display_name": "Rogue drone",
+      "color": [0.8, 0.2, 1.0, 1.0],
+      "reward_xp": 110,
+      "required_power": "sonic_burst",
+      "required_action": "Use Q sonic burst for non-lethal shutdown",
+      "spawn_audio": ["drone_alert"],
+      "resolve_audio": ["drone_death"]
+    },
+    {
+      "id": "power_surge",
+      "display_name": "Power surge",
+      "color": [0.2, 0.85, 1.0, 1.0],
+      "reward_xp": 125,
+      "required_power": "aegis_field",
+      "required_action": "Use E aegis field to ground the surge",
+      "spawn_audio": ["event_alert_rescue_needed", "null_choir_cmdr_threat"],
+      "resolve_audio": ["civic_grid_alert"]
+    },
+    {
+      "id": "rescue_signal",
+      "display_name": "Rescue signal",
+      "color": [1.0, 0.9, 0.2, 1.0],
+      "reward_xp": 95,
+      "required_power": "rescue_lift",
+      "required_action": "Use R rescue lift near civilians",
+      "spawn_audio": ["event_alert_rescue_needed", "civilian_panicked_help"],
+      "resolve_audio": ["civilian_grateful_thanks"]
+    },
+    {
+      "id": "bridge_collapse",
+      "display_name": "Bridge collapse",
+      "color": [1.0, 0.55, 0.18, 1.0],
+      "reward_xp": 85,
+      "required_power": "rescue_lift",
+      "required_action": "Use R rescue lift near civilians",
+      "spawn_audio": ["event_alert_rescue_needed", "civilian_panicked_help"],
+      "resolve_audio": ["civilian_grateful_thanks"]
+    }
+  ],
+  "seed_events": [
+    { "kind": "tower_fire", "position": [-66.0, 48.0, -22.0] },
+    { "kind": "rogue_drone", "position": [0.0, 44.0, 80.0] },
+    { "kind": "bridge_collapse", "position": [0.0, 4.0, 160.0] }
+  ],
+  "timed_spawn": {
+    "types": ["tower_fire", "rogue_drone", "power_surge", "rescue_signal"],
+    "positions": [
+      [-92.0, 46.0, 44.0],
+      [88.0, 28.0, -44.0],
+      [0.0, 18.0, -112.0],
+      [112.0, 32.0, 78.0]
+    ],
+    "min_seconds": 8.0,
+    "max_seconds": 14.0
+  }
+}

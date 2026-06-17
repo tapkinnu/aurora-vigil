@@ -1,6 +1,9 @@
 extends SceneTree
 
 const ProgressionModel = preload("res://scripts/ProgressionModel.gd")
+const MissionDirector = preload("res://scripts/MissionDirector.gd")
+const CityEventSystem = preload("res://scripts/CityEventSystem.gd")
+const PowerSystem = preload("res://scripts/PowerSystem.gd")
 
 var failed := false
 
@@ -16,6 +19,9 @@ func _init() -> void:
 	_test_progression_unlocks()
 	_test_save_load_roundtrip()
 	_test_savegame_roundtrip()
+	_test_mission_data()
+	_test_event_data()
+	_test_power_data()
 	if failed:
 		print("AURORA_LOGIC_TESTS: FAIL")
 		quit(1)
@@ -71,3 +77,34 @@ func _test_savegame_roundtrip() -> void:
 	_assert(p2.unlocked == p.unlocked, "savegame unlocked roundtrips")
 	_assert(ms2.mission_step == 2, "savegame mission step roundtrips")
 	_assert(ev2.resolved_events == 5, "savegame resolved count roundtrips")
+
+func _test_mission_data() -> void:
+	var md := MissionDirector.new()
+	_assert(md.load_data("res://data/missions/missions.json"), "missions json loads")
+	_assert(md.loaded_data.has("missions"), "missions loaded_data populated")
+	_assert(md.count() == 4, "four missions loaded from json")
+	_assert(str(md.missions[0]["title"]) == "Dawn Patrol", "first mission title is Dawn Patrol")
+	_assert(str(md.missions[0]["target_kind"]) == "tower_fire", "first mission target_kind matches json")
+	_assert(int(md.missions[0]["reward_xp"]) == 80, "first mission reward_xp matches json")
+
+func _test_event_data() -> void:
+	var ev := CityEventSystem.new()
+	_assert(ev.load_data("res://data/events/events.json"), "events json loads")
+	_assert(ev.event_kinds.size() == 5, "five event kinds loaded")
+	for kind in ["tower_fire", "rogue_drone", "power_surge", "rescue_signal", "bridge_collapse"]:
+		_assert(ev.event_kinds.has(kind), "event kind present: %s" % kind)
+	_assert(ev.seed_events_data.size() == 3, "three seed events loaded")
+	_assert(ev.timed_spawn_data.get("types", []).size() >= 1, "timed_spawn has at least one type")
+	_assert(ev.timed_spawn_data.get("positions", []).size() >= 1, "timed_spawn has at least one position")
+	# Round-trip: resolve reward comes from the data lookup, not a constant.
+	_assert(ev._event_reward("tower_fire") == 70, "tower_fire reward resolves to 70 from data")
+	_assert(ev.format_event_name("tower_fire") == "Tower fire", "tower_fire display name from data")
+	_assert(ev._power_matches_event("radiant_beam", "tower_fire"), "radiant_beam matches tower_fire from data")
+
+func _test_power_data() -> void:
+	var ps := PowerSystem.new()
+	_assert(ps.load_data("res://data/powers/powers.json"), "powers json loads")
+	_assert(ps.power_data.size() >= 4, "at least four powers loaded")
+	_assert(ps.power_data.has("radiant_beam"), "radiant_beam power present")
+	var c: Color = ps.power_data["radiant_beam"]["flash_color"]
+	_assert(c.is_equal_approx(Color(1.0, 0.72, 0.22, 1.0)), "radiant_beam flash_color matches original")

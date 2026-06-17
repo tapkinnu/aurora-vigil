@@ -7,11 +7,15 @@ mkdir -p .godot_validation
 IMPORT_LOG=.godot_validation/import.log
 TEST_LOG=.godot_validation/logic.log
 SMOKE_LOG=.godot_validation/smoke.log
+DATA_LOG=.godot_validation/data.log
 "$GODOT" --headless --path . --import --quit-after 120 >"$IMPORT_LOG" 2>&1 || { tail -120 "$IMPORT_LOG"; exit 1; }
 if grep -E "SCRIPT ERROR|Parse Error|ERROR:" "$IMPORT_LOG" | grep -v "USER ERROR"; then
   echo "AURORA_IMPORT: FAIL"; exit 1
 fi
 echo "AURORA_IMPORT: PASS"
+python3 tools/validate_data.py >"$DATA_LOG" 2>&1 || { cat "$DATA_LOG"; exit 1; }
+grep -q "AURORA_DATA_VALIDATE: PASS" "$DATA_LOG" || { cat "$DATA_LOG"; exit 1; }
+echo "AURORA_DATA: PASS"
 "$GODOT" --headless --path . -s tests/test_logic.gd >"$TEST_LOG" 2>&1 || { cat "$TEST_LOG"; exit 1; }
 grep -q "AURORA_LOGIC_TESTS: PASS" "$TEST_LOG" || { cat "$TEST_LOG"; exit 1; }
 echo "AURORA_LOGIC: PASS"

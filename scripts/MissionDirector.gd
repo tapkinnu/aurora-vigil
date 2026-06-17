@@ -5,10 +5,17 @@ extends RefCounted
 # and the rule for advancing the campaign when a city event is resolved. Split out
 # of Main.gd so mission content stays data-driven and independent of flight/event code.
 
+const DEFAULT_DATA_PATH := "res://data/missions/missions.json"
+
 var progression: ProgressionModel
 
 var mission_step: int = 0
 
+# Raw JSON payload last loaded by `load_data`, exposed for tests/inspection.
+var loaded_data: Dictionary = {}
+
+# Hardcoded fallback used only if the JSON data fails to load, so the campaign
+# spine still works when content is missing.
 var missions: Array[Dictionary] = [
 	{"id": "awakening_patrol", "title": "Dawn Patrol", "objective": "Fly through Meridian and answer the first emergency.", "target_kind": "tower_fire", "reward_xp": 80},
 	{"id": "spire_rescue", "title": "The Burning Spire", "objective": "Rescue civilians from a tower fire before panic spreads.", "target_kind": "rescue_signal", "reward_xp": 140},
@@ -16,8 +23,36 @@ var missions: Array[Dictionary] = [
 	{"id": "stormwall", "title": "Stormwall Protocol", "objective": "Use unlocked powers to protect Meridian during a citywide surge.", "target_kind": "power_surge", "reward_xp": 260}
 ]
 
-func setup(progression_ref: ProgressionModel) -> void:
+func setup(progression_ref: ProgressionModel, data_path: String = DEFAULT_DATA_PATH) -> void:
 	progression = progression_ref
+	load_data(data_path)
+
+# Loads the mission table from JSON, replacing the fallback list. Returns true on
+# success; on any parse problem it keeps the hardcoded fallback and returns false.
+func load_data(path: String) -> bool:
+	if not FileAccess.file_exists(path):
+		push_error("MissionDirector: missions data not found at %s; using fallback" % path)
+		return false
+	var text := FileAccess.get_file_as_string(path)
+	var parsed = JSON.parse_string(text)
+	if typeof(parsed) != TYPE_DICTIONARY or not parsed.has("missions"):
+		push_error("MissionDirector: malformed missions data at %s; using fallback" % path)
+		return false
+	var loaded: Array[Dictionary] = []
+	for entry in parsed["missions"]:
+		loaded.append({
+			"id": str(entry.get("id", "")),
+			"title": str(entry.get("title", "")),
+			"objective": str(entry.get("objective", "")),
+			"target_kind": str(entry.get("target_kind", "")),
+			"reward_xp": int(entry.get("reward_xp", 0)),
+		})
+	if loaded.is_empty():
+		push_error("MissionDirector: missions data at %s had no entries; using fallback" % path)
+		return false
+	missions = loaded
+	loaded_data = parsed
+	return true
 
 func count() -> int:
 	return missions.size()

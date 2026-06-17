@@ -6,16 +6,55 @@ extends RefCounted
 # nearest-event resolution through the CityEventSystem. Split out of Main.gd.
 # `host` is the Main Node3D coordinator (materials, tweens, scene tree, HUD cue).
 
+const DEFAULT_DATA_PATH := "res://data/powers/powers.json"
+# Flash color used for any power without an explicit data entry (e.g. training
+# surges for not-yet-unlocked powers). Matches the original inline default.
+const DEFAULT_FLASH_COLOR := Color(0.2, 1.0, 0.9, 1.0)
+
 var host
 var hero: Node3D
 var progression: ProgressionModel
 var events: CityEventSystem
 
-func setup(host_ref, hero_ref: Node3D, progression_ref: ProgressionModel, events_ref: CityEventSystem) -> void:
+# Raw JSON payload last loaded by `load_data`, exposed for tests/inspection.
+var loaded_data: Dictionary = {}
+# Per-power lookup: id -> { "flash_color": Color, "audio_triggers": Array[String] }.
+var power_data: Dictionary = {}
+
+func setup(host_ref, hero_ref: Node3D, progression_ref: ProgressionModel, events_ref: CityEventSystem, data_path: String = DEFAULT_DATA_PATH) -> void:
 	host = host_ref
 	hero = hero_ref
 	progression = progression_ref
 	events = events_ref
+	load_data(data_path)
+
+# Loads the powers table from JSON into `power_data`. Returns true on success;
+# on failure it leaves `power_data` empty so the inline defaults take over.
+func load_data(path: String) -> bool:
+	if not FileAccess.file_exists(path):
+		push_error("PowerSystem: powers data not found at %s; using fallback" % path)
+		return false
+	var text := FileAccess.get_file_as_string(path)
+	var parsed = JSON.parse_string(text)
+	if typeof(parsed) != TYPE_DICTIONARY or not parsed.has("powers"):
+		push_error("PowerSystem: malformed powers data at %s; using fallback" % path)
+		return false
+	var lookup := {}
+	for entry in parsed["powers"]:
+		var c: Array = entry.get("flash_color", [DEFAULT_FLASH_COLOR.r, DEFAULT_FLASH_COLOR.g, DEFAULT_FLASH_COLOR.b, DEFAULT_FLASH_COLOR.a])
+		var triggers: Array[String] = []
+		for t in entry.get("audio_triggers", []):
+			triggers.append(str(t))
+		lookup[str(entry.get("id", ""))] = {
+			"flash_color": Color(c[0], c[1], c[2], c[3]),
+			"audio_triggers": triggers,
+		}
+	if lookup.is_empty():
+		push_error("PowerSystem: powers data at %s had no entries; using fallback" % path)
+		return false
+	power_data = lookup
+	loaded_data = parsed
+	return true
 
 func trigger(power_id: String) -> void:
 	if not progression.has_power(power_id):
@@ -38,10 +77,9 @@ func _spawn_power_flash(power_id: String) -> void:
 	mesh.height = 2.0
 	flash.mesh = mesh
 	flash.position = hero.position
-	var c := Color(0.2, 1.0, 0.9, 1.0)
-	if power_id == "radiant_beam": c = Color(1.0, 0.72, 0.22, 1.0)
-	if power_id == "sonic_burst": c = Color(0.7, 0.45, 1.0, 1.0)
-	if power_id == "aegis_field": c = Color(0.2, 0.65, 1.0, 1.0)
+	var c: Color = DEFAULT_FLASH_COLOR
+	if power_data.has(power_id):
+		c = power_data[power_id]["flash_color"]
 	flash.material_override = host._mat(c, c, 1.8)
 	host.add_child(flash)
 	var tween: Tween = host._remember_tween(host.create_tween())
@@ -49,13 +87,24 @@ func _spawn_power_flash(power_id: String) -> void:
 	tween.parallel().tween_property(flash, "transparency", 1.0, 0.35)
 	tween.tween_callback(flash.queue_free)
 
+# The set of audio ids that fire for a power now comes from data (power_data),
+# but each id is dispatched through a literal `AuroraAudio.trigger("...")` so the
+# audio-wiring contract (check_audio_wiring.py) and call shape stay intact.
 func _play_power_audio(power_id: String) -> void:
-	match power_id:
-		"radiant_beam":
+	if not power_data.has(power_id):
+		return
+	for id in power_data[power_id]["audio_triggers"]:
+		_dispatch_audio(str(id))
+
+func _dispatch_audio(id: String) -> void:
+	match id:
+		"power_radiant_beam_fire":
 			AuroraAudio.trigger("power_radiant_beam_fire")
-		"sonic_burst":
+		"power_sonic_burst":
 			AuroraAudio.trigger("power_sonic_burst")
-		"aegis_field":
+		"power_aegis_activate":
 			AuroraAudio.trigger("power_aegis_activate")
-		"rescue_lift":
+		"event_alert_rescue_needed":
 			AuroraAudio.trigger("event_alert_rescue_needed")
+		_:
+			push_error("PowerSystem: unknown audio trigger id '%s'" % id)

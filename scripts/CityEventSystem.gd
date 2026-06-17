@@ -9,12 +9,25 @@ extends RefCounted
 
 const ROGUE_DRONE_SCENE = preload("res://assets/3d/characters/enemies/drone_rogue.glb")
 const EVENT_RESOLVE_RADIUS: float = 18.0
+const DEFAULT_DATA_PATH := "res://data/events/events.json"
+# Inline fallbacks, used only when the JSON data fails to load.
+const DEFAULT_EVENT_COLOR := Color(1, 0.4, 0.1, 1)
+const DEFAULT_EVENT_REWARD := 60
+const DEFAULT_REQUIRED_ACTION := "Use any unlocked power in the volume"
 
 var host
 var hero: Node3D
 var camera: Camera3D
 var progression: ProgressionModel
 var missions: MissionDirector
+
+# Raw JSON payload last loaded by `load_data`, exposed for tests/inspection.
+var loaded_data: Dictionary = {}
+# Per-kind lookup: id -> kind dict (color/reward/required_*/audio/display_name).
+var event_kinds: Dictionary = {}
+# Loaded seeding + timed-spawn data (fall back to the inline lists if empty).
+var seed_events_data: Array = []
+var timed_spawn_data: Dictionary = {}
 
 var event_nodes: Array[Node3D] = []
 var rogue_drone_actor: Node3D
@@ -26,13 +39,43 @@ var rng := RandomNumberGenerator.new()
 var event_waypoint_layer: CanvasLayer
 var waypoint_arrows: Array[Control] = []
 
-func setup(host_ref, hero_ref: Node3D, camera_ref: Camera3D, progression_ref: ProgressionModel, missions_ref: MissionDirector) -> void:
+func setup(host_ref, hero_ref: Node3D, camera_ref: Camera3D, progression_ref: ProgressionModel, missions_ref: MissionDirector, data_path: String = DEFAULT_DATA_PATH) -> void:
 	host = host_ref
 	hero = hero_ref
 	camera = camera_ref
 	progression = progression_ref
 	missions = missions_ref
 	rng.seed = 20260616
+	load_data(data_path)
+
+# Loads event kinds, seed events, and timed-spawn config from JSON. Returns true
+# on success; on failure it leaves the lookups empty so the inline defaults and
+# hardcoded seed/spawn lists take over.
+func load_data(path: String) -> bool:
+	if not FileAccess.file_exists(path):
+		push_error("CityEventSystem: events data not found at %s; using fallback" % path)
+		return false
+	var text := FileAccess.get_file_as_string(path)
+	var parsed = JSON.parse_string(text)
+	if typeof(parsed) != TYPE_DICTIONARY or not parsed.has("kinds"):
+		push_error("CityEventSystem: malformed events data at %s; using fallback" % path)
+		return false
+	var kinds := {}
+	for entry in parsed["kinds"]:
+		kinds[str(entry.get("id", ""))] = entry
+	if kinds.is_empty():
+		push_error("CityEventSystem: events data at %s had no kinds; using fallback" % path)
+		return false
+	event_kinds = kinds
+	seed_events_data = parsed.get("seed_events", [])
+	timed_spawn_data = parsed.get("timed_spawn", {})
+	loaded_data = parsed
+	return true
+
+func _color_from_array(arr) -> Color:
+	if arr is Array and arr.size() >= 4:
+		return Color(arr[0], arr[1], arr[2], arr[3])
+	return DEFAULT_EVENT_COLOR
 
 func build_waypoint_layer() -> void:
 	event_waypoint_layer = CanvasLayer.new()
@@ -41,9 +84,14 @@ func build_waypoint_layer() -> void:
 	host.add_child(event_waypoint_layer)
 
 func seed_initial() -> void:
-	spawn_event("tower_fire", Vector3(-66, 48, -22))
-	spawn_event("rogue_drone", Vector3(0, 44, 80))
-	spawn_event("bridge_collapse", Vector3(0, 4, 160))
+	if seed_events_data.is_empty():
+		spawn_event("tower_fire", Vector3(-66, 48, -22))
+		spawn_event("rogue_drone", Vector3(0, 44, 80))
+		spawn_event("bridge_collapse", Vector3(0, 4, 160))
+		return
+	for se in seed_events_data:
+		var pos: Array = se.get("position", [0, 0, 0])
+		spawn_event(str(se.get("kind", "tower_fire")), Vector3(pos[0], pos[1], pos[2]))
 
 func update(delta: float) -> void:
 	event_timer += delta
@@ -63,20 +111,31 @@ func update(delta: float) -> void:
 			label.modulate = Color(1.0, 1.0, 1.0, 1.0) if dist <= EVENT_RESOLVE_RADIUS else Color(color.r, color.g, color.b, 0.86)
 	if event_timer >= next_event_seconds:
 		event_timer = 0.0
-		next_event_seconds = 8.0 + rng.randf_range(0, 6.0)
-		var positions := [Vector3(-92, 46, 44), Vector3(88, 28, -44), Vector3(0, 18, -112), Vector3(112, 32, 78)]
-		var types := ["tower_fire", "rogue_drone", "power_surge", "rescue_signal"]
+		var min_s := float(timed_spawn_data.get("min_seconds", 8.0)) if not timed_spawn_data.is_empty() else 8.0
+		var max_s := float(timed_spawn_data.get("max_seconds", 14.0)) if not timed_spawn_data.is_empty() else 14.0
+		next_event_seconds = min_s + rng.randf_range(0, max(0.0, max_s - min_s))
+		var positions := _timed_spawn_positions()
+		var types := _timed_spawn_types()
 		spawn_event(types[rng.randi_range(0, types.size() - 1)], positions[rng.randi_range(0, positions.size() - 1)])
 	_update_waypoint_arrows()
 
+func _timed_spawn_types() -> Array:
+	if not timed_spawn_data.is_empty() and timed_spawn_data.get("types", []).size() > 0:
+		return timed_spawn_data["types"]
+	return ["tower_fire", "rogue_drone", "power_surge", "rescue_signal"]
+
+func _timed_spawn_positions() -> Array:
+	if not timed_spawn_data.is_empty() and timed_spawn_data.get("positions", []).size() > 0:
+		var out: Array = []
+		for p in timed_spawn_data["positions"]:
+			out.append(Vector3(p[0], p[1], p[2]))
+		return out
+	return [Vector3(-92, 46, 44), Vector3(88, 28, -44), Vector3(0, 18, -112), Vector3(112, 32, 78)]
+
 func event_color(kind: String) -> Color:
-	match kind:
-		"rogue_drone": return Color(0.8, 0.2, 1.0, 1)
-		"power_surge": return Color(0.2, 0.85, 1.0, 1)
-		"rescue_signal": return Color(1.0, 0.9, 0.2, 1)
-		"bridge_collapse": return Color(1.0, 0.55, 0.18, 1)
-		"tower_fire": return Color(1, 0.4, 0.1, 1)
-		_: return Color(1, 0.4, 0.1, 1)
+	if event_kinds.has(kind):
+		return _color_from_array(event_kinds[kind].get("color", []))
+	return DEFAULT_EVENT_COLOR
 
 func spawn_event(kind: String, pos: Vector3) -> void:
 	var marker := Node3D.new()
@@ -311,48 +370,24 @@ func _update_waypoint_arrows() -> void:
 		waypoint_arrows.append(arrow)
 
 func _event_reward(kind: String) -> int:
-	match kind:
-		"tower_fire":
-			return 70
-		"rescue_signal":
-			return 95
-		"rogue_drone":
-			return 110
-		"power_surge":
-			return 125
-		"bridge_collapse":
-			return 85
-		_:
-			return 60
+	if event_kinds.has(kind):
+		return int(event_kinds[kind].get("reward_xp", DEFAULT_EVENT_REWARD))
+	return DEFAULT_EVENT_REWARD
 
 func format_event_name(kind: String) -> String:
+	if event_kinds.has(kind):
+		return str(event_kinds[kind].get("display_name", kind.replace("_", " ").capitalize()))
 	return kind.replace("_", " ").capitalize()
 
 func required_action_for_event(kind: String) -> String:
-	match kind:
-		"tower_fire":
-			return "Use F radiant beam to vent heat"
-		"rescue_signal", "bridge_collapse":
-			return "Use R rescue lift near civilians"
-		"rogue_drone":
-			return "Use Q sonic burst for non-lethal shutdown"
-		"power_surge":
-			return "Use E aegis field to ground the surge"
-		_:
-			return "Use any unlocked power in the volume"
+	if event_kinds.has(kind):
+		return str(event_kinds[kind].get("required_action", DEFAULT_REQUIRED_ACTION))
+	return DEFAULT_REQUIRED_ACTION
 
 func _power_matches_event(power_id: String, kind: String) -> bool:
-	match kind:
-		"tower_fire":
-			return power_id == "radiant_beam"
-		"rescue_signal", "bridge_collapse":
-			return power_id == "rescue_lift"
-		"rogue_drone":
-			return power_id == "sonic_burst"
-		"power_surge":
-			return power_id == "aegis_field"
-		_:
-			return true
+	if event_kinds.has(kind):
+		return power_id == str(event_kinds[kind].get("required_power", ""))
+	return true
 
 func attempt_resolve_nearest(power_id: String) -> bool:
 	var marker := nearest_event()
@@ -383,32 +418,41 @@ func _resolve_event(marker: Node3D, power_id: String) -> void:
 	if is_instance_valid(marker):
 		marker.queue_free()
 
+# The audio ids that fire for an event now come from data (event_kinds), but each
+# id is dispatched through a literal `AuroraAudio.trigger("...")` so the audio-
+# wiring contract (check_audio_wiring.py) and the call shape stay intact.
 func _play_event_spawn_audio(kind: String) -> void:
-	match kind:
-		"rogue_drone":
-			AuroraAudio.trigger("drone_alert")
-		"rescue_signal":
-			AuroraAudio.trigger("event_alert_rescue_needed")
-			AuroraAudio.trigger("civilian_panicked_help")
-		"tower_fire":
-			AuroraAudio.trigger("event_alert_rescue_needed")
-		"power_surge":
-			AuroraAudio.trigger("event_alert_rescue_needed")
-			AuroraAudio.trigger("null_choir_cmdr_threat")
-		"bridge_collapse":
-			AuroraAudio.trigger("event_alert_rescue_needed")
-			AuroraAudio.trigger("civilian_panicked_help")
+	if not event_kinds.has(kind):
+		return
+	for id in event_kinds[kind].get("spawn_audio", []):
+		_dispatch_audio(str(id))
 
 func _play_event_resolve_audio(kind: String) -> void:
-	match kind:
-		"rogue_drone":
+	if not event_kinds.has(kind):
+		return
+	for id in event_kinds[kind].get("resolve_audio", []):
+		_dispatch_audio(str(id))
+
+func _dispatch_audio(id: String) -> void:
+	match id:
+		"drone_alert":
+			AuroraAudio.trigger("drone_alert")
+		"event_alert_rescue_needed":
+			AuroraAudio.trigger("event_alert_rescue_needed")
+		"civilian_panicked_help":
+			AuroraAudio.trigger("civilian_panicked_help")
+		"null_choir_cmdr_threat":
+			AuroraAudio.trigger("null_choir_cmdr_threat")
+		"drone_death":
 			AuroraAudio.trigger("drone_death")
-		"rescue_signal", "bridge_collapse":
+		"civilian_grateful_thanks":
 			AuroraAudio.trigger("civilian_grateful_thanks")
-		"tower_fire":
+		"emergency_dispatcher_dispatch":
 			AuroraAudio.trigger("emergency_dispatcher_dispatch")
-		"power_surge":
+		"civic_grid_alert":
 			AuroraAudio.trigger("civic_grid_alert")
+		_:
+			push_error("CityEventSystem: unknown audio trigger id '%s'" % id)
 
 func _update_rogue_drone(marker: Node3D, delta: float) -> void:
 	var center: Vector3 = marker.get_meta("orbit_center", marker.position)
