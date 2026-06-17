@@ -320,37 +320,124 @@ func _build_city() -> void:
 			var h: float = 18.0 + float((abs(x * 17 + z * 31) % 38))
 			if is_collector:
 				h += 18.0
+			# Deterministic form-type: L-shape 30%, stepped 20%, twin-tower 10%,
+			# setback 20%, simple box 20%. Collectors always stepped for landmark read.
+			var form_seed: int = abs(x * 41 + z * 37) % 100
+			var form_type: int = 4
+			if is_collector:
+				form_type = 1
+			elif form_seed < 30:
+				form_type = 0  # L-shaped
+			elif form_seed < 50:
+				form_type = 1  # stepped
+			elif form_seed < 60:
+				form_type = 2  # twin-tower
+			elif form_seed < 80:
+				form_type = 3  # setback
+			# else simple box (form_type stays 4)
 			var tower_body := StaticBody3D.new()
 			tower_body.name = "SkylineTower_%d_%d" % [x, z]
-			tower_body.position = Vector3(x * 22.0, h * 0.5, z * 22.0)
+			tower_body.position = Vector3(x * 22.0, 0.0, z * 22.0)
 			district.add_child(tower_body)
-
-			var tower := MeshInstance3D.new()
-			tower.name = "TexturedTowerShell"
-			var mesh := BoxMesh.new()
-			mesh.size = Vector3(width, h, depth)
-			tower.mesh = mesh
-			tower.material_override = _city_facade_material(h, x, z, width, depth, is_collector)
-			tower_body.add_child(tower)
-
-			# PBR facade textures now include window detail; floor strips removed.
-			_add_vertical_ribs(tower_body, width, depth, h, is_collector)
-			_add_crown_neon(tower_body, width, depth, h)
-			_add_roof_detail(tower_body, width, depth, h, x, z, is_collector)
-
-			var shape := CollisionShape3D.new()
-			shape.name = "TowerCollision"
-			var box := BoxShape3D.new()
-			box.size = Vector3(width, h, depth)
-			shape.shape = box
-			tower_body.add_child(shape)
-
+			var facade_mat := _city_facade_material(h, x, z, width, depth, is_collector)
+			var top_info: Dictionary = _build_composite_tower(tower_body, form_type, width, depth, h, facade_mat)
+			var top_y: float = float(top_info["top_y"])
+			var top_w: float = float(top_info["top_w"])
+			var top_d: float = float(top_info["top_d"])
+			_add_vertical_ribs(tower_body, top_w, top_d, top_y, is_collector)
+			_add_crown_neon(tower_body, top_w, top_d, top_y)
+			_add_roof_detail(tower_body, top_w, top_d, top_y, x, z, is_collector)
 			if is_collector or (x - z) % 2 == 0:
-				_add_rooftop_beacon(tower_body, Vector3(0, h * 0.5 + 3.8, 0), is_collector)
+				_add_rooftop_beacon(tower_body, Vector3(0, top_y + 3.8, 0), is_collector)
 	_add_civic_grid(district)
 	_add_skyline_props(district)
 	_add_city_avenues(district)
 	_add_transit_corridor(district)
+
+# ── Composite building-silhouette builders ──
+
+func _build_composite_tower(parent: StaticBody3D, form_type: int, width: float, depth: float, h: float, mat: Material) -> Dictionary:
+	match form_type:
+		0:
+			return _build_l_shape(parent, width, depth, h, mat)
+		1:
+			return _build_stepped(parent, width, depth, h, mat)
+		2:
+			return _build_twin_tower(parent, width, depth, h, mat)
+		3:
+			return _build_setback(parent, width, depth, h, mat)
+		_:
+			return _build_simple_box(parent, width, depth, h, mat)
+
+func _add_building_segment(parent: StaticBody3D, seg_name: String, size: Vector3, center: Vector3, mat: Material) -> void:
+	# Visual mesh
+	var mesh_inst := MeshInstance3D.new()
+	mesh_inst.name = seg_name + "_Mesh"
+	var box_mesh := BoxMesh.new()
+	box_mesh.size = size
+	mesh_inst.mesh = box_mesh
+	mesh_inst.position = center
+	mesh_inst.material_override = mat
+	parent.add_child(mesh_inst)
+	# Matching collision shape
+	var col := CollisionShape3D.new()
+	col.name = seg_name + "_Col"
+	var col_shape := BoxShape3D.new()
+	col_shape.size = size
+	col.shape = col_shape
+	col.position = center
+	parent.add_child(col)
+
+func _build_simple_box(parent: StaticBody3D, width: float, depth: float, h: float, mat: Material) -> Dictionary:
+	_add_building_segment(parent, "MainBox", Vector3(width, h, depth), Vector3(0, h * 0.5, 0), mat)
+	return {"top_y": h, "top_w": width, "top_d": depth}
+
+func _build_l_shape(parent: StaticBody3D, width: float, depth: float, h: float, mat: Material) -> Dictionary:
+	# L footprint: main bar + shorter perpendicular wing.
+	var main_d: float = depth * 0.6
+	var wing_w: float = width * 0.45
+	var wing_h: float = h * 0.72
+	_add_building_segment(parent, "LMain", Vector3(width, h, main_d), Vector3(0, h * 0.5, -depth * 0.2), mat)
+	_add_building_segment(parent, "LWing", Vector3(wing_w, wing_h, depth), Vector3(-width * 0.275, wing_h * 0.5, depth * 0.2), mat)
+	return {"top_y": h, "top_w": width, "top_d": depth}
+
+func _build_stepped(parent: StaticBody3D, width: float, depth: float, h: float, mat: Material) -> Dictionary:
+	# 2-3 stacked boxes of decreasing width (ziggurat).
+	var h1: float = h * 0.5
+	var h2: float = h * 0.3
+	var h3: float = h * 0.2
+	var w2: float = width * 0.78
+	var d2: float = depth * 0.78
+	var w3: float = width * 0.52
+	var d3: float = depth * 0.52
+	_add_building_segment(parent, "Step1", Vector3(width, h1, depth), Vector3(0, h1 * 0.5, 0), mat)
+	_add_building_segment(parent, "Step2", Vector3(w2, h2, d2), Vector3(0, h1 + h2 * 0.5, 0), mat)
+	_add_building_segment(parent, "Step3", Vector3(w3, h3, d3), Vector3(0, h1 + h2 + h3 * 0.5, 0), mat)
+	return {"top_y": h, "top_w": w3, "top_d": d3}
+
+func _build_twin_tower(parent: StaticBody3D, width: float, depth: float, h: float, mat: Material) -> Dictionary:
+	# Two parallel slabs connected by a skybridge.
+	var tower_w: float = width * 0.42
+	var gap: float = width * 0.16
+	var offset: float = tower_w * 0.5 + gap * 0.5
+	var left_h: float = h * 0.85
+	var right_h: float = h
+	_add_building_segment(parent, "TwinLeft", Vector3(tower_w, left_h, depth), Vector3(-offset, left_h * 0.5, 0), mat)
+	_add_building_segment(parent, "TwinRight", Vector3(tower_w, right_h, depth), Vector3(offset, right_h * 0.5, 0), mat)
+	# Skybridge at ~60 % height spanning the gap.
+	var bridge_w: float = gap + 2.0
+	_add_building_segment(parent, "Skybridge", Vector3(bridge_w, 2.5, depth * 0.55), Vector3(0, h * 0.6, 0), mat)
+	return {"top_y": right_h, "top_w": tower_w, "top_d": depth}
+
+func _build_setback(parent: StaticBody3D, width: float, depth: float, h: float, mat: Material) -> Dictionary:
+	# Lower 70 % full footprint, upper 30 % narrower setback.
+	var lower_h: float = h * 0.7
+	var upper_h: float = h * 0.3
+	var upper_w: float = width * 0.72
+	var upper_d: float = depth * 0.72
+	_add_building_segment(parent, "SetbackLower", Vector3(width, lower_h, depth), Vector3(0, lower_h * 0.5, 0), mat)
+	_add_building_segment(parent, "SetbackUpper", Vector3(upper_w, upper_h, upper_d), Vector3(0, lower_h + upper_h * 0.5, 0), mat)
+	return {"top_y": h, "top_w": upper_w, "top_d": upper_d}
 
 func _add_city_avenues(parent: Node3D) -> void:
 	# Avenues get a brighter, slightly emissive surface so they read from high capture
@@ -670,11 +757,11 @@ func _add_floor_strips(parent: Node3D, width: float, depth: float, h: float) -> 
 		_add_box(parent, "FrontServicePod_%d" % r, Vector3(2.4, 0.75, 1.15), Vector3(-width * 0.22, y, depth * 0.5 + 0.48), pod_mat)
 		_add_box(parent, "BackServicePod_%d" % r, Vector3(2.4, 0.75, 1.15), Vector3(width * 0.22, y, -depth * 0.5 - 0.48), pod_mat)
 
-func _add_crown_neon(parent: Node3D, width: float, depth: float, h: float) -> void:
-	# Bright neon rim band wrapped around the top of the tower so the skyline
+func _add_crown_neon(parent: Node3D, width: float, depth: float, top_y: float) -> void:
+	# Bright neon rim band wrapped around the top segment so the skyline
 	# silhouettes read against the dark sky from any capture altitude. Variants
 	# cycle cyan / magenta per tower so the city feels populated.
-	var hue := fposmod(width + depth + h, 4.0)
+	var hue := fposmod(width + depth + top_y, 4.0)
 	var crown_mat: StandardMaterial3D
 	if hue < 1.5:
 		crown_mat = _mat(Color(0.25, 0.95, 1.0, 1.0), Color(0.25, 0.95, 1.0, 1.0), 1.0)
@@ -682,7 +769,7 @@ func _add_crown_neon(parent: Node3D, width: float, depth: float, h: float) -> vo
 		crown_mat = _mat(Color(0.95, 0.25, 0.85, 1.0), Color(0.95, 0.25, 0.85, 1.0), 0.95)
 	else:
 		crown_mat = _mat(Color(1.0, 0.85, 0.3, 1.0), Color(1.0, 0.85, 0.3, 1.0), 0.9)
-	var y := h * 0.5 - 0.18
+	var y := top_y - 0.18
 	_add_box(parent, "CrownBandFront", Vector3(width + 0.4, 0.16, 0.18), Vector3(0, y, depth * 0.5 + 0.16), crown_mat)
 	_add_box(parent, "CrownBandBack", Vector3(width + 0.4, 0.16, 0.18), Vector3(0, y, -depth * 0.5 - 0.16), crown_mat)
 	_add_box(parent, "CrownBandLeft", Vector3(0.18, 0.16, depth + 0.4), Vector3(-width * 0.5 - 0.16, y, 0), crown_mat)
@@ -695,18 +782,20 @@ func _add_crown_neon(parent: Node3D, width: float, depth: float, h: float) -> vo
 	crown_light.omni_range = 12.0
 	parent.add_child(crown_light)
 
-func _add_vertical_ribs(parent: Node3D, width: float, depth: float, h: float, collector: bool) -> void:
+func _add_vertical_ribs(parent: Node3D, width: float, depth: float, top_y: float, collector: bool) -> void:
 	var rib_mat := _mat(Color(0.16, 0.24, 0.29, 1.0), Color(0.0, 0.25, 0.34, 1.0), 0.1)
 	if collector:
 		rib_mat = _mat(Color(0.18, 0.34, 0.42, 1.0), Color(0.0, 0.45, 0.65, 1.0), 0.2)
-	_add_box(parent, "FrontLeftRib", Vector3(0.18, h + 0.3, 0.18), Vector3(-width * 0.48, 0.0, depth * 0.48), rib_mat)
-	_add_box(parent, "FrontRightRib", Vector3(0.18, h + 0.3, 0.18), Vector3(width * 0.48, 0.0, depth * 0.48), rib_mat)
-	_add_box(parent, "BackLeftRib", Vector3(0.18, h + 0.3, 0.18), Vector3(-width * 0.48, 0.0, -depth * 0.48), rib_mat)
-	_add_box(parent, "BackRightRib", Vector3(0.18, h + 0.3, 0.18), Vector3(width * 0.48, 0.0, -depth * 0.48), rib_mat)
+	var rib_h: float = top_y + 0.3
+	var rib_cy: float = top_y * 0.5
+	_add_box(parent, "FrontLeftRib", Vector3(0.18, rib_h, 0.18), Vector3(-width * 0.48, rib_cy, depth * 0.48), rib_mat)
+	_add_box(parent, "FrontRightRib", Vector3(0.18, rib_h, 0.18), Vector3(width * 0.48, rib_cy, depth * 0.48), rib_mat)
+	_add_box(parent, "BackLeftRib", Vector3(0.18, rib_h, 0.18), Vector3(-width * 0.48, rib_cy, -depth * 0.48), rib_mat)
+	_add_box(parent, "BackRightRib", Vector3(0.18, rib_h, 0.18), Vector3(width * 0.48, rib_cy, -depth * 0.48), rib_mat)
 
-func _add_roof_detail(parent: Node3D, width: float, depth: float, h: float, x: int, z: int, collector: bool) -> void:
+func _add_roof_detail(parent: Node3D, width: float, depth: float, top_y: float, x: int, z: int, collector: bool) -> void:
 	var cap_mat := _mat(Color(0.18, 0.28, 0.34, 1.0), Color(0.0, 0.32, 0.42, 1.0), 0.12)
-	var roof := _add_box(parent, "RooftopCap", Vector3(width + 0.8, 0.45, depth + 0.8), Vector3(0, h * 0.5 + 0.22, 0), cap_mat)
+	var roof := _add_box(parent, "RooftopCap", Vector3(width + 0.8, 0.45, depth + 0.8), Vector3(0, top_y + 0.22, 0), cap_mat)
 	var antenna := MeshInstance3D.new()
 	antenna.name = "RooftopAntenna"
 	var antenna_mesh := CylinderMesh.new()
@@ -714,11 +803,11 @@ func _add_roof_detail(parent: Node3D, width: float, depth: float, h: float, x: i
 	antenna_mesh.bottom_radius = 0.18
 	antenna_mesh.height = 3.0
 	antenna.mesh = antenna_mesh
-	antenna.position = Vector3(0, h * 0.5 + 1.9, 0)
+	antenna.position = Vector3(0, top_y + 1.9, 0)
 	antenna.material_override = _mat(Color(0.2, 0.9, 1.0, 1.0), Color(0.2, 0.9, 1.0, 1.0), 0.9)
 	parent.add_child(antenna)
 	if collector:
-		_add_box(parent, "CollectorCrown", Vector3(width * 0.7, 3.2, depth * 0.7), Vector3(0, h * 0.5 + 2.2, 0), _mat(Color(0.12, 0.32, 0.42, 1.0), Color(0.0, 0.7, 1.0, 1.0), 0.7))
+		_add_box(parent, "CollectorCrown", Vector3(width * 0.7, 3.2, depth * 0.7), Vector3(0, top_y + 2.2, 0), _mat(Color(0.12, 0.32, 0.42, 1.0), Color(0.0, 0.7, 1.0, 1.0), 0.7))
 		var spire := MeshInstance3D.new()
 		spire.name = "CollectorSpire"
 		var spire_mesh := CylinderMesh.new()
@@ -726,11 +815,11 @@ func _add_roof_detail(parent: Node3D, width: float, depth: float, h: float, x: i
 		spire_mesh.bottom_radius = 0.55
 		spire_mesh.height = 7.5
 		spire.mesh = spire_mesh
-		spire.position = Vector3(0, h * 0.5 + 6.1, 0)
+		spire.position = Vector3(0, top_y + 6.1, 0)
 		spire.material_override = _mat(Color(0.25, 0.95, 1.0, 1.0), Color(0.1, 0.8, 1.0, 1.0), 1.0)
 		parent.add_child(spire)
 	elif (x + z) % 4 == 0:
-		_add_box(parent, "CrownBlock", Vector3(width * 0.55, 2.8, depth * 0.55), Vector3(0, h * 0.5 + 1.85, 0), _mat(Color(0.22, 0.3, 0.36, 1.0), Color(0.0, 0.35, 0.48, 1.0), 0.25))
+		_add_box(parent, "CrownBlock", Vector3(width * 0.55, 2.8, depth * 0.55), Vector3(0, top_y + 1.85, 0), _mat(Color(0.22, 0.3, 0.36, 1.0), Color(0.0, 0.35, 0.48, 1.0), 0.25))
 	elif (x - z) % 4 == 0:
 		var spire := MeshInstance3D.new()
 		spire.name = "SignalSpire"
@@ -739,7 +828,7 @@ func _add_roof_detail(parent: Node3D, width: float, depth: float, h: float, x: i
 		spire_mesh.bottom_radius = 0.7
 		spire_mesh.height = 5.5
 		spire.mesh = spire_mesh
-		spire.position = Vector3(0, h * 0.5 + 3.3, 0)
+		spire.position = Vector3(0, top_y + 3.3, 0)
 		spire.material_override = _mat(Color(0.22, 0.88, 1.0, 1.0), Color(0.1, 0.7, 1.0, 1.0), 0.85)
 		parent.add_child(spire)
 	if collector or (abs(x) + abs(z)) % 5 == 0:
@@ -750,7 +839,7 @@ func _add_roof_detail(parent: Node3D, width: float, depth: float, h: float, x: i
 		pad_mesh.bottom_radius = 2.2
 		pad_mesh.height = 0.18
 		pad.mesh = pad_mesh
-		pad.position = Vector3(0, h * 0.5 + 0.42, 0)
+		pad.position = Vector3(0, top_y + 0.42, 0)
 		pad.material_override = _mat(Color(0.04, 0.11, 0.16, 1.0), Color(0.0, 0.35, 0.5, 1.0), 0.25)
 		parent.add_child(pad)
 		var ring := MeshInstance3D.new()
@@ -759,7 +848,7 @@ func _add_roof_detail(parent: Node3D, width: float, depth: float, h: float, x: i
 		ring_mesh.inner_radius = 2.0
 		ring_mesh.outer_radius = 2.25
 		ring.mesh = ring_mesh
-		ring.position = Vector3(0, h * 0.5 + 0.58, 0)
+		ring.position = Vector3(0, top_y + 0.58, 0)
 		ring.rotation_degrees = Vector3(90, 0, 0)
 		ring.material_override = _mat(Color(0.35, 0.9, 1.0, 1.0), Color(0.25, 0.8, 1.0, 1.0), 0.9)
 		parent.add_child(ring)
@@ -771,7 +860,7 @@ func _add_roof_detail(parent: Node3D, width: float, depth: float, h: float, x: i
 			ring_mesh.inner_radius = max(width, depth) * 0.55 + offset
 			ring_mesh.outer_radius = ring_mesh.inner_radius + 0.18
 			ring.mesh = ring_mesh
-			ring.position = Vector3(0, h * 0.5 + offset, 0)
+			ring.position = Vector3(0, top_y + offset, 0)
 			ring.rotation_degrees = Vector3(90, 0, 0)
 			ring.material_override = _transparent_mat(Color(0.0, 0.55, 0.9, 0.28), Color(0.0, 0.9, 1.0, 1.0), 0.75)
 			parent.add_child(ring)
@@ -780,9 +869,9 @@ func _add_roof_detail(parent: Node3D, width: float, depth: float, h: float, x: i
 		var core_mesh := CylinderMesh.new()
 		core_mesh.top_radius = 1.2
 		core_mesh.bottom_radius = 1.2
-		core_mesh.height = h + 4.0
+		core_mesh.height = top_y + 4.0
 		core.mesh = core_mesh
-		core.position = Vector3(0, 0, 0)
+		core.position = Vector3(0, (top_y + 4.0) * 0.5, 0)
 		core.material_override = _transparent_mat(Color(0.0, 0.45, 0.8, 0.08), Color(0.0, 0.8, 1.0, 1.0), 0.65)
 		parent.add_child(core)
 
