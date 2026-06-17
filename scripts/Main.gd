@@ -76,6 +76,30 @@ var events: CityEventSystem
 var missions: MissionDirector
 var powers: PowerSystem
 var objectives: ObjectiveDirector
+var civilians: CivilianSystem
+var enemy_system: EnemySystem
+var health_system: HealthSystem
+
+# HUD: health bar, minimap, and the two transient notification banners.
+var health_bar_bg: ColorRect
+var health_bar_fill: ColorRect
+var health_label: Label
+var minimap: Minimap
+var unlock_toast: Label
+var mission_banner: Label
+var game_over_label: Label
+var _toast_timer: float = 0.0
+var _banner_timer: float = 0.0
+var _last_unlocked_count: int = 2
+var _last_banner_step: int = 0
+
+# The four key-bound powers shown in the HUD with their lock state, in unlock order.
+const HUD_POWERS: Array[Dictionary] = [
+	{"id": "rescue_lift", "key": "R"},
+	{"id": "radiant_beam", "key": "F"},
+	{"id": "sonic_burst", "key": "Q"},
+	{"id": "aegis_field", "key": "E"},
+]
 
 func _ready() -> void:
 	_build_audio()
@@ -109,6 +133,12 @@ func _wire_systems() -> void:
 	flight.setup(self, hero, camera)
 	objectives = ObjectiveDirector.new()
 	objectives.setup(self, hero, camera, events, missions)
+	enemy_system = EnemySystem.new()
+	enemy_system.setup(self, hero, events, progression)
+	civilians = CivilianSystem.new()
+	civilians.setup(self, hero, events, Callable(self, "_dispatch_civilian_audio"))
+	health_system = HealthSystem.new()
+	health_system.setup(self, hero, enemy_system, events)
 
 # Persistence is disabled during headless capture/smoke runs so screenshots and the
 # smoke print stay deterministic regardless of any save file on disk.
@@ -237,7 +267,11 @@ func _physics_process(delta: float) -> void:
 	flight.update_camera(delta, events.nearest_event())
 	events.update(delta)
 	objectives.update(delta)
+	enemy_system.update(delta)
+	civilians.update(delta)
+	health_system.update(delta)
 	flight.update_contact_shadows()
+	_update_transients(delta)
 	_update_hud()
 
 func _input(event: InputEvent) -> void:
@@ -247,10 +281,31 @@ func _input(event: InputEvent) -> void:
 				powers.trigger("radiant_beam")
 			KEY_Q:
 				powers.trigger("sonic_burst")
+				if progression.has_power("sonic_burst"):
+					var disabled := enemy_system.disable_in_range(hero.position)
+					if disabled > 0:
+						last_event_text = "Sonic burst silenced %d Null Choir unit(s)." % disabled
 			KEY_E:
 				powers.trigger("aegis_field")
+				if progression.has_power("aegis_field"):
+					health_system.activate_aegis()
 			KEY_R:
 				powers.trigger("rescue_lift")
+				if progression.has_power("rescue_lift"):
+					var calmed := civilians.rescue_nearby()
+					if calmed > 0:
+						last_event_text = "Rescue lift reassured %d civilian(s)." % calmed
+
+# Routes CivilianSystem audio cues through literal AuroraAudio.trigger(...) calls so
+# the audio-wiring contract (check_audio_wiring.py) stays satisfied in one place.
+func _dispatch_civilian_audio(id: String) -> void:
+	match id:
+		"civilian_panicked_help":
+			AuroraAudio.trigger("civilian_panicked_help")
+		"civilian_grateful_thanks":
+			AuroraAudio.trigger("civilian_grateful_thanks")
+		_:
+			push_error("Main: unknown civilian audio trigger id '%s'" % id)
 
 func _build_world() -> void:
 	# Night/dusk sky with stars + magenta horizon glow via ProceduralSkyMaterial.
@@ -1215,10 +1270,91 @@ func _build_hud() -> void:
 	event_cue_label.z_index = 1
 	layer.add_child(event_cue_label)
 
+	# Health bar (top-right free margin beside the status panel).
+	health_bar_bg = ColorRect.new()
+	health_bar_bg.name = "HealthBarBG"
+	health_bar_bg.position = Vector2(1040, 14)
+	health_bar_bg.size = Vector2(224, 26)
+	health_bar_bg.color = Color(0.02, 0.04, 0.06, 0.85)
+	health_bar_bg.z_index = 0
+	layer.add_child(health_bar_bg)
+	health_bar_fill = ColorRect.new()
+	health_bar_fill.name = "HealthBarFill"
+	health_bar_fill.position = Vector2(1042, 16)
+	health_bar_fill.size = Vector2(220, 22)
+	health_bar_fill.color = Color(0.2, 0.9, 0.45, 1.0)
+	health_bar_fill.z_index = 1
+	layer.add_child(health_bar_fill)
+	health_label = Label.new()
+	health_label.name = "HealthLabel"
+	health_label.position = Vector2(1048, 16)
+	health_label.add_theme_font_size_override("font_size", 16)
+	health_label.add_theme_color_override("font_color", Color(0.02, 0.05, 0.04, 1.0))
+	health_label.z_index = 2
+	layer.add_child(health_label)
+
+	# Minimap / radar — bottom-right corner.
+	minimap = Minimap.new()
+	minimap.name = "Minimap"
+	minimap.size = Vector2(156, 156)
+	minimap.position = Vector2(1108, 548)
+	minimap.z_index = 1
+	layer.add_child(minimap)
+
+	# Transient power-unlock toast (top-centre, hidden until an unlock fires).
+	unlock_toast = Label.new()
+	unlock_toast.name = "UnlockToast"
+	unlock_toast.position = Vector2(360, 110)
+	unlock_toast.size = Vector2(560, 40)
+	unlock_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	unlock_toast.add_theme_font_size_override("font_size", 26)
+	unlock_toast.add_theme_color_override("font_color", Color(0.4, 1.0, 0.85, 1.0))
+	unlock_toast.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
+	unlock_toast.add_theme_constant_override("shadow_offset_x", 2)
+	unlock_toast.add_theme_constant_override("shadow_offset_y", 2)
+	unlock_toast.modulate = Color(1, 1, 1, 0)
+	unlock_toast.z_index = 3
+	layer.add_child(unlock_toast)
+
+	# Transient mission-completion banner (centre screen).
+	mission_banner = Label.new()
+	mission_banner.name = "MissionBanner"
+	mission_banner.position = Vector2(340, 300)
+	mission_banner.size = Vector2(600, 48)
+	mission_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	mission_banner.add_theme_font_size_override("font_size", 30)
+	mission_banner.add_theme_color_override("font_color", Color(1.0, 0.93, 0.55, 1.0))
+	mission_banner.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
+	mission_banner.add_theme_constant_override("shadow_offset_x", 2)
+	mission_banner.add_theme_constant_override("shadow_offset_y", 2)
+	mission_banner.modulate = Color(1, 1, 1, 0)
+	mission_banner.z_index = 3
+	layer.add_child(mission_banner)
+
+	# Game-over overlay (centre screen, hidden until health hits zero).
+	game_over_label = Label.new()
+	game_over_label.name = "GameOverOverlay"
+	game_over_label.position = Vector2(440, 320)
+	game_over_label.size = Vector2(400, 80)
+	game_over_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	game_over_label.add_theme_font_size_override("font_size", 56)
+	game_over_label.add_theme_color_override("font_color", Color(1.0, 0.25, 0.2, 1.0))
+	game_over_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 1.0))
+	game_over_label.add_theme_constant_override("shadow_offset_x", 3)
+	game_over_label.add_theme_constant_override("shadow_offset_y", 3)
+	game_over_label.visible = false
+	game_over_label.z_index = 4
+	layer.add_child(game_over_label)
+
+	# Sync transient-notification baselines after any save-load so the first frame
+	# does not fire a spurious unlock toast / mission banner for restored progress.
+	_last_unlocked_count = progression.unlocked.size()
+	_last_banner_step = missions.mission_step
+
 func _update_hud() -> void:
 	if hud_label == null: return
 	var next_xp: int = progression.xp_for_next()
-	hud_label.text = "AURORA VIGIL  |  Level %d  XP %d/%d  |  Powers: %s  |  Active: %d  Resolved: %d" % [progression.level, progression.xp, next_xp, ", ".join(progression.unlocked), events.event_nodes.size(), events.resolved_events]
+	hud_label.text = "AURORA VIGIL  |  Level %d  XP %d/%d  |  %s  |  Active: %d  Resolved: %d  Choir: %d" % [progression.level, progression.xp, next_xp, _power_hud_text(), events.event_nodes.size(), events.resolved_events, enemy_system.active_count()]
 	mission_label.text = missions.hud_text()
 	var nearest := events.nearest_event()
 	if nearest == null:
@@ -1228,6 +1364,101 @@ func _update_hud() -> void:
 		var dist := hero.position.distance_to(nearest.position)
 		var proximity := "IN RANGE" if dist <= events.EVENT_RESOLVE_RADIUS else "approach %.0fm" % max(dist - events.EVENT_RESOLVE_RADIUS, 0.0)
 		event_cue_label.text = "Nearest: %s — %.0fm (%s). %s. Last: %s" % [events.format_event_name(kind), dist, proximity, events.required_action_for_event(kind), last_event_text]
+	_update_health_hud()
+	_update_minimap()
+
+# Lists the four key-bound powers, marking any the hero has not yet unlocked.
+func _power_hud_text() -> String:
+	var parts: Array[String] = []
+	for p in HUD_POWERS:
+		var id: String = p["id"]
+		var label := "%s %s" % [p["key"], id.replace("_", " ")]
+		if not progression.has_power(id):
+			label += " [LOCKED]"
+		parts.append(label)
+	return "Powers: " + "  ".join(parts)
+
+func _update_health_hud() -> void:
+	if health_bar_fill == null:
+		return
+	var hp: float = health_system.health
+	var frac: float = clamp(hp / HealthSystem.MAX_HEALTH, 0.0, 1.0)
+	health_bar_fill.size = Vector2(220.0 * frac, 22.0)
+	# Green → amber → red as the hero takes damage; cyan flash while aegis is up.
+	if health_system.is_aegis_active():
+		health_bar_fill.color = Color(0.3, 0.8, 1.0, 1.0)
+	elif frac > 0.5:
+		health_bar_fill.color = Color(0.2, 0.9, 0.45, 1.0)
+	elif frac > 0.25:
+		health_bar_fill.color = Color(0.95, 0.7, 0.2, 1.0)
+	else:
+		health_bar_fill.color = Color(0.95, 0.25, 0.2, 1.0)
+	var suffix := "  [AEGIS]" if health_system.is_aegis_active() else ""
+	health_label.text = "HP %d/%d%s" % [int(round(hp)), int(HealthSystem.MAX_HEALTH), suffix]
+	if game_over_label != null:
+		game_over_label.visible = health_system.game_over
+		if health_system.game_over:
+			game_over_label.text = "GAME OVER"
+
+func _update_minimap() -> void:
+	if minimap == null:
+		return
+	var dots: Array = []
+	for marker in events.event_nodes:
+		if not is_instance_valid(marker):
+			continue
+		var kind := str(marker.get_meta("kind", "city_event"))
+		dots.append({
+			"offset": Vector2(marker.position.x - hero.position.x, marker.position.z - hero.position.z),
+			"color": events.event_color(kind),
+		})
+	# Null Choir units as violet pips so the radar shows the ground threat too.
+	for u in enemy_system.units:
+		var node = u["node"]
+		if not is_instance_valid(node) or u["dying"]:
+			continue
+		dots.append({
+			"offset": Vector2(node.position.x - hero.position.x, node.position.z - hero.position.z),
+			"color": EnemySystem.UNIT_COLOR,
+		})
+	var objective_offset = null
+	var obj_pos = _objective_world_pos()
+	if obj_pos != null:
+		objective_offset = Vector2(obj_pos.x - hero.position.x, obj_pos.z - hero.position.z)
+	var forward := -hero.global_transform.basis.z
+	minimap.set_radar(hero.position, forward, dots, objective_offset)
+
+# World position of the active mission objective marker, or null when none is live.
+func _objective_world_pos():
+	if objectives != null and objectives.marker != null and is_instance_valid(objectives.marker):
+		return objectives.marker.global_position
+	return null
+
+# Drives the transient unlock toast and mission banner: detects new unlocks / mission
+# advances by comparing against cached counters, then fades the labels out over 3 s.
+func _update_transients(delta: float) -> void:
+	if progression.unlocked.size() > _last_unlocked_count:
+		var newly: Array[String] = []
+		for i in range(_last_unlocked_count, progression.unlocked.size()):
+			newly.append(progression.unlocked[i].replace("_", " ").to_upper())
+		_last_unlocked_count = progression.unlocked.size()
+		if unlock_toast != null:
+			unlock_toast.text = "POWER UNLOCKED: %s" % ", ".join(newly)
+			unlock_toast.modulate = Color(1, 1, 1, 1)
+			_toast_timer = 3.0
+	if missions.mission_step > _last_banner_step:
+		var done_idx: int = clamp(missions.mission_step - 1, 0, missions.missions.size() - 1)
+		_last_banner_step = missions.mission_step
+		if mission_banner != null:
+			mission_banner.text = "MISSION COMPLETE: %s" % str(missions.missions[done_idx]["title"])
+			mission_banner.modulate = Color(1, 1, 1, 1)
+			_banner_timer = 3.0
+	if _toast_timer > 0.0 and unlock_toast != null:
+		_toast_timer = max(0.0, _toast_timer - delta)
+		unlock_toast.modulate = Color(1, 1, 1, clamp(_toast_timer, 0.0, 1.0))
+	if _banner_timer > 0.0 and mission_banner != null:
+		_banner_timer = max(0.0, _banner_timer - delta)
+		mission_banner.modulate = Color(1, 1, 1, clamp(_banner_timer, 0.0, 1.0))
 
 func _city_facade_material(h: float, x: int, z: int, width: float, depth: float, collector: bool) -> ShaderMaterial:
 	# Per-building deterministic seed from grid position

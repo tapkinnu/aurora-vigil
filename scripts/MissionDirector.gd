@@ -20,7 +20,11 @@ var missions: Array[Dictionary] = [
 	{"id": "awakening_patrol", "title": "Dawn Patrol", "objective": "Fly through Meridian and answer the first emergency.", "target_kind": "tower_fire", "reward_xp": 80},
 	{"id": "spire_rescue", "title": "The Burning Spire", "objective": "Rescue civilians from a tower fire before panic spreads.", "target_kind": "rescue_signal", "reward_xp": 140},
 	{"id": "drone_chase", "title": "Ghosts in the Grid", "objective": "Disable rogue civic drones without harming the city.", "target_kind": "rogue_drone", "reward_xp": 180},
-	{"id": "stormwall", "title": "Stormwall Protocol", "objective": "Use unlocked powers to protect Meridian during a citywide surge.", "target_kind": "power_surge", "reward_xp": 260}
+	{"id": "stormwall", "title": "Stormwall Protocol", "objective": "Use unlocked powers to protect Meridian during a citywide surge.", "target_kind": "power_surge", "reward_xp": 260},
+	{"id": "null_choir_rising", "title": "Null Choir Rising", "objective": "Survive a wave of Null Choir ground units as the surge breaks open.", "target_kind": "power_surge", "reward_xp": 200},
+	{"id": "civic_grid_down", "title": "Civic Grid Down", "objective": "Restore power to a blacked-out district and calm the panicking crowds.", "target_kind": "rescue_signal", "reward_xp": 220},
+	{"id": "the_long_night", "title": "The Long Night", "objective": "Hold an extended patrol as the emergencies escalate across Meridian.", "target_kind": "tower_fire", "reward_xp": 280},
+	{"id": "first_contact", "title": "First Contact", "objective": "Confront a Null Choir commander at the heart of the surge.", "target_kind": "power_surge", "reward_xp": 350}
 ]
 
 func setup(progression_ref: ProgressionModel, data_path: String = DEFAULT_DATA_PATH) -> void:
