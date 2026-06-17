@@ -15,6 +15,27 @@ extends Node3D
 
 const ProgressionModel = preload("res://scripts/ProgressionModel.gd")
 const LUMEN_SCENE = preload("res://assets/3d/characters/lumen/lumen_body.glb")
+const FACADE_SHADER = preload("res://shaders/building_facade.gdshader")
+
+# PBR facade texture sets — loaded once at startup, cycled per building.
+const FACADE_TEXTURE_DIRS: Array[String] = [
+	"res://assets/textures/facades/glass_curtain_wall_",
+	"res://assets/textures/facades/concrete_panel_",
+	"res://assets/textures/facades/brick_",
+	"res://assets/textures/facades/metal_cladding_",
+	"res://assets/textures/facades/commercial_facade_",
+]
+const FACADE_PBR_PROPS: Array[Dictionary] = [
+	{"roughness": 0.15, "metallic": 0.85, "emission_energy": 0.35},
+	{"roughness": 0.85, "metallic": 0.02, "emission_energy": 0.18},
+	{"roughness": 0.75, "metallic": 0.05, "emission_energy": 0.22},
+	{"roughness": 0.25, "metallic": 0.90, "emission_energy": 0.18},
+	{"roughness": 0.35, "metallic": 0.60, "emission_energy": 0.55},
+]
+var _facade_albedo_textures: Array[Texture2D] = []
+var _facade_normal_textures: Array[Texture2D] = []
+var _facade_roughness_textures: Array[Texture2D] = []
+var _facade_emission_textures: Array[Texture2D] = []
 
 var hero: Node3D
 var camera: Camera3D
@@ -80,6 +101,24 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST and _persistence_enabled():
 		SaveGame.save(progression, missions, events)
 
+func _load_facade_textures() -> void:
+	# Preload all PBR facade texture sets. Each set has albedo, normal, roughness, emission.
+	print("AURORA_FACADE: loading ", FACADE_TEXTURE_DIRS.size(), " facade texture sets...")
+	for prefix in FACADE_TEXTURE_DIRS:
+		var albedo := load(prefix + "albedo.png") as Texture2D
+		var normal := load(prefix + "normal.png") as Texture2D
+		var roughness := load(prefix + "roughness.png") as Texture2D
+		var emission := load(prefix + "emission.png") as Texture2D
+		if albedo == null:
+			push_warning("Failed to load facade albedo: " + prefix + "albedo.png — shader will use defaults")
+			continue
+		_facade_albedo_textures.append(albedo)
+		_facade_normal_textures.append(normal if normal != null else albedo)
+		_facade_roughness_textures.append(roughness if roughness != null else albedo)
+		_facade_emission_textures.append(emission if emission != null else albedo)
+		print("AURORA_FACADE: loaded set ", prefix)
+	print("AURORA_FACADE_TEXTURES: loaded ", _facade_albedo_textures.size(), " sets")
+
 func _remember_tween(t: Tween) -> Tween:
 	_cleanup_tweens.append(t)
 	return t
@@ -143,6 +182,7 @@ func _build_world() -> void:
 	add_child(camera)
 
 func _build_city() -> void:
+	_load_facade_textures()
 	var district := Node3D.new()
 	district.name = "MeridianCity_ModularSkyline"
 	add_child(district)
@@ -175,7 +215,7 @@ func _build_city() -> void:
 			tower.material_override = _city_facade_material(h, x, z, width, depth, is_collector)
 			tower_body.add_child(tower)
 
-			_add_floor_strips(tower_body, width, depth, h)
+			# PBR facade textures now include window detail; floor strips removed.
 			_add_vertical_ribs(tower_body, width, depth, h, is_collector)
 			_add_crown_neon(tower_body, width, depth, h)
 			_add_roof_detail(tower_body, width, depth, h, x, z, is_collector)
@@ -798,20 +838,57 @@ func _update_hud() -> void:
 		var proximity := "IN RANGE" if dist <= events.EVENT_RESOLVE_RADIUS else "approach %.0fm" % max(dist - events.EVENT_RESOLVE_RADIUS, 0.0)
 		event_cue_label.text = "Nearest: %s — %.0fm (%s). %s. Last: %s" % [events.format_event_name(kind), dist, proximity, events.required_action_for_event(kind), last_event_text]
 
-func _city_facade_material(h: float, x: int, z: int, width: float, depth: float, collector: bool) -> StandardMaterial3D:
-	var base := Color(0.09 + float(abs(x + z) % 4) * 0.018, 0.13 + float(abs(x - z) % 5) * 0.015, 0.18 + float(abs(x * z) % 4) * 0.014, 1.0)
-	var accent := Color(0.32, 0.88 + float(abs(x - z) % 3) * 0.03, 1.0, 1.0)
+func _city_facade_material(h: float, x: int, z: int, width: float, depth: float, collector: bool) -> ShaderMaterial:
+	# Per-building deterministic seed from grid position
+	var seed_val := (x * 73856093) ^ (z * 19349663)
+	if seed_val < 0:
+		seed_val = -seed_val
+	# Window grid params derived from building dimensions
+	var floors_val: int = int(clamp(h / 4.2, 5.0, 11.0))
+	var windows_val: int = 3 + (abs(x * 13 + z * 7) % 4)
+	# Collectors: more lit windows, brighter emission
+	var lit_prob := 0.55 if not collector else 0.75
+	var em_energy := 1.0 if not collector else 1.6
+	# UV scale variation per building
+	var uv_s := 1.0 + float(abs(x + z) % 3) * 0.15
+	if h > 42.0:
+		uv_s += 0.2
 	if collector:
-		base = Color(0.07, 0.22, 0.32, 1.0)
-		accent = Color(0.35, 1.0, 1.0, 1.0)
-	var mat := StandardMaterial3D.new()
-	mat.albedo_texture = _city_texture("facade", base, accent, Color(0.03, 0.08, 0.11, 1.0))
-	mat.albedo_color = Color(0.95, 1.0, 1.0, 1.0)
-	mat.emission_enabled = collector or h > 42.0
-	mat.emission = Color(0.0, 0.18, 0.25, 1.0) if collector else Color(0.0, 0.08, 0.12, 1.0)
-	mat.emission_energy_multiplier = 0.16 if collector else 0.07
-	mat.roughness = 0.42
-	mat.metallic = 0.14
+		uv_s += 0.15
+	# Albedo tint variation
+	var tint_r := 0.80 + float(abs(x) % 5) * 0.03
+	var tint_g := 0.88 + float(abs(z) % 4) * 0.025
+	var tint_b := 1.0
+	if collector:
+		tint_r = 0.70
+		tint_g = 0.85
+	# Cycle through PBR texture sets (collectors → commercial facade = index 4)
+	var mat_idx: int = 4 if collector else abs(x * 3 + z * 7) % 5
+	var mat := ShaderMaterial.new()
+	mat.shader = FACADE_SHADER
+	mat.set_shader_parameter("building_seed", seed_val)
+	mat.set_shader_parameter("floors", floors_val)
+	mat.set_shader_parameter("windows_per_floor", windows_val)
+	mat.set_shader_parameter("lit_probability", lit_prob)
+	mat.set_shader_parameter("emission_energy", em_energy)
+	mat.set_shader_parameter("uv_scale", uv_s)
+	mat.set_shader_parameter("albedo_tint", Color(tint_r, tint_g, tint_b, 1.0))
+	mat.set_shader_parameter("flicker_speed", 2.5 + float(abs(x * 3 + z) % 5) * 0.5)
+	mat.set_shader_parameter("frame_color", Color(0.02, 0.04, 0.06, 1.0))
+	mat.set_shader_parameter("dark_window", Color(0.015, 0.03, 0.045, 1.0))
+	# PBR texture uniforms — passed from preloaded facade texture sets
+	if not _facade_albedo_textures.is_empty():
+		var idx: int = clamp(mat_idx, 0, _facade_albedo_textures.size() - 1)
+		var pbr: Dictionary = FACADE_PBR_PROPS[idx]
+		mat.set_shader_parameter("albedo_tex", _facade_albedo_textures[idx])
+		mat.set_shader_parameter("normal_tex", _facade_normal_textures[idx])
+		mat.set_shader_parameter("roughness_tex", _facade_roughness_textures[idx])
+		mat.set_shader_parameter("emission_tex", _facade_emission_textures[idx])
+		mat.set_shader_parameter("roughness_base", float(pbr.get("roughness", 0.5)))
+		mat.set_shader_parameter("metallic_val", float(pbr.get("metallic", 0.14)))
+		mat.set_shader_parameter("use_normal_map", true)
+	else:
+		mat.set_shader_parameter("use_normal_map", false)
 	return mat
 
 func _city_texture(kind: String, base: Color, accent: Color, grid: Color) -> ImageTexture:
