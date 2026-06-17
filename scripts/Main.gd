@@ -274,10 +274,21 @@ func _build_world() -> void:
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
 	e.ambient_light_color = Color(0.35, 0.42, 0.6, 1.0)
 	e.ambient_light_energy = 0.65
-	# Standard height fog keeps depth reading at the avenue scale.
+	# Layered atmospheric haze. Exponential distance fog plus a height gradient:
+	# dense, slightly warmer murk pools in the low streets and thins toward a
+	# cooler veil up high. Aerial perspective desaturates distant towers toward the
+	# sky so the far skyline reads as a faint silhouette (real depth cue).
 	e.fog_enabled = true
-	e.fog_density = 0.0035
-	e.fog_light_color = Color(0.18, 0.22, 0.42, 1.0)
+	e.fog_mode = Environment.FOG_MODE_EXPONENTIAL
+	e.fog_density = 0.0032
+	e.fog_light_color = Color(0.20, 0.21, 0.34, 1.0)
+	e.fog_light_energy = 1.0
+	e.fog_sky_affect = 0.35
+	e.fog_aerial_perspective = 0.55
+	# Height band: fog accumulates below ~12 m and thins out above it, so the
+	# 0-10 m ground band is the haziest and the upper floors clear up.
+	e.fog_height = 12.0
+	e.fog_height_density = 0.05
 	# Volumetric fog — gives the avenues a "haze under the streetlights" reading.
 	e.volumetric_fog_enabled = true
 	e.volumetric_fog_density = 0.012
@@ -363,8 +374,10 @@ func _build_city() -> void:
 			if (x + z) % 3 == 0:
 				continue
 			var is_collector: bool = abs(x) == 5 and abs(z) == 5
-			var width: float = 8.5 + float((abs(x * 7 + z * 11) % 4))
-			var depth: float = 8.5 + float((abs(x * 13 + z * 5) % 4))
+			# Vary footprints far more than the old 8.5-11.5 band so the lot sizes
+			# read as irregular rather than a uniform stamp.
+			var width: float = 7.0 + float((abs(x * 7 + z * 11) % 9))
+			var depth: float = 7.0 + float((abs(x * 13 + z * 5) % 9))
 			if is_collector:
 				width = 11.0
 				depth = 11.0
@@ -388,7 +401,15 @@ func _build_city() -> void:
 			# else simple box (form_type stays 4)
 			var tower_body := StaticBody3D.new()
 			tower_body.name = "SkylineTower_%d_%d" % [x, z]
-			tower_body.position = Vector3(x * 22.0, 0.0, z * 22.0)
+			# Break the rigid 22-unit lattice: deterministic per-lot jitter so the
+			# spacing and street setback vary (~14-30 units) instead of a perfect
+			# grid. Collectors stay anchored as landmark corners.
+			var jx: float = 0.0
+			var jz: float = 0.0
+			if not is_collector:
+				jx = float((abs(x * 19 + z * 7) % 7) - 3) * 1.4
+				jz = float((abs(x * 11 + z * 23) % 7) - 3) * 1.4
+			tower_body.position = Vector3(x * 22.0 + jx, 0.0, z * 22.0 + jz)
 			district.add_child(tower_body)
 			var facade_mat := _city_facade_material(h, x, z, width, depth, is_collector)
 			var top_info: Dictionary = _build_composite_tower(tower_body, form_type, width, depth, h, facade_mat)
@@ -406,6 +427,13 @@ func _build_city() -> void:
 	_add_transit_corridor(district)
 	_add_park_zones(district)
 	_add_plaza_paving(district)
+	_add_sidewalks(district)
+	_add_diagonal_streets(district)
+	_add_curved_avenues(district)
+	_add_irregular_plazas(district)
+	_add_parking_lots(district)
+	_add_distant_skyline(district)
+	_add_haze_layers(district)
 	_add_street_props(district)
 
 # ── Composite building-silhouette builders ──
@@ -1513,6 +1541,304 @@ func _add_plaza_paving(parent: Node3D) -> void:
 				strip_z.position = Vector3(float(x) * 22.0 + side * 11.5, 0.17, float(z) * 22.0)
 				strip_z.material_override = _mat(Color(0.25, 0.9, 1.0, 1.0), Color(0.2, 0.8, 1.0, 1.0), 0.7)
 				parent.add_child(strip_z)
+
+# ── Grid-breaking topology: diagonals, curves, plazas, sidewalks, parking ──
+
+# Build a tower rotated to a street direction (not the grid). Reuses the full
+# composite/facade/crown pipeline so aligned outskirt towers match the core city.
+func _add_aligned_tower(parent: Node3D, t_name: String, pos: Vector3, rot_deg: float, width: float, depth: float, h: float, seed_a: int, seed_b: int) -> void:
+	var body := StaticBody3D.new()
+	body.name = t_name
+	body.position = pos
+	body.rotation_degrees = Vector3(0, rot_deg, 0)
+	parent.add_child(body)
+	var mat := _city_facade_material(h, seed_a, seed_b, width, depth, false)
+	var form: int = abs(seed_a * 41 + seed_b * 37) % 5
+	var top: Dictionary = _build_composite_tower(body, form, width, depth, h, mat)
+	var top_y: float = float(top["top_y"])
+	var top_w: float = float(top["top_w"])
+	var top_d: float = float(top["top_d"])
+	_add_vertical_ribs(body, top_w, top_d, top_y, false)
+	_add_crown_neon(body, top_w, top_d, top_y)
+
+func _add_diagonal_streets(parent: Node3D) -> void:
+	# Three boulevards slicing across the rigid grid at 30-45 degrees. Each lays a
+	# glowing road surface + centre dashes + raised sidewalks, and lines its outer
+	# (suburban) reaches with towers rotated to the street direction so the city
+	# reads as real topology rather than a pure lattice.
+	var road_mat := _mat(Color(0.03, 0.03, 0.05, 1.0), Color(0.22, 0.06, 0.20, 1.0), 0.22)
+	var dash_mat := _mat(Color(1.0, 0.85, 0.5, 1.0), Color(1.0, 0.7, 0.3, 1.0), 0.9)
+	var walk_mat := _ground_plaza_material()
+	# [angle_deg, perpendicular offset from centre, length]
+	var diagonals := [
+		[32.0, 0.0, 470.0],
+		[-38.0, 46.0, 450.0],
+		[45.0, -70.0, 440.0],
+	]
+	var di := 0
+	for d in diagonals:
+		var ang: float = d[0]
+		var off: float = d[1]
+		var length: float = d[2]
+		var basis := Basis(Vector3.UP, deg_to_rad(ang))
+		var dir: Vector3 = basis.x
+		var perp: Vector3 = basis.z
+		var center: Vector3 = perp * off
+		var road := _add_box(parent, "DiagAvenue_%d" % di, Vector3(length, 0.16, 7.2), center + Vector3(0, 0.12, 0), road_mat)
+		road.rotation_degrees = Vector3(0, ang, 0)
+		for s in [-1.0, 1.0]:
+			var walk := _add_box(parent, "DiagWalk_%d_%d" % [di, int(s)], Vector3(length, 0.15, 2.6), center + perp * (s * 5.4) + Vector3(0, 0.075, 0), walk_mat)
+			walk.rotation_degrees = Vector3(0, ang, 0)
+		var n_dash := int(length / 9.0)
+		for k in range(-n_dash / 2, n_dash / 2):
+			var t := float(k) * 9.0 + 4.5
+			var dpos: Vector3 = center + dir * t + Vector3(0, 0.22, 0)
+			var dash := _add_box(parent, "DiagDash_%d_%d" % [di, k], Vector3(4.5, 0.06, 0.3), dpos, dash_mat)
+			dash.rotation_degrees = Vector3(0, ang, 0)
+		# Aligned towers along the outer reaches (beyond the dense core).
+		var t2 := -length * 0.5 + 20.0
+		var bi := 0
+		while t2 < length * 0.5 - 20.0:
+			var along: Vector3 = center + dir * t2
+			var r := along.length()
+			if r > 118.0 and r < 210.0:
+				for s2 in [-1.0, 1.0]:
+					var bpos: Vector3 = along + perp * (s2 * 16.0)
+					bpos.y = 0.0
+					var seed_a := di * 17 + bi * 3 + int(s2)
+					var seed_b := bi * 7 + di * 5
+					var bw := 9.0 + float(abs(seed_a * 5 + seed_b) % 7)
+					var bd := 9.0 + float(abs(seed_b * 3 + seed_a) % 7)
+					var bh := 22.0 + float(abs(seed_a * 13 + seed_b * 7) % 40)
+					_add_aligned_tower(parent, "DiagTower_%d_%d_%d" % [di, bi, int(s2)], bpos, ang, bw, bd, bh, seed_a, seed_b)
+			t2 += 28.0
+			bi += 1
+		di += 1
+
+func _add_curved_avenues(parent: Node3D) -> void:
+	# Two sweeping arcs approximated by short tangent-aligned road segments. Outer
+	# reaches carry towers rotated to the local tangent so the curve feels built.
+	var road_mat := _mat(Color(0.03, 0.04, 0.05, 1.0), Color(0.06, 0.20, 0.24, 1.0), 0.2)
+	var dash_mat := _mat(Color(0.7, 0.95, 1.0, 1.0), Color(0.4, 0.85, 1.0, 1.0), 0.9)
+	# [origin_x, origin_z, radius, start_deg, end_deg]
+	var curves := [
+		[220.0, 220.0, 300.0, 182.0, 268.0],
+		[-235.0, -210.0, 305.0, 2.0, 88.0],
+	]
+	var ci := 0
+	for c in curves:
+		var ox: float = c[0]
+		var oz: float = c[1]
+		var radius: float = c[2]
+		var a0: float = c[3]
+		var a1: float = c[4]
+		var seg_count := 26
+		for si in range(seg_count + 1):
+			var frac := float(si) / float(seg_count)
+			var ang_deg := a0 + (a1 - a0) * frac
+			var ang_rad := deg_to_rad(ang_deg)
+			var px := ox + radius * cos(ang_rad)
+			var pz := oz + radius * sin(ang_rad)
+			var pos := Vector3(px, 0.12, pz)
+			var tangent_deg := ang_deg + 90.0
+			var seg_len := (deg_to_rad(absf(a1 - a0)) * radius) / float(seg_count) + 1.5
+			if si < seg_count:
+				var road := _add_box(parent, "CurveSeg_%d_%d" % [ci, si], Vector3(seg_len, 0.16, 7.2), pos, road_mat)
+				road.rotation_degrees = Vector3(0, -tangent_deg, 0)
+				var dash := _add_box(parent, "CurveDash_%d_%d" % [ci, si], Vector3(seg_len * 0.5, 0.06, 0.3), pos + Vector3(0, 0.11, 0), dash_mat)
+				dash.rotation_degrees = Vector3(0, -tangent_deg, 0)
+			var r := Vector2(px, pz).length()
+			if r > 118.0 and r < 215.0 and si % 2 == 0:
+				var cb := Basis(Vector3.UP, deg_to_rad(-tangent_deg))
+				var perp: Vector3 = cb.z
+				for s2 in [-1.0, 1.0]:
+					var bpos: Vector3 = pos + perp * (s2 * 16.0)
+					bpos.y = 0.0
+					var seed_a := ci * 23 + si * 5 + int(s2)
+					var seed_b := si * 11 + ci * 7
+					var bw := 9.0 + float(abs(seed_a * 5 + seed_b) % 7)
+					var bd := 9.0 + float(abs(seed_b * 3 + seed_a) % 7)
+					var bh := 22.0 + float(abs(seed_a * 13 + seed_b * 7) % 38)
+					_add_aligned_tower(parent, "CurveTower_%d_%d_%d" % [ci, si, int(s2)], bpos, -tangent_deg, bw, bd, bh, seed_a, seed_b)
+		ci += 1
+
+func _add_irregular_plazas(parent: Node3D) -> void:
+	# Open paved squares out in the suburban ring where the diagonal/curved streets
+	# converge — built from a few overlapping rotated quads for an irregular
+	# outline, ringed (not filled) with towers and dressed with a beacon + benches.
+	var plaza_mat := _ground_plaza_material()
+	var edge_mat := _mat(Color(0.25, 0.9, 1.0, 1.0), Color(0.2, 0.8, 1.0, 1.0), 0.7)
+	# [cx, cz, base_size, rot]
+	var plazas := [
+		[150.0, 36.0, 30.0, 18.0],
+		[-122.0, -128.0, 34.0, -24.0],
+		[58.0, -158.0, 28.0, 40.0],
+	]
+	var pidx := 0
+	for p in plazas:
+		var cx: float = p[0]
+		var cz: float = p[1]
+		var bs: float = p[2]
+		var rot: float = p[3]
+		var center := Vector3(cx, 0.15, cz)
+		for q in range(3):
+			var quad := MeshInstance3D.new()
+			quad.name = "IrrPlazaPave_%d_%d" % [pidx, q]
+			var qm := PlaneMesh.new()
+			qm.size = Vector2(bs * (0.7 + 0.18 * float(q)), bs * (0.9 - 0.16 * float(q)))
+			quad.mesh = qm
+			quad.position = center + Vector3(float(q - 1) * bs * 0.16, float(q) * 0.01, float(1 - q) * bs * 0.14)
+			quad.rotation_degrees = Vector3(0, rot + float(q) * 24.0, 0)
+			quad.material_override = plaza_mat
+			parent.add_child(quad)
+		for s in [-1.0, 1.0]:
+			var strip := _add_box(parent, "IrrPlazaEdgeX_%d_%d" % [pidx, int(s)], Vector3(bs, 0.05, 0.3), center + Vector3(0, 0.04, s * bs * 0.5), edge_mat)
+			strip.rotation_degrees = Vector3(0, rot, 0)
+			var strip2 := _add_box(parent, "IrrPlazaEdgeZ_%d_%d" % [pidx, int(s)], Vector3(0.3, 0.05, bs), center + Vector3(s * bs * 0.5, 0.04, 0), edge_mat)
+			strip2.rotation_degrees = Vector3(0, rot, 0)
+		var beacon_mat := _mat(Color(0.9, 0.25, 0.75, 1.0), Color(0.7, 0.05, 0.45, 1.0), 0.8)
+		if pidx % 2 == 1:
+			beacon_mat = _mat(Color(0.25, 0.9, 1.0, 1.0), Color(0.15, 0.75, 1.0, 1.0), 0.85)
+		_add_plaza_pylon(parent, Vector3(cx, 0.0, cz), beacon_mat)
+		for a in range(6):
+			var ring_ang := float(a) * 60.0 + rot
+			var rad := bs * 0.95
+			var bx := cx + rad * cos(deg_to_rad(ring_ang))
+			var bz := cz + rad * sin(deg_to_rad(ring_ang))
+			var seed_a := pidx * 13 + a * 5
+			var seed_b := a * 9 + pidx * 3
+			var bw := 8.0 + float(abs(seed_a * 5 + seed_b) % 6)
+			var bd := 8.0 + float(abs(seed_b * 3 + seed_a) % 6)
+			var bh := 20.0 + float(abs(seed_a * 11 + seed_b * 7) % 34)
+			var face := rad_to_deg(atan2(cz - bz, bx - cx))
+			_add_aligned_tower(parent, "PlazaTower_%d_%d" % [pidx, a], Vector3(bx, 0.0, bz), face, bw, bd, bh, seed_a, seed_b)
+		_add_bench(parent, Vector3(cx + 5.0, 0.0, cz), 0.0)
+		_add_bench(parent, Vector3(cx - 5.0, 0.0, cz), 180.0)
+		pidx += 1
+
+func _add_sidewalks(parent: Node3D) -> void:
+	# Raised sidewalks with a 0.15 m curb along the open mid-block corridors — the
+	# real pedestrian streets that run between building rows at the half-gridlines.
+	var walk_mat := _ground_plaza_material()
+	var curb_mat := _mat(Color(0.06, 0.09, 0.12, 1.0), Color(0.0, 0.5, 0.7, 1.0), 0.4)
+	var corridors := [-55.0, -33.0, -11.0, 11.0, 33.0, 55.0]
+	for c in corridors:
+		for s in [-1.0, 1.0]:
+			_add_box(parent, "SidewalkNS_%d_%d" % [int(c), int(s)], Vector3(2.6, 0.15, 220.0), Vector3(c + s * 4.6, 0.075, 0.0), walk_mat)
+			_add_box(parent, "SidewalkCurbNS_%d_%d" % [int(c), int(s)], Vector3(0.25, 0.17, 220.0), Vector3(c + s * 3.3, 0.085, 0.0), curb_mat)
+			_add_box(parent, "SidewalkEW_%d_%d" % [int(c), int(s)], Vector3(220.0, 0.15, 2.6), Vector3(0.0, 0.075, c + s * 4.6), walk_mat)
+			_add_box(parent, "SidewalkCurbEW_%d_%d" % [int(c), int(s)], Vector3(220.0, 0.17, 0.25), Vector3(0.0, 0.085, c + s * 3.3), curb_mat)
+	# Fresh crosswalks at the mid-block corridor intersections (curb-cut ramps).
+	for c in [-33.0, -11.0, 11.0, 33.0]:
+		_add_crosswalk(parent, c, true)
+		_add_crosswalk(parent, c, false)
+		for s in [-1.0, 1.0]:
+			# Curb-cut accessibility ramp wedges at the corners.
+			_add_box(parent, "CurbCut_%d_%d" % [int(c), int(s)], Vector3(2.2, 0.07, 2.2), Vector3(c + s * 3.6, 0.04, c + s * 3.6), walk_mat)
+
+func _add_parking_lots(parent: Node3D) -> void:
+	# Flat asphalt lots with painted stalls + parked cars, dropped onto otherwise
+	# empty lots and one suburban clearing — more grid-breaking open space.
+	var lot_mat := _mat(Color(0.04, 0.045, 0.055, 1.0), Color(0.02, 0.05, 0.07, 1.0), 0.06)
+	var line_mat := _mat(Color(0.85, 0.85, 0.6, 1.0), Color(0.6, 0.6, 0.3, 1.0), 0.5)
+	# [cx, cz, cols, rows, rot]
+	var lots := [
+		[66.0, 0.0, 4, 3, 0.0],
+		[0.0, -66.0, 4, 3, 0.0],
+		[168.0, -40.0, 5, 3, 22.0],
+	]
+	var li := 0
+	for lot in lots:
+		var cx: float = lot[0]
+		var cz: float = lot[1]
+		var cols: int = lot[2]
+		var rows: int = lot[3]
+		var rot: float = lot[4]
+		var stall_w := 2.6
+		var stall_d := 5.0
+		var lot_w := float(cols) * stall_w + 2.0
+		var lot_d := float(rows) * stall_d + 2.0
+		var pad := MeshInstance3D.new()
+		pad.name = "ParkingLot_%d" % li
+		var pm := PlaneMesh.new()
+		pm.size = Vector2(lot_w, lot_d)
+		pad.mesh = pm
+		pad.position = Vector3(cx, 0.14, cz)
+		pad.rotation_degrees = Vector3(0, rot, 0)
+		pad.material_override = lot_mat
+		parent.add_child(pad)
+		var basis := Basis(Vector3.UP, deg_to_rad(rot))
+		var ax: Vector3 = basis.x
+		var az: Vector3 = basis.z
+		for ccol in range(cols + 1):
+			var lx := (float(ccol) - float(cols) * 0.5) * stall_w
+			var lpos: Vector3 = Vector3(cx, 0.16, cz) + ax * lx
+			var line := _add_box(parent, "ParkLine_%d_%d" % [li, ccol], Vector3(0.12, 0.04, stall_d * float(rows)), lpos, line_mat)
+			line.rotation_degrees = Vector3(0, rot, 0)
+		var carn := 0
+		for ccol in range(cols):
+			for rrow in range(rows):
+				if (ccol + rrow) % 2 == 1:
+					continue
+				var sx := (float(ccol) - float(cols) * 0.5 + 0.5) * stall_w
+				var sz := (float(rrow) - float(rows) * 0.5 + 0.5) * stall_d
+				var cpos: Vector3 = Vector3(cx, 0.0, cz) + ax * sx + az * sz
+				_add_car(parent, "LotCar_%d_%d" % [li, carn], cpos, rot, (li + carn) % CAR_VARIANTS.size())
+				carn += 1
+		li += 1
+
+func _add_distant_skyline(parent: Node3D) -> void:
+	# A static ring of dark, windowless silhouette blocks far beyond the playable
+	# city, filling the horizon in every direction. No collision, no emission — they
+	# read as a faint hazy skyline through the aerial-perspective fog.
+	var sil := Node3D.new()
+	sil.name = "DistantSkyline"
+	parent.add_child(sil)
+	var dark_a := _mat(Color(0.035, 0.04, 0.06, 1.0), Color(0.0, 0.0, 0.0, 1.0), 0.0)
+	var dark_b := _mat(Color(0.05, 0.045, 0.07, 1.0), Color(0.0, 0.0, 0.0, 1.0), 0.0)
+	var count := 96
+	for i in range(count):
+		var ang := float(i) / float(count) * TAU
+		var ring := i % 2
+		var base_r := 330.0 if ring == 0 else 430.0
+		var jitter := float((abs(i * 37) % 60) - 30)
+		var r := base_r + jitter
+		var ang_jit := ang + float((abs(i * 13) % 20) - 10) * 0.004
+		var px := r * cos(ang_jit)
+		var pz := r * sin(ang_jit)
+		var w := 16.0 + float(abs(i * 7) % 22)
+		var d := 16.0 + float(abs(i * 11) % 22)
+		var h := 30.0 + float(abs(i * 17) % 50)
+		_add_box(sil, "Silhouette_%d" % i, Vector3(w, h, d), Vector3(px, h * 0.5, pz), dark_a if ring == 0 else dark_b)
+
+func _add_haze_layers(parent: Node3D) -> void:
+	# Two faint additive slabs giving the height bands a tint the single-colour
+	# Environment fog can't: a warmer pool low, a cooler veil up high. The height
+	# fog + aerial perspective do the heavy lifting; these only tint, never darken.
+	var low := MeshInstance3D.new()
+	low.name = "HazeLayerLow"
+	var lm := PlaneMesh.new()
+	lm.size = Vector2(300.0, 300.0)
+	low.mesh = lm
+	low.position = Vector3(0, 6.0, 0)
+	var low_mat := _transparent_mat(Color(0.9, 0.55, 0.4, 0.05), Color(0.0, 0.0, 0.0, 1.0), 0.0)
+	low_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	low_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	low.material_override = low_mat
+	low.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(low)
+	var high := MeshInstance3D.new()
+	high.name = "HazeLayerHigh"
+	var hm := PlaneMesh.new()
+	hm.size = Vector2(320.0, 320.0)
+	high.mesh = hm
+	high.position = Vector3(0, 64.0, 0)
+	var high_mat := _transparent_mat(Color(0.4, 0.5, 0.7, 0.04), Color(0.0, 0.0, 0.0, 1.0), 0.0)
+	high_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	high_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	high.material_override = high_mat
+	high.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(high)
 
 func _add_street_props(parent: Node3D) -> void:
 	# Distribute real low-poly prop models along avenues at regular intervals.
