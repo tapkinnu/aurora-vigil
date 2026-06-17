@@ -172,6 +172,50 @@ func _ground_asphalt_material() -> StandardMaterial3D:
 	mat.uv1_scale = Vector3(8.0, 8.0, 8.0)
 	return mat
 
+func _ground_grass_material() -> StandardMaterial3D:
+	# Grass PBR for park zones — high roughness, no metallic, subtle emission
+	# so park patches read as "green space" under the bloom without glowing.
+	var mat := StandardMaterial3D.new()
+	var idx := 1  # GROUND_TEXTURE_DIRS index 1 = grass
+	if _ground_albedo_textures.size() > idx:
+		mat.albedo_texture = _ground_albedo_textures[idx]
+		if _ground_normal_textures.size() > idx and _ground_normal_textures[idx] != null:
+			mat.normal_texture = _ground_normal_textures[idx]
+		if _ground_roughness_textures.size() > idx and _ground_roughness_textures[idx] != null:
+			mat.roughness_texture = _ground_roughness_textures[idx]
+			mat.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_GREEN
+		if _ground_emission_textures.size() > idx and _ground_emission_textures[idx] != null:
+			mat.emission_enabled = true
+			mat.emission_texture = _ground_emission_textures[idx]
+			mat.emission = Color(0.04, 0.12, 0.06, 1.0)
+			mat.emission_energy_multiplier = 0.08
+	mat.roughness = 0.85
+	mat.metallic = 0.0
+	mat.uv1_scale = Vector3(4.0, 4.0, 4.0)
+	return mat
+
+func _ground_plaza_material() -> StandardMaterial3D:
+	# Polished plaza/concrete PBR near collector towers — moderate roughness,
+	# slight metallic for wet-stone reflective sheen under SSR.
+	var mat := StandardMaterial3D.new()
+	var idx := 2  # GROUND_TEXTURE_DIRS index 2 = plaza
+	if _ground_albedo_textures.size() > idx:
+		mat.albedo_texture = _ground_albedo_textures[idx]
+		if _ground_normal_textures.size() > idx and _ground_normal_textures[idx] != null:
+			mat.normal_texture = _ground_normal_textures[idx]
+		if _ground_roughness_textures.size() > idx and _ground_roughness_textures[idx] != null:
+			mat.roughness_texture = _ground_roughness_textures[idx]
+			mat.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_GREEN
+		if _ground_emission_textures.size() > idx and _ground_emission_textures[idx] != null:
+			mat.emission_enabled = true
+			mat.emission_texture = _ground_emission_textures[idx]
+			mat.emission = Color(0.10, 0.15, 0.25, 1.0)
+			mat.emission_energy_multiplier = 0.15
+	mat.roughness = 0.45
+	mat.metallic = 0.10
+	mat.uv1_scale = Vector3(2.0, 2.0, 2.0)
+	return mat
+
 func _remember_tween(t: Tween) -> Tween:
 	_cleanup_tweens.append(t)
 	return t
@@ -353,6 +397,9 @@ func _build_city() -> void:
 	_add_skyline_props(district)
 	_add_city_avenues(district)
 	_add_transit_corridor(district)
+	_add_park_zones(district)
+	_add_plaza_paving(district)
+	_add_street_props(district)
 
 # ── Composite building-silhouette builders ──
 
@@ -531,14 +578,15 @@ func _add_civic_grid(parent: Node3D) -> void:
 	parent.add_child(grid)
 
 func _add_ground_plate(parent: Node3D) -> void:
+	# City district ground plate — uses PBR asphalt material matching the main
+	# ground plane so the district sits on the same textured surface.
 	var ground := MeshInstance3D.new()
 	ground.name = "ModularDistrictGroundPlate"
 	var mesh := BoxMesh.new()
 	mesh.size = Vector3(260.0, 0.18, 260.0)
 	ground.mesh = mesh
 	ground.position = Vector3(0, -0.09, 0)
-	ground.material_override = _mat(Color(0.035, 0.045, 0.055, 1.0), Color(0.0, 0.03, 0.05, 1.0), 0.02)
-	ground.material_override.albedo_texture = _city_texture("ground", Color(0.03, 0.045, 0.055, 1.0), Color(0.18, 0.55, 0.7, 0.75), Color(0.0, 0.0, 0.0, 0.0))
+	ground.material_override = _ground_asphalt_material()
 	parent.add_child(ground)
 
 func _add_skyline_props(parent: Node3D) -> void:
@@ -1177,3 +1225,355 @@ func _cleanup_for_quit() -> void:
 		child.free()
 	get_tree().paused = was_paused
 	await get_tree().process_frame
+
+# ── Park zones, plaza paving, street props ──
+
+func _add_park_zones(parent: Node3D) -> void:
+	# 3 park/greenery zones at grid positions where the city loop skips buildings
+	# (x+z)%3==0 → no building placed there. Each park is a grass-textured quad
+	# with clustered tree props + low-glow bioluminescent shrubs.
+	# Park quads sit at y=0.15 to render ABOVE the avenue surface (y=0.08).
+	var grass_mat := _ground_grass_material()
+	var park_coords := [
+		[-4, 4],   # SW outer
+		[2, 4],    # mid-east outer
+		[-2, -4],  # NW outer
+	]
+	for coord in park_coords:
+		var px: float = float(coord[0]) * 22.0
+		var pz: float = float(coord[1]) * 22.0
+		var park := MeshInstance3D.new()
+		park.name = "ParkZone_%d_%d" % [coord[0], coord[1]]
+		var park_mesh := PlaneMesh.new()
+		park_mesh.size = Vector2(18.0, 18.0)
+		park.mesh = park_mesh
+		park.position = Vector3(px, 0.15, pz)
+		park.material_override = grass_mat
+		parent.add_child(park)
+		# Tree cluster: 5-7 trees in a loose ring
+		var tree_positions := [
+			Vector3(px - 6, 0, pz - 4),
+			Vector3(px + 5, 0, pz - 6),
+			Vector3(px - 2, 0, pz + 7),
+			Vector3(px + 7, 0, pz + 3),
+			Vector3(px - 7, 0, pz + 5),
+			Vector3(px + 2, 0, pz - 8),
+		]
+		for tpos in tree_positions:
+			_add_park_tree(parent, tpos)
+		# Bioluminescent shrub glow
+		for i in range(3):
+			var shrub_pos := Vector3(px + float((i * 7 - 7)), 0, pz + float((i * 5 - 5)))
+			_add_glow_shrub(parent, shrub_pos, i)
+
+func _add_park_tree(parent: Node3D, pos: Vector3) -> void:
+	var tree := Node3D.new()
+	tree.name = "ParkTree_%d_%d" % [int(pos.x), int(pos.z)]
+	tree.position = pos
+	parent.add_child(tree)
+	var trunk_mat := _mat(Color(0.08, 0.06, 0.04, 1.0), Color(0.0, 0.0, 0.0, 1.0), 0.0)
+	var trunk := MeshInstance3D.new()
+	trunk.name = "ParkTreeTrunk"
+	var trunk_mesh := CylinderMesh.new()
+	trunk_mesh.top_radius = 0.22
+	trunk_mesh.bottom_radius = 0.35
+	trunk_mesh.height = 4.0
+	trunk.mesh = trunk_mesh
+	trunk.position = Vector3(0, 2.0, 0)
+	trunk.material_override = trunk_mat
+	tree.add_child(trunk)
+	# Layered canopy — two spheres for volume
+	var canopy_a_mat := _mat(Color(0.06, 0.35, 0.18, 1.0), Color(0.08, 0.6, 0.35, 1.0), 0.35)
+	var canopy_b_mat := _mat(Color(0.04, 0.45, 0.22, 1.0), Color(0.1, 0.75, 0.4, 1.0), 0.45)
+	var canopy1 := MeshInstance3D.new()
+	canopy1.name = "ParkTreeCanopy1"
+	var c1_mesh := SphereMesh.new()
+	c1_mesh.radius = 2.2
+	c1_mesh.height = 3.5
+	canopy1.mesh = c1_mesh
+	canopy1.position = Vector3(0, 5.0, 0)
+	canopy1.material_override = canopy_a_mat
+	tree.add_child(canopy1)
+	var canopy2 := MeshInstance3D.new()
+	canopy2.name = "ParkTreeCanopy2"
+	var c2_mesh := SphereMesh.new()
+	c2_mesh.radius = 1.6
+	c2_mesh.height = 2.5
+	canopy2.mesh = c2_mesh
+	canopy2.position = Vector3(0.8, 6.5, 0.5)
+	canopy2.material_override = canopy_b_mat
+	tree.add_child(canopy2)
+	var glow := OmniLight3D.new()
+	glow.name = "ParkTreeGlow"
+	glow.position = Vector3(0, 5.0, 0)
+	glow.light_color = Color(0.1, 0.6, 0.35, 1.0)
+	glow.light_energy = 1.2
+	glow.omni_range = 8.0
+	tree.add_child(glow)
+
+func _add_glow_shrub(parent: Node3D, pos: Vector3, variant: int) -> void:
+	var shrub := Node3D.new()
+	shrub.name = "GlowShrub_%d_%d" % [int(pos.x), int(pos.z)]
+	shrub.position = pos
+	parent.add_child(shrub)
+	var colors: Array[Color] = [
+		Color(0.25, 0.9, 1.0, 1.0),
+		Color(0.9, 0.25, 0.75, 1.0),
+		Color(0.3, 0.95, 0.5, 1.0),
+	]
+	var c: Color = colors[variant % colors.size()]
+	var shrub_mat := _mat(c * 0.3, c, 0.6)
+	var mesh_inst := MeshInstance3D.new()
+	mesh_inst.name = "ShrubMesh"
+	var s_mesh := SphereMesh.new()
+	s_mesh.radius = 0.6
+	s_mesh.height = 1.0
+	mesh_inst.mesh = s_mesh
+	mesh_inst.position = Vector3(0, 0.5, 0)
+	mesh_inst.material_override = shrub_mat
+	shrub.add_child(mesh_inst)
+	var glow := OmniLight3D.new()
+	glow.name = "ShrubGlow"
+	glow.position = Vector3(0, 0.5, 0)
+	glow.light_color = c
+	glow.light_energy = 1.5
+	glow.omni_range = 4.0
+	shrub.add_child(glow)
+
+func _add_plaza_paving(parent: Node3D) -> void:
+	# Polished plaza-textured quads around the 4 collector towers at (±5, ±5).
+	var plaza_mat := _ground_plaza_material()
+	for x in [-5, 5]:
+		for z in [-5, 5]:
+			var plaza := MeshInstance3D.new()
+			plaza.name = "PlazaPaving_%d_%d" % [x, z]
+			var p_mesh := PlaneMesh.new()
+			p_mesh.size = Vector2(24.0, 24.0)
+			plaza.mesh = p_mesh
+			plaza.position = Vector3(float(x) * 22.0, 0.15, float(z) * 22.0)
+			plaza.material_override = plaza_mat
+			parent.add_child(plaza)
+			# Decorative plaza border strip — cyan inlay
+			for side in [-1.0, 1.0]:
+				var strip_x := MeshInstance3D.new()
+				strip_x.name = "PlazaStripX_%d_%d_%d" % [x, z, int(side)]
+				var sx_mesh := BoxMesh.new()
+				sx_mesh.size = Vector3(24.0, 0.04, 0.3)
+				strip_x.mesh = sx_mesh
+				strip_x.position = Vector3(float(x) * 22.0, 0.17, float(z) * 22.0 + side * 11.5)
+				strip_x.material_override = _mat(Color(0.25, 0.9, 1.0, 1.0), Color(0.2, 0.8, 1.0, 1.0), 0.7)
+				parent.add_child(strip_x)
+				var strip_z := MeshInstance3D.new()
+				strip_z.name = "PlazaStripZ_%d_%d_%d" % [x, z, int(side)]
+				var sz_mesh := BoxMesh.new()
+				sz_mesh.size = Vector3(0.3, 0.04, 24.0)
+				strip_z.mesh = sz_mesh
+				strip_z.position = Vector3(float(x) * 22.0 + side * 11.5, 0.17, float(z) * 22.0)
+				strip_z.material_override = _mat(Color(0.25, 0.9, 1.0, 1.0), Color(0.2, 0.8, 1.0, 1.0), 0.7)
+				parent.add_child(strip_z)
+
+func _add_street_props(parent: Node3D) -> void:
+	# Distribute 6 prop types along avenues at regular intervals.
+	# Props: traffic lights, benches, trash bins, planters, scaffolding, barriers.
+	var prop_positions := [
+		# [x, z, type, rotation]
+		[-15.0, -44.0, 0, 0.0],   # traffic light
+		[15.0, 22.0, 0, 180.0],
+		[-44.0, 11.0, 0, 90.0],
+		[44.0, -33.0, 0, -90.0],
+		[-8.0, 66.0, 1, 0.0],     # bench
+		[8.0, -66.0, 1, 180.0],
+		[66.0, -11.0, 1, 90.0],
+		[-66.0, 33.0, 1, -90.0],
+		[-12.0, 0.0, 2, 0.0],     # trash bin
+		[12.0, 44.0, 2, 180.0],
+		[0.0, -22.0, 2, 90.0],
+		[0.0, 55.0, 2, -90.0],
+		[-9.0, 33.0, 3, 0.0],     # planter
+		[9.0, -11.0, 3, 180.0],
+		[33.0, 22.0, 3, 90.0],
+		[-33.0, -44.0, 3, -90.0],
+		[-88.0, -55.0, 4, 0.0],   # scaffolding
+		[88.0, 55.0, 4, 180.0],
+		[55.0, 88.0, 4, 90.0],
+		[-55.0, -88.0, 4, -90.0],
+		[-13.0, 77.0, 5, 0.0],    # barrier
+		[13.0, -77.0, 5, 180.0],
+		[77.0, 13.0, 5, 90.0],
+		[-77.0, -13.0, 5, -90.0],
+	]
+	for pp in prop_positions:
+		var pos := Vector3(pp[0], 0.0, pp[1])
+		var ptype: int = int(pp[2])
+		var rot: float = float(pp[3])
+		match ptype:
+			0:
+				_add_traffic_light(parent, pos, rot)
+			1:
+				_add_bench(parent, pos, rot)
+			2:
+				_add_trash_bin(parent, pos, rot)
+			3:
+				_add_planter(parent, pos, rot)
+			4:
+				_add_scaffolding(parent, pos, rot)
+			5:
+				_add_barrier(parent, pos, rot)
+
+func _add_traffic_light(parent: Node3D, pos: Vector3, rot: float) -> void:
+	var prop := Node3D.new()
+	prop.name = "TrafficLight_%d_%d" % [int(pos.x), int(pos.z)]
+	prop.position = pos
+	prop.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(prop)
+	var pole_mat := _mat(Color(0.05, 0.08, 0.1, 1.0), Color(0.0, 0.0, 0.0, 1.0), 0.0)
+	_add_box(prop, "TLPole", Vector3(0.18, 5.0, 0.18), Vector3(0, 2.5, 0), pole_mat)
+	_add_box(prop, "TLArm", Vector3(2.2, 0.14, 0.14), Vector3(1.1, 4.8, 0), pole_mat)
+	# Signal head with 3 lenses
+	var head_mat := _mat(Color(0.04, 0.06, 0.08, 1.0), Color(0.0, 0.0, 0.0, 1.0), 0.0)
+	_add_box(prop, "TLHead", Vector3(0.6, 1.2, 0.35), Vector3(2.2, 4.3, 0), head_mat)
+	# Red (top) — dim
+	var red_mat := _mat(Color(0.5, 0.05, 0.05, 1.0), Color(0.8, 0.1, 0.1, 1.0), 0.4)
+	_add_box(prop, "TLRed", Vector3(0.35, 0.3, 0.05), Vector3(2.2, 4.65, 0.18), red_mat)
+	# Yellow (middle) — brighter
+	var yellow_mat := _mat(Color(0.5, 0.4, 0.05, 1.0), Color(0.9, 0.7, 0.1, 1.0), 0.6)
+	_add_box(prop, "TLYellow", Vector3(0.35, 0.3, 0.05), Vector3(2.2, 4.3, 0.18), yellow_mat)
+	# Green (bottom) — brightest, active signal
+	var green_mat := _mat(Color(0.05, 0.5, 0.1, 1.0), Color(0.1, 0.9, 0.2, 1.0), 0.8)
+	_add_box(prop, "TLGreen", Vector3(0.35, 0.3, 0.05), Vector3(2.2, 3.95, 0.18), green_mat)
+	var glow := OmniLight3D.new()
+	glow.name = "TLGlow"
+	glow.position = Vector3(2.2, 3.95, 0.3)
+	glow.light_color = Color(0.1, 0.9, 0.2, 1.0)
+	glow.light_energy = 1.0
+	glow.omni_range = 5.0
+	prop.add_child(glow)
+
+func _add_bench(parent: Node3D, pos: Vector3, rot: float) -> void:
+	var prop := Node3D.new()
+	prop.name = "Bench_%d_%d" % [int(pos.x), int(pos.z)]
+	prop.position = pos
+	prop.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(prop)
+	var bench_mat := _mat(Color(0.15, 0.1, 0.08, 1.0), Color(0.0, 0.0, 0.0, 1.0), 0.0)
+	# Seat slab
+	_add_box(prop, "BenchSeat", Vector3(2.0, 0.12, 0.6), Vector3(0, 0.5, 0), bench_mat)
+	# Backrest
+	_add_box(prop, "BenchBack", Vector3(2.0, 0.6, 0.1), Vector3(0, 0.8, -0.25), bench_mat)
+	# Legs
+	_add_box(prop, "BenchLegL", Vector3(0.1, 0.5, 0.5), Vector3(-0.85, 0.25, 0), bench_mat)
+	_add_box(prop, "BenchLegR", Vector3(0.1, 0.5, 0.5), Vector3(0.85, 0.25, 0), bench_mat)
+	# Subtle amber accent strip on seat front
+	var accent := _mat(Color(0.2, 0.15, 0.1, 1.0), Color(0.6, 0.4, 0.15, 1.0), 0.25)
+	_add_box(prop, "BenchAccent", Vector3(2.0, 0.03, 0.04), Vector3(0, 0.56, 0.3), accent)
+
+func _add_trash_bin(parent: Node3D, pos: Vector3, rot: float) -> void:
+	var prop := Node3D.new()
+	prop.name = "TrashBin_%d_%d" % [int(pos.x), int(pos.z)]
+	prop.position = pos
+	prop.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(prop)
+	var bin_mat := _mat(Color(0.08, 0.12, 0.1, 1.0), Color(0.0, 0.15, 0.2, 1.0), 0.1)
+	var body := MeshInstance3D.new()
+	body.name = "TrashBinBody"
+	var b_mesh := CylinderMesh.new()
+	b_mesh.top_radius = 0.45
+	b_mesh.bottom_radius = 0.4
+	b_mesh.height = 1.1
+	body.mesh = b_mesh
+	body.position = Vector3(0, 0.55, 0)
+	body.material_override = bin_mat
+	prop.add_child(body)
+	# Lid
+	var lid := MeshInstance3D.new()
+	lid.name = "TrashBinLid"
+	var l_mesh := CylinderMesh.new()
+	l_mesh.top_radius = 0.48
+	l_mesh.bottom_radius = 0.48
+	l_mesh.height = 0.15
+	lid.mesh = l_mesh
+	lid.position = Vector3(0, 1.18, 0)
+	lid.material_override = bin_mat
+	prop.add_child(lid)
+	# Cyan rim
+	var rim := _mat(Color(0.25, 0.9, 1.0, 1.0), Color(0.2, 0.8, 1.0, 1.0), 0.5)
+	_add_box(prop, "TrashBinRim", Vector3(0.96, 0.04, 0.08), Vector3(0, 1.1, 0.46), rim)
+
+func _add_planter(parent: Node3D, pos: Vector3, rot: float) -> void:
+	var prop := Node3D.new()
+	prop.name = "Planter_%d_%d" % [int(pos.x), int(pos.z)]
+	prop.position = pos
+	prop.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(prop)
+	var box_mat := _mat(Color(0.12, 0.1, 0.08, 1.0), Color(0.0, 0.0, 0.0, 1.0), 0.0)
+	# Planter box
+	_add_box(prop, "PlanterBox", Vector3(1.2, 0.5, 0.8), Vector3(0, 0.25, 0), box_mat)
+	# Soil/plant mass
+	var plant_mat := _mat(Color(0.05, 0.3, 0.12, 1.0), Color(0.1, 0.5, 0.2, 1.0), 0.3)
+	var plant := MeshInstance3D.new()
+	plant.name = "PlanterFoliage"
+	var p_mesh := SphereMesh.new()
+	p_mesh.radius = 0.7
+	p_mesh.height = 0.8
+	plant.mesh = p_mesh
+	plant.position = Vector3(0, 0.7, 0)
+	plant.material_override = plant_mat
+	prop.add_child(plant)
+	# Small glow
+	var glow := OmniLight3D.new()
+	glow.name = "PlanterGlow"
+	glow.position = Vector3(0, 0.7, 0)
+	glow.light_color = Color(0.1, 0.5, 0.2, 1.0)
+	glow.light_energy = 0.6
+	glow.omni_range = 3.0
+	prop.add_child(glow)
+
+func _add_scaffolding(parent: Node3D, pos: Vector3, rot: float) -> void:
+	var prop := Node3D.new()
+	prop.name = "Scaffolding_%d_%d" % [int(pos.x), int(pos.z)]
+	prop.position = pos
+	prop.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(prop)
+	var frame_mat := _mat(Color(0.12, 0.12, 0.14, 1.0), Color(0.3, 0.3, 0.35, 1.0), 0.15)
+	# 4 vertical posts
+	for sx in [-1.5, 1.5]:
+		for sz in [-1.0, 1.0]:
+			_add_box(prop, "Post_%d_%d" % [int(sx), int(sz)], Vector3(0.12, 6.0, 0.12), Vector3(sx, 3.0, sz), frame_mat)
+	# Horizontal cross-braces at 3 levels
+	for y in [1.5, 3.5, 5.5]:
+		_add_box(prop, "CrossX_%d" % int(y), Vector3(3.2, 0.08, 0.08), Vector3(0, y, -1.0), frame_mat)
+		_add_box(prop, "CrossX2_%d" % int(y), Vector3(3.2, 0.08, 0.08), Vector3(0, y, 1.0), frame_mat)
+		_add_box(prop, "CrossZ_%d" % int(y), Vector3(0.08, 0.08, 2.2), Vector3(-1.5, y, 0), frame_mat)
+		_add_box(prop, "CrossZ2_%d" % int(y), Vector3(0.08, 0.08, 2.2), Vector3(1.5, y, 0), frame_mat)
+	# Diagonal brace
+	_add_box(prop, "DiagBrace", Vector3(0.06, 6.2, 0.06), Vector3(-1.5, 3.0, 0), frame_mat)
+	var diag := prop.get_node_or_null("DiagBrace") as MeshInstance3D
+	if diag != null:
+		diag.rotation_degrees = Vector3(0, 0, 15)
+	# Warning light on top
+	var warn := OmniLight3D.new()
+	warn.name = "ScaffoldWarnLight"
+	warn.position = Vector3(0, 6.2, 0)
+	warn.light_color = Color(0.9, 0.2, 0.1, 1.0)
+	warn.light_energy = 0.8
+	warn.omni_range = 4.0
+	prop.add_child(warn)
+
+func _add_barrier(parent: Node3D, pos: Vector3, rot: float) -> void:
+	var prop := Node3D.new()
+	prop.name = "Barrier_%d_%d" % [int(pos.x), int(pos.z)]
+	prop.position = pos
+	prop.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(prop)
+	var bar_mat := _mat(Color(0.15, 0.15, 0.08, 1.0), Color(0.6, 0.45, 0.1, 1.0), 0.2)
+	# Base
+	_add_box(prop, "BarrierBase", Vector3(2.0, 0.08, 0.4), Vector3(0, 0.06, 0), bar_mat)
+	# Vertical posts
+	for sx in [-0.8, 0.8]:
+		_add_box(prop, "BarrierPost_%d" % int(sx), Vector3(0.1, 0.8, 0.1), Vector3(sx, 0.5, 0), bar_mat)
+	# Top rail
+	_add_box(prop, "BarrierRail", Vector3(2.0, 0.08, 0.08), Vector3(0, 0.9, 0), bar_mat)
+	# Hazard stripes — alternating dark/yellow via 4 small boxes
+	for i in range(4):
+		var stripe_mat := _mat(Color(0.5, 0.4, 0.05, 1.0), Color(0.8, 0.65, 0.1, 1.0), 0.3) if i % 2 == 0 else _mat(Color(0.04, 0.04, 0.02, 1.0), Color(0.0, 0.0, 0.0, 1.0), 0.0)
+		_add_box(prop, "BarrierStripe_%d" % i, Vector3(0.45, 0.25, 0.03), Vector3(-0.7 + float(i) * 0.45, 0.45, 0.18), stripe_mat)
