@@ -108,18 +108,18 @@ void fragment() {
 		window_intensity = emission_energy * flicker_factor;
 	}
 
-	// Combine: frame line → dark frame; lit window → emission; dark window → dark base
+	// Combine: frame line → dark frame; lit window → emission; dark window → dimmed but visible albedo
 	vec3 final_emission;
 	if (is_frame) {
 		final_emission = frame_color;
-		albedo = mix(albedo, frame_color, 0.6);
+		albedo = mix(albedo, frame_color, 0.25);
 		window_intensity = 0.0;
 	} else if (is_lit) {
 		final_emission = window_emission * window_intensity;
-		albedo = mix(albedo, window_emission, 0.15);
+		albedo = mix(albedo, window_emission, 0.1);
 	} else {
-		final_emission = dark_window;
-		albedo = mix(albedo, dark_window, 0.5);
+		final_emission = dark_window * 0.3;
+		albedo = mix(albedo, dark_window, 0.15);
 	}
 
 	// Add emission texture contribution if provided

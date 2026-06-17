@@ -17,6 +17,19 @@ const ProgressionModel = preload("res://scripts/ProgressionModel.gd")
 const LUMEN_SCENE = preload("res://assets/3d/characters/lumen/lumen_body.glb")
 const FACADE_SHADER = preload("res://shaders/building_facade.gdshader")
 
+# Ground texture prefixes — asphalt, grass (parks), plaza (collector-tower surrounds).
+# Each prefix resolves to 4 PNGs (albedo, normal, roughness, emission).
+const GROUND_TEXTURE_DIRS: Array[String] = [
+	"res://assets/textures/ground/asphalt_",
+	"res://assets/textures/ground/grass_",
+	"res://assets/textures/ground/plaza_",
+]
+# _ground_*_textures are filled at startup; index matches GROUND_TEXTURE_DIRS.
+var _ground_albedo_textures: Array[Texture2D] = []
+var _ground_normal_textures: Array[Texture2D] = []
+var _ground_roughness_textures: Array[Texture2D] = []
+var _ground_emission_textures: Array[Texture2D] = []
+
 # PBR facade texture sets — loaded once at startup, cycled per building.
 const FACADE_TEXTURE_DIRS: Array[String] = [
 	"res://assets/textures/facades/glass_curtain_wall_",
@@ -24,7 +37,7 @@ const FACADE_TEXTURE_DIRS: Array[String] = [
 	"res://assets/textures/facades/brick_",
 	"res://assets/textures/facades/metal_cladding_",
 	"res://assets/textures/facades/commercial_facade_",
-]
+] 
 const FACADE_PBR_PROPS: Array[Dictionary] = [
 	{"roughness": 0.15, "metallic": 0.85, "emission_energy": 0.35},
 	{"roughness": 0.85, "metallic": 0.02, "emission_energy": 0.18},
@@ -119,6 +132,46 @@ func _load_facade_textures() -> void:
 		print("AURORA_FACADE: loaded set ", prefix)
 	print("AURORA_FACADE_TEXTURES: loaded ", _facade_albedo_textures.size(), " sets")
 
+func _load_ground_textures() -> void:
+	# Preload all ground PBR texture sets (asphalt, grass, plaza).
+	# Each set has albedo, normal, roughness, emission.
+	print("AURORA_GROUND: loading ", GROUND_TEXTURE_DIRS.size(), " ground texture sets...")
+	for prefix in GROUND_TEXTURE_DIRS:
+		var albedo := load(prefix + "albedo.png") as Texture2D
+		var normal := load(prefix + "normal.png") as Texture2D
+		var roughness := load(prefix + "roughness.png") as Texture2D
+		var emission := load(prefix + "emission.png") as Texture2D
+		if albedo == null:
+			push_warning("Failed to load ground albedo: " + prefix + "albedo.png — ground will use fallback material")
+			continue
+		_ground_albedo_textures.append(albedo)
+		_ground_normal_textures.append(normal if normal != null else albedo)
+		_ground_roughness_textures.append(roughness if roughness != null else albedo)
+		_ground_emission_textures.append(emission if emission != null else albedo)
+		print("AURORA_GROUND: loaded set ", prefix)
+	print("AURORA_GROUND_TEXTURES: loaded ", _ground_albedo_textures.size(), " sets")
+
+func _ground_asphalt_material() -> StandardMaterial3D:
+	# Dark wet-asphalt PBR material for the city ground plane.
+	# Low roughness + high metallic for a rain-slicked neon-reflective surface.
+	var mat := StandardMaterial3D.new()
+	if not _ground_albedo_textures.is_empty():
+		mat.albedo_texture = _ground_albedo_textures[0]
+		if not _ground_normal_textures.is_empty() and _ground_normal_textures[0] != null:
+			mat.normal_texture = _ground_normal_textures[0]
+		if not _ground_roughness_textures.is_empty() and _ground_roughness_textures[0] != null:
+			mat.roughness_texture = _ground_roughness_textures[0]
+			mat.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_GREEN
+		if not _ground_emission_textures.is_empty() and _ground_emission_textures[0] != null:
+			mat.emission_enabled = true
+			mat.emission_texture = _ground_emission_textures[0]
+			mat.emission = Color(0.15, 0.20, 0.35, 1.0)
+			mat.emission_energy_multiplier = 0.25
+	mat.roughness = 0.35
+	mat.metallic = 0.15
+	mat.uv1_scale = Vector3(8.0, 8.0, 8.0)
+	return mat
+
 func _remember_tween(t: Tween) -> Tween:
 	_cleanup_tweens.append(t)
 	return t
@@ -149,31 +202,96 @@ func _input(event: InputEvent) -> void:
 				powers.trigger("rescue_lift")
 
 func _build_world() -> void:
+	# Night/dusk sky with stars + magenta horizon glow via ProceduralSkyMaterial.
 	var env := WorldEnvironment.new()
 	var e := Environment.new()
-	e.background_mode = Environment.BG_COLOR
-	e.background_color = Color(0.025, 0.045, 0.085, 1.0)
-	e.ambient_light_color = Color(0.45, 0.55, 0.7, 1.0)
-	e.ambient_light_energy = 0.85
+	e.background_mode = Environment.BG_SKY
+	var sky_resource := Sky.new()
+	var sky_mat := ProceduralSkyMaterial.new()
+	# Deep night sky with a warm magenta horizon band — keeps the dark
+	# cyberpunk aesthetic but reads as a real sky, not a flat black plate.
+	sky_mat.sky_top_color = Color(0.012, 0.018, 0.05, 1.0)
+	sky_mat.sky_horizon_color = Color(0.18, 0.06, 0.28, 1.0)
+	sky_mat.ground_horizon_color = Color(0.04, 0.02, 0.08, 1.0)
+	sky_mat.ground_bottom_color = Color(0.005, 0.005, 0.012, 1.0)
+	# Subtle sun curve — the visible "sun" never peaks but a faint warm
+	# gradient washes the horizon, giving volumetric-fog colour a target.
+	sky_mat.sun_angle_max = 30.0
+	sky_mat.sun_curve = 0.18
+	sky_resource.sky_material = sky_mat
+	e.sky = sky_resource
+	e.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
+	e.ambient_light_color = Color(0.35, 0.42, 0.6, 1.0)
+	e.ambient_light_energy = 0.65
+	# Standard height fog keeps depth reading at the avenue scale.
 	e.fog_enabled = true
-	e.fog_density = 0.002
-	e.fog_light_color = Color(0.15, 0.25, 0.38, 1.0)
+	e.fog_density = 0.0035
+	e.fog_light_color = Color(0.18, 0.22, 0.42, 1.0)
+	# Volumetric fog — gives the avenues a "haze under the streetlights" reading.
+	e.volumetric_fog_enabled = true
+	e.volumetric_fog_density = 0.012
+	e.volumetric_fog_albedo = Color(0.32, 0.42, 0.65, 1.0)
+	e.volumetric_fog_emission = Color(0.06, 0.10, 0.18, 1.0)
+	e.volumetric_fog_emission_energy = 0.4
+	e.volumetric_fog_length = 96.0
+	e.volumetric_fog_detail_spread = 4.0
+	e.volumetric_fog_anisotropy = 0.3
+	# Bloom/glow tuned for neon streetlights and crown bands.
+	e.glow_enabled = true
+	e.glow_intensity = 1.25
+	e.glow_strength = 1.05
+	e.glow_bloom = 0.25
+	e.glow_hdr_threshold = 0.9
+	e.glow_hdr_scale = 1.6
+	e.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
+	# glow_levels/1..7 are individual properties, not an array/dict.
+	# Default curve + boost on the mid mip levels for stronger neon halos.
+	e.set("glow_levels/1", 0.0)
+	e.set("glow_levels/2", 0.5)
+	e.set("glow_levels/3", 0.85)
+	e.set("glow_levels/4", 1.0)
+	e.set("glow_levels/5", 0.75)
+	e.set("glow_levels/6", 0.5)
+	e.set("glow_levels/7", 0.3)
+	# Screen-space reflections for the wet-pavement look.
+	e.ssr_enabled = true
+	e.ssr_max_steps = 32
+	e.ssr_fade_in = 0.6
+	e.ssr_fade_out = 2.0
+	e.ssr_depth_tolerance = 0.18
+	# SSAO brings the avenues + skyline crevices some depth.
+	e.ssao_enabled = true
+	e.ssao_radius = 1.2
+	e.ssao_intensity = 1.4
+	e.ssao_power = 1.4
+	# ACES tonemap — better contrast for the neon / dark split.
+	e.tonemap_mode = Environment.TONE_MAPPER_ACES
+	e.tonemap_exposure = 1.0
+	e.tonemap_white = 6.0
 	env.environment = e
 	add_child(env)
 
+	# Faint warm sun direction — adds directional shading on the upper
+	# tower faces without overpowering the night sky.
 	var sun := DirectionalLight3D.new()
 	sun.name = "MorningIonSun"
-	sun.rotation_degrees = Vector3(-45, 35, 0)
-	sun.light_color = Color(1.0, 0.88, 0.62, 1.0)
-	sun.light_energy = 2.0
+	sun.rotation_degrees = Vector3(-55, 35, 0)
+	sun.light_color = Color(0.9, 0.7, 0.55, 1.0)
+	sun.light_energy = 0.6
 	add_child(sun)
 
+	# Textured ground plane. Asphalt PBR from assets/textures/ground/asphalt_*.
+	# Subdivided to 320×320 cells with uv2_scale = (1, 1) so the texture
+	# tiles cleanly across the 620×620 plane.
+	_load_ground_textures()
 	var ground := MeshInstance3D.new()
 	ground.name = "MeridianGroundPlane"
 	var ground_mesh := PlaneMesh.new()
 	ground_mesh.size = Vector2(620, 620)
+	ground_mesh.subdivide_width = 32
+	ground_mesh.subdivide_depth = 32
 	ground.mesh = ground_mesh
-	ground.material_override = _mat(Color(0.04, 0.09, 0.11, 1.0), Color(0.0, 0.08, 0.07, 1.0), 0.08)
+	ground.material_override = _ground_asphalt_material()
 	add_child(ground)
 
 	camera = Camera3D.new()
@@ -850,7 +968,7 @@ func _city_facade_material(h: float, x: int, z: int, width: float, depth: float,
 	var lit_prob := 0.55 if not collector else 0.75
 	var em_energy := 1.0 if not collector else 1.6
 	# UV scale variation per building
-	var uv_s := 1.0 + float(abs(x + z) % 3) * 0.15
+	var uv_s := 2.0 + float(abs(x + z) % 3) * 0.3
 	if h > 42.0:
 		uv_s += 0.2
 	if collector:
