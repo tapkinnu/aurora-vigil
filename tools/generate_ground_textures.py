@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 """Generate procedural PBR ground textures for Aurora Vigil.
 
+NOTE: These are FALLBACK generators. The production textures are real CC0
+photogrammetry PBR sets downloaded from Polyhaven (see SOURCES.md in
+assets/textures/ground/). This script is kept as a fallback in case the
+real textures need to be regenerated from scratch (e.g., new repo without
+the downloaded assets). The real textures take priority at runtime — the
+loading code in Main.gd simply loads whatever PNGs are in the directory.
+
 Outputs 4 albedo/normal/roughness triplets into assets/textures/ground/:
   - asphalt: dark wet road surface with subtle grit and lane stripes baked into alpha
   - grass: dark muted park grass with sparse tufts

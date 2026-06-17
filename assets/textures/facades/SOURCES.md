@@ -1,43 +1,32 @@
 # PBR Facade Textures — Sources & Provenance
 
-All albedo textures generated via FAL.ai `fal-ai/fast-sdxl`.
-Normal, roughness, and emission maps derived procedurally from albedo using Pillow.
+## Production Textures (CC0 — Public Domain)
 
-License: FAL/ Stability AI community license terms apply to albedo generations.
-Derived maps (normal/roughness/emission) are procedural transformations of the albedo.
+All facade textures are real CC0 photogrammetry PBR sets downloaded from
+[Polyhaven](https://polyhaven.com) at 2K resolution, resized to 1024×1024
+PNG with max compression.
 
-| Material | Roughness | Metallic | Glow Color | Emission Threshold |
-|----------|-----------|----------|------------|-------------------|
-| glass_curtain_wall | 0.15 | 0.85 | RGB(80, 200, 255) | 60 |
-| concrete_panel | 0.85 | 0.02 | RGB(255, 180, 80) | 90 |
-| brick | 0.75 | 0.05 | RGB(255, 160, 60) | 85 |
-| metal_cladding | 0.25 | 0.9 | RGB(120, 180, 220) | 100 |
-| commercial_facade | 0.35 | 0.6 | RGB(255, 100, 200) | 50 |
+License: CC0 (Public Domain). No attribution required, but appreciated.
+Source: https://polyhaven.com/license
 
-## Generation Prompts
+| Our Name | Polyhaven Asset ID | Source URL |
+|----------|-------------------|-----------|
+| glass_curtain_wall | exterior_wall_cladding | https://polyhaven.com/a/exterior_wall_cladding |
+| concrete_panel | concrete_panels | https://polyhaven.com/a/concrete_panels |
+| brick | red_brick | https://polyhaven.com/a/red_brick |
+| metal_cladding | box_profile_metal_sheet | https://polyhaven.com/a/box_profile_metal_sheet |
+| commercial_facade | blue_metal_plate | https://polyhaven.com/a/blue_metal_plate |
 
-### glass_curtain_wall
-```
-seamless tileable texture of a dark cyberpunk glass curtain wall building facade at night, tinted blue-black glass panels with reflections, thin metal mullions grid pattern, some windows glowing with cyan and magenta neon light, top-down orthographic view of the facade surface, PBR albedo texture, game asset, no text no watermark, dark moody atmosphere
-```
+Each set includes:
+- **albedo** (Diffuse map from Polyhaven)
+- **normal** (OpenGL normal map — `nor_gl` format, compatible with Godot)
+- **roughness** (Roughness map)
+- **emission** (Procedurally derived from albedo — dimmed + blurred to create
+  subtle night-time glow. The shader's window-grid system overlays the lit
+  windows on top of this base emission.)
 
-### concrete_panel
-```
-seamless tileable texture of a brutalist concrete panel building facade, dark gray concrete with horizontal seam lines between panels, subtle weathering and stains, a few windows with warm orange glow, top-down orthographic view of the facade surface, PBR albedo texture, game asset, no text no watermark, dark cyberpunk mood
-```
+## Fallback Generator
 
-### brick
-```
-seamless tileable texture of a dark cyberpunk brick building facade at night, dark red-brown brickwork with mortar lines, some windows glowing with warm amber and cool blue light, weathered urban texture, top-down orthographic view of the facade surface, PBR albedo texture, game asset, no text no watermark
-```
-
-### metal_cladding
-```
-seamless tileable texture of a brushed metal cladding building facade, dark steel-gray metal panels with vertical seams and rivets, subtle anodized blue tint, industrial cyberpunk architecture, top-down orthographic view of the facade surface, PBR albedo texture, game asset, no text no watermark
-```
-
-### commercial_facade
-```
-seamless tileable texture of an illuminated commercial building facade at night, glowing neon signage strips in cyan magenta and amber, storefront glass, metallic trim around display windows, dark building surface, top-down orthographic view of the facade surface, PBR albedo texture, game asset, no text no watermark, vibrant cyberpunk aesthetic
-```
-
+If the real textures are missing, `tools/generate_facade_textures.py` can
+regenerate procedural fallbacks using FAL.ai for albedo + Pillow for
+normal/roughness/emission. See the script header for details.

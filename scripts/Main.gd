@@ -169,7 +169,7 @@ func _ground_asphalt_material() -> StandardMaterial3D:
 			mat.emission_energy_multiplier = 0.25
 	mat.roughness = 0.35
 	mat.metallic = 0.15
-	mat.uv1_scale = Vector3(8.0, 8.0, 8.0)
+	mat.uv1_scale = Vector3(12.0, 12.0, 12.0)
 	return mat
 
 func _ground_grass_material() -> StandardMaterial3D:
@@ -191,7 +191,7 @@ func _ground_grass_material() -> StandardMaterial3D:
 			mat.emission_energy_multiplier = 0.08
 	mat.roughness = 0.85
 	mat.metallic = 0.0
-	mat.uv1_scale = Vector3(4.0, 4.0, 4.0)
+	mat.uv1_scale = Vector3(6.0, 6.0, 6.0)
 	return mat
 
 func _ground_plaza_material() -> StandardMaterial3D:
@@ -213,7 +213,7 @@ func _ground_plaza_material() -> StandardMaterial3D:
 			mat.emission_energy_multiplier = 0.15
 	mat.roughness = 0.45
 	mat.metallic = 0.10
-	mat.uv1_scale = Vector3(2.0, 2.0, 2.0)
+	mat.uv1_scale = Vector3(4.0, 4.0, 4.0)
 	return mat
 
 func _remember_tween(t: Tween) -> Tween:
@@ -1104,12 +1104,12 @@ func _city_facade_material(h: float, x: int, z: int, width: float, depth: float,
 	# Collectors: more lit windows, brighter emission
 	var lit_prob := 0.55 if not collector else 0.75
 	var em_energy := 1.0 if not collector else 1.6
-	# UV scale variation per building
-	var uv_s := 2.0 + float(abs(x + z) % 3) * 0.3
+	# UV scale variation per building — real PBR textures need higher tiling for visible detail
+	var uv_s := 4.0 + float(abs(x + z) % 3) * 0.5
 	if h > 42.0:
-		uv_s += 0.2
+		uv_s += 0.5
 	if collector:
-		uv_s += 0.15
+		uv_s += 0.3
 	# Albedo tint variation
 	var tint_r := 0.80 + float(abs(x) % 5) * 0.03
 	var tint_g := 0.88 + float(abs(z) % 4) * 0.025
@@ -1142,6 +1142,9 @@ func _city_facade_material(h: float, x: int, z: int, width: float, depth: float,
 		mat.set_shader_parameter("roughness_base", float(pbr.get("roughness", 0.5)))
 		mat.set_shader_parameter("metallic_val", float(pbr.get("metallic", 0.14)))
 		mat.set_shader_parameter("use_normal_map", true)
+		# Real PBR textures: respect roughness map more, scale normal map intensity
+		mat.set_shader_parameter("roughness_tex_weight", 0.8)
+		mat.set_shader_parameter("normal_map_scale", 0.8)
 	else:
 		mat.set_shader_parameter("use_normal_map", false)
 	return mat

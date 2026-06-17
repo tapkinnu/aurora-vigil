@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
-"""Generate 5 PBR facade texture sets for Aurora Vigil city buildings."""
+"""Generate 5 PBR facade texture sets for Aurora Vigil city buildings.
+
+NOTE: These are FALLBACK generators. The production textures are real CC0
+photogrammetry PBR sets downloaded from Polyhaven (see SOURCES.md in
+assets/textures/facades/). This script is kept as a fallback in case the
+real textures need to be regenerated from scratch (e.g., new repo without
+the downloaded assets). The real textures take priority at runtime — the
+loading code in Main.gd simply loads whatever PNGs are in the directory.
+
+Original generation used FAL.ai for albedo + procedural normal/roughness/emission.
+"""
 
 import os, sys, time, json, requests, math
 from PIL import Image, ImageDraw, ImageFilter

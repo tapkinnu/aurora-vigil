@@ -13,10 +13,12 @@ uniform vec4 albedo_tint : source_color = vec4(0.85, 0.92, 1.0, 1.0);
 
 group_uniforms pbr;
 uniform float roughness_base = 0.42;
+uniform float roughness_tex_weight = 0.8; // How much the real roughness map drives the final value
 uniform float metallic_val = 0.14;
 uniform sampler2D roughness_tex : source_color, hint_default_white;
 uniform bool use_normal_map = false;
 uniform sampler2D normal_tex;
+uniform float normal_map_scale = 1.0; // NORMAL_MAP_SCALE for real textures
 
 group_uniforms emission_map;
 uniform sampler2D emission_tex : source_color, hint_default_black;
@@ -62,11 +64,14 @@ void fragment() {
 	vec3 albedo = albedo_sample.rgb * albedo_tint.rgb;
 
 	float rough_sample = texture(roughness_tex, base_uv).r;
-	float roughness = mix(roughness_base, rough_sample, 0.5);
+	float roughness = mix(roughness_base, rough_sample, roughness_tex_weight);
 
 	// Normal map — only applied when use_normal_map is true
 	if (use_normal_map) {
-		NORMAL_MAP = texture(normal_tex, base_uv).rgb;
+		vec3 nmap = texture(normal_tex, base_uv).rgb;
+		// Scale normal map intensity: blend toward flat normal (0.5, 0.5, 1.0)
+		vec3 flat_normal = vec3(0.5, 0.5, 1.0);
+		NORMAL_MAP = mix(flat_normal, nmap, normal_map_scale);
 	}
 
 	// ---- Window grid computation ----
