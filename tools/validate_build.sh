@@ -27,6 +27,13 @@ echo "AURORA_LOGIC: PASS"
 "$GODOT" --headless --path . -s tests/test_interaction_volumes.gd >"$VOLUME_TEST_LOG" 2>&1 || { cat "$VOLUME_TEST_LOG"; exit 1; }
 grep -q "AURORA_VOLUME_TESTS: PASS" "$VOLUME_TEST_LOG" || { cat "$VOLUME_TEST_LOG"; exit 1; }
 echo "AURORA_VOLUME_TESTS: PASS"
+SAVE_LOAD_LOG=.godot_validation/save_load_gd.log
+"$GODOT" --headless --path . -s tests/test_save_load.gd >"$SAVE_LOAD_LOG" 2>&1 || { cat "$SAVE_LOAD_LOG"; exit 1; }
+grep -q "AURORA_SAVE_LOAD_GD: PASS" "$SAVE_LOAD_LOG" || { cat "$SAVE_LOAD_LOG"; exit 1; }
+echo "AURORA_SAVE_LOAD_GD: PASS"
+python3 tools/verify_save_load.py >.godot_validation/save_load_py.log 2>&1 || { cat .godot_validation/save_load_py.log; exit 1; }
+grep -q "AURORA_SAVE_LOAD: PASS" .godot_validation/save_load_py.log || { cat .godot_validation/save_load_py.log; exit 1; }
+echo "AURORA_SAVE_LOAD_PY: PASS"
 AURORA_AUTO_QUIT=1 timeout 20 xvfb-run -a -s "-screen 0 1280x720x24" "$GODOT" --path . --rendering-driver opengl3 >"$SMOKE_LOG" 2>&1 || { cat "$SMOKE_LOG"; exit 1; }
 grep -q "AURORA_SMOKE:" "$SMOKE_LOG" || { cat "$SMOKE_LOG"; exit 1; }
 if grep -E "SCRIPT ERROR|Parse Error|ERROR:" "$SMOKE_LOG" | grep -v "USER ERROR"; then
