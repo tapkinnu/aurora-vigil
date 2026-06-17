@@ -96,9 +96,20 @@ func stop_loop(id: String) -> void:
 	_stop_loop(id)
 
 func stop_all() -> void:
-	var keys: Array = _loops.keys()
-	for id in keys:
-		_stop_loop(str(id))
+	# Stop and free EVERY active player — tracked loops AND the one-shot players
+	# spawned by _play_once (which otherwise only free themselves on `finished`).
+	# Called from Main._cleanup_for_quit before quit; one-shots still playing at
+	# that moment (event alerts, drone alerts, mission stingers) would otherwise
+	# leave their OGG streams referenced and trip Godot's resource-leak detector
+	# at exit ("resources still in use at exit"). get_children() returns a copy,
+	# so freeing during iteration is safe; free() immediately releases the stream.
+	for child in get_children():
+		if child is AudioStreamPlayer:
+			var p: AudioStreamPlayer = child as AudioStreamPlayer
+			p.stop()
+			p.stream = null
+			p.free()
+	_loops.clear()
 
 func _stop_loop(id: String) -> void:
 	if not _loops.has(id):

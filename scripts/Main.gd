@@ -63,6 +63,13 @@ var progression: ProgressionModel
 var last_event_text: String = "Awaiting first city emergency."
 var _cleanup_tweens: Array[Tween] = []
 
+# Real CC0/CC-BY low-poly street/vegetation/vehicle models live under PROP_DIR
+# (see assets/3d/props/SOURCES.md for sources + licenses). _load_prop loads and
+# caches the PackedScenes; every _add_* prop builder instances the real model and
+# falls back to a primitive build if its GLB is missing or fails to import.
+const PROP_DIR := "res://assets/3d/props/"
+var _prop_scene_cache: Dictionary = {}
+
 # Focused gameplay systems, wired in _ready.
 var flight: PlayerFlightController
 var events: CityEventSystem
@@ -697,6 +704,24 @@ func _add_transit_support(parent: Node3D, pos: Vector3, rotate_beam: bool) -> No
 	return support
 
 func _add_streetlight(parent: Node3D, pos: Vector3, rot: float) -> void:
+	var holder := _instance_prop(PROP_DIR + "street/street_light_modern.glb", "y", 5.6)
+	if holder == null:
+		_add_streetlight_primitive(parent, pos, rot)
+		return
+	holder.name = "StreetLight"
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0, rad_to_deg(rot), 0)
+	parent.add_child(holder)
+	# Warm-cyan lamp glow at the top of the post, parented to the model.
+	var omni := OmniLight3D.new()
+	omni.name = "StreetLightOmni"
+	omni.position = Vector3(0, 5.3, 0)
+	omni.light_color = Color(0.55, 0.85, 1.0, 1.0)
+	omni.light_energy = 3.0
+	omni.omni_range = 11.0
+	holder.add_child(omni)
+
+func _add_streetlight_primitive(parent: Node3D, pos: Vector3, rot: float) -> void:
 	var light := Node3D.new()
 	light.name = "StreetLight"
 	light.position = pos
@@ -721,13 +746,21 @@ func _add_streetlight(parent: Node3D, pos: Vector3, rot: float) -> void:
 	omni.omni_range = 10.0
 	light.add_child(omni)
 
+# Real CC0 Kenney Nature Kit trees, rotated through 3 variants. Placed every other
+# block so they don't choke the avenue. Trees sit between the road and the tower
+# footprints, breaking up the long flat curb line. A faint canopy glow keeps the
+# foliage reading against the night sky like the rest of the neon city.
+const TREE_VARIANTS := [
+	"vegetation/tree_01.glb",
+	"vegetation/tree_02.glb",
+	"vegetation/tree_03.glb",
+]
+const TREE_GLOW_COLORS := [
+	Color(0.1, 0.85, 0.6, 1.0),
+	Color(0.6, 0.18, 0.95, 1.0),
+]
+
 func _add_street_trees(parent: Node3D, avenue_z: float, north_side: bool) -> void:
-	# Stylised street trees: dark trunk + glowing canopy sphere. Placed every other
-	# block so they don't choke the avenue. Trees sit between the road and the
-	# tower footprints, breaking up the long flat curb line.
-	var trunk_mat := _mat(Color(0.05, 0.08, 0.1, 1.0), Color(0.0, 0.18, 0.25, 1.0), 0.08)
-	var canopy_a := _mat(Color(0.04, 0.5, 0.32, 1.0), Color(0.1, 0.85, 0.6, 1.0), 0.6)
-	var canopy_b := _mat(Color(0.18, 0.05, 0.42, 1.0), Color(0.6, 0.18, 0.95, 1.0), 0.55)
 	var side_sign := 1.0 if north_side else -1.0
 	var base_x := -11.0 * side_sign
 	for step in [-3, -1, 1, 3]:
@@ -739,37 +772,61 @@ func _add_street_trees(parent: Node3D, avenue_z: float, north_side: bool) -> voi
 		# Skip tree if it would land inside the central plaza block.
 		if abs(x) < 4.5 and abs(z) < 4.5:
 			continue
-		var tree := Node3D.new()
-		tree.name = "StreetTree_%s_%d" % [("N" if north_side else "S"), step]
-		tree.position = Vector3(x, 0.0, z)
-		parent.add_child(tree)
-		var trunk := MeshInstance3D.new()
-		trunk.name = "TreeTrunk"
-		var trunk_mesh := CylinderMesh.new()
-		trunk_mesh.top_radius = 0.18
-		trunk_mesh.bottom_radius = 0.25
-		trunk_mesh.height = 2.6
-		trunk.mesh = trunk_mesh
-		trunk.position = Vector3(0, 1.3, 0)
-		trunk.material_override = trunk_mat
-		tree.add_child(trunk)
-		var canopy_mat := canopy_a if step > 0 else canopy_b
-		var canopy := MeshInstance3D.new()
-		canopy.name = "TreeCanopy"
-		var canopy_mesh := SphereMesh.new()
-		canopy_mesh.radius = 1.4
-		canopy_mesh.height = 2.6
-		canopy.mesh = canopy_mesh
-		canopy.position = Vector3(0, 3.3, 0)
-		canopy.material_override = canopy_mat
-		tree.add_child(canopy)
-		var glow := OmniLight3D.new()
-		glow.name = "TreeGlow"
-		glow.position = Vector3(0, 3.3, 0)
-		glow.light_color = canopy_mat.emission
-		glow.light_energy = 1.8
-		glow.omni_range = 6.0
-		tree.add_child(glow)
+		var tree_name := "StreetTree_%s_%d" % [("N" if north_side else "S"), step]
+		var variant := absi(int(avenue_z) + step) % TREE_VARIANTS.size()
+		var glow_color: Color = TREE_GLOW_COLORS[0] if step > 0 else TREE_GLOW_COLORS[1]
+		_add_tree(parent, tree_name, Vector3(x, 0.0, z), variant, glow_color)
+
+func _add_tree(parent: Node3D, tree_name: String, pos: Vector3, variant: int, glow_color: Color) -> void:
+	var holder := _instance_prop(PROP_DIR + TREE_VARIANTS[variant], "y", 5.0)
+	if holder == null:
+		_add_tree_primitive(parent, tree_name, pos, glow_color)
+		return
+	holder.name = tree_name
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0, float((int(pos.x) + int(pos.z)) % 4) * 90.0, 0)
+	parent.add_child(holder)
+	var glow := OmniLight3D.new()
+	glow.name = "TreeGlow"
+	glow.position = Vector3(0, 3.2, 0)
+	glow.light_color = glow_color
+	glow.light_energy = 1.4
+	glow.omni_range = 5.5
+	holder.add_child(glow)
+
+func _add_tree_primitive(parent: Node3D, tree_name: String, pos: Vector3, glow_color: Color) -> void:
+	var trunk_mat := _mat(Color(0.05, 0.08, 0.1, 1.0), Color(0.0, 0.18, 0.25, 1.0), 0.08)
+	var canopy_mat := _mat(glow_color * 0.45, glow_color, 0.6)
+	var tree := Node3D.new()
+	tree.name = tree_name
+	tree.position = pos
+	parent.add_child(tree)
+	var trunk := MeshInstance3D.new()
+	trunk.name = "TreeTrunk"
+	var trunk_mesh := CylinderMesh.new()
+	trunk_mesh.top_radius = 0.18
+	trunk_mesh.bottom_radius = 0.25
+	trunk_mesh.height = 2.6
+	trunk.mesh = trunk_mesh
+	trunk.position = Vector3(0, 1.3, 0)
+	trunk.material_override = trunk_mat
+	tree.add_child(trunk)
+	var canopy := MeshInstance3D.new()
+	canopy.name = "TreeCanopy"
+	var canopy_mesh := SphereMesh.new()
+	canopy_mesh.radius = 1.4
+	canopy_mesh.height = 2.6
+	canopy.mesh = canopy_mesh
+	canopy.position = Vector3(0, 3.3, 0)
+	canopy.material_override = canopy_mat
+	tree.add_child(canopy)
+	var glow := OmniLight3D.new()
+	glow.name = "TreeGlow"
+	glow.position = Vector3(0, 3.3, 0)
+	glow.light_color = glow_color
+	glow.light_energy = 1.8
+	glow.omni_range = 6.0
+	tree.add_child(glow)
 
 func _add_crosswalk(parent: Node3D, avenue_z: float, east_west: bool) -> void:
 	# Zebra-striped crosswalk blocks placed where two avenues intersect so the
@@ -944,6 +1001,85 @@ func _add_box(parent: Node3D, name: String, size: Vector3, pos: Vector3, mat: Ma
 	box.material_override = mat
 	parent.add_child(box)
 	return box
+
+# ── Real prop loading / fitting ──
+
+# Load and cache a GLB PackedScene. Returns null (and warns once) if the asset is
+# missing or fails to import so callers can fall back to a primitive build.
+func _load_prop(path: String) -> PackedScene:
+	if _prop_scene_cache.has(path):
+		return _prop_scene_cache[path]
+	var scene: PackedScene = null
+	if ResourceLoader.exists(path):
+		scene = load(path) as PackedScene
+		if scene == null:
+			push_warning("Prop asset failed to load as PackedScene: " + path)
+	else:
+		push_warning("Prop asset not found: " + path)
+	_prop_scene_cache[path] = scene
+	return scene
+
+# Combined world-space AABB of every MeshInstance3D under `node`, accumulated into
+# acc = [min_corner, max_corner] (each null until the first mesh is seen).
+func _accumulate_mesh_aabb(node: Node, xf: Transform3D, acc: Array) -> void:
+	if node is MeshInstance3D and (node as MeshInstance3D).mesh != null:
+		var a: AABB = (node as MeshInstance3D).mesh.get_aabb()
+		for i in range(8):
+			var corner := a.position + Vector3(
+				a.size.x if (i & 1) != 0 else 0.0,
+				a.size.y if (i & 2) != 0 else 0.0,
+				a.size.z if (i & 4) != 0 else 0.0)
+			var p: Vector3 = xf * corner
+			if acc[0] == null:
+				acc[0] = p
+				acc[1] = p
+			else:
+				acc[0] = Vector3(min(acc[0].x, p.x), min(acc[0].y, p.y), min(acc[0].z, p.z))
+				acc[1] = Vector3(max(acc[1].x, p.x), max(acc[1].y, p.y), max(acc[1].z, p.z))
+	for ch in node.get_children():
+		var cxf := xf
+		if ch is Node3D:
+			cxf = xf * (ch as Node3D).transform
+		_accumulate_mesh_aabb(ch, cxf, acc)
+
+# Instance a real prop GLB auto-fitted to a target size. The model is uniformly
+# scaled so its `fit_axis` ("x"/"y"/"z") native extent equals `target_size`, then
+# grounded so its lowest point sits at y=0. Source GLBs range from ~0.1u (Kenney)
+# to ~230u (Google Poly) native, so fitting is computed at runtime from the mesh
+# AABB rather than hardcoded. Returns a holder Node3D, or null on load failure.
+func _instance_prop(path: String, fit_axis: String, target_size: float, recenter_xz: bool = false, pre_rot := Vector3.ZERO) -> Node3D:
+	var scene := _load_prop(path)
+	if scene == null:
+		return null
+	var model := scene.instantiate() as Node3D
+	if model == null:
+		push_warning("Prop scene root is not Node3D: " + path)
+		return null
+	if pre_rot != Vector3.ZERO:
+		model.rotation_degrees = pre_rot
+	var acc: Array = [null, null]
+	_accumulate_mesh_aabb(model, model.transform, acc)
+	var holder := Node3D.new()
+	holder.add_child(model)
+	if acc[0] == null:
+		return holder
+	var size: Vector3 = acc[1] - acc[0]
+	var native: float = size.y
+	if fit_axis == "x":
+		native = size.x
+	elif fit_axis == "z":
+		native = size.z
+	if native <= 0.0001:
+		native = max(size.x, max(size.y, size.z))
+	var scale_f: float = target_size / native if native > 0.0001 else 1.0
+	model.scale = model.scale * scale_f
+	var smin: Vector3 = acc[0] * scale_f
+	var smax: Vector3 = acc[1] * scale_f
+	model.position.y = -smin.y
+	if recenter_xz:
+		model.position.x = -(smin.x + smax.x) * 0.5
+		model.position.z = -(smin.z + smax.z) * 0.5
+	return holder
 
 func _build_hero() -> void:
 	hero = LUMEN_SCENE.instantiate() as Node3D
@@ -1224,6 +1360,9 @@ func _cleanup_for_quit() -> void:
 	var was_paused: bool = get_tree().paused
 	get_tree().paused = true
 	AuroraAudio.stop_all()
+	# Drop cached PackedScene references before test/screenshot auto-quit so Godot's
+	# resource leak detector does not report imported prop scenes still in use.
+	_prop_scene_cache.clear()
 	for child in get_children():
 		child.free()
 	get_tree().paused = was_paused
@@ -1376,8 +1515,10 @@ func _add_plaza_paving(parent: Node3D) -> void:
 				parent.add_child(strip_z)
 
 func _add_street_props(parent: Node3D) -> void:
-	# Distribute 6 prop types along avenues at regular intervals.
-	# Props: traffic lights, benches, trash bins, planters, scaffolding, barriers.
+	# Distribute real low-poly prop models along avenues at regular intervals.
+	# Types: 0 traffic light, 1 bench, 2 trash bin, 3 planter, 4 scaffolding,
+	# 5 barrier, 6 fire hydrant, 7 utility box, 8 news stand, 9 newspaper box,
+	# 10 stop sign, 11 speed sign, 12 traffic cone.
 	var prop_positions := [
 		# [x, z, type, rotation]
 		[-15.0, -44.0, 0, 0.0],   # traffic light
@@ -1404,6 +1545,28 @@ func _add_street_props(parent: Node3D) -> void:
 		[13.0, -77.0, 5, 180.0],
 		[77.0, 13.0, 5, 90.0],
 		[-77.0, -13.0, 5, -90.0],
+		[-11.0, -22.0, 6, 0.0],   # fire hydrant
+		[11.0, 44.0, 6, 180.0],
+		[-33.0, 11.0, 6, 90.0],
+		[33.0, -55.0, 6, -90.0],
+		[-11.0, 55.0, 7, 0.0],    # utility box
+		[55.0, -11.0, 7, 90.0],
+		[-55.0, 22.0, 7, -90.0],
+		[12.0, -33.0, 8, 90.0],   # news stand
+		[-66.0, -11.0, 8, -90.0],
+		[11.0, 11.0, 9, 0.0],     # newspaper box
+		[-12.0, -55.0, 9, 180.0],
+		[44.0, 22.0, 9, 90.0],
+		[-15.0, 22.0, 10, -90.0], # stop sign
+		[15.0, -44.0, 10, 90.0],
+		[-44.0, -11.0, 10, 0.0],
+		[44.0, 33.0, 11, 90.0],   # speed sign
+		[-33.0, 55.0, 11, -90.0],
+		[33.0, -77.0, 11, 0.0],
+		[-9.0, -77.0, 12, 0.0],   # traffic cone
+		[9.0, 77.0, 12, 0.0],
+		[77.0, -9.0, 12, 0.0],
+		[-77.0, 9.0, 12, 0.0],
 	]
 	for pp in prop_positions:
 		var pos := Vector3(pp[0], 0.0, pp[1])
@@ -1422,8 +1585,41 @@ func _add_street_props(parent: Node3D) -> void:
 				_add_scaffolding(parent, pos, rot)
 			5:
 				_add_barrier(parent, pos, rot)
+			6:
+				_add_fire_hydrant(parent, pos, rot)
+			7:
+				_add_utility_box(parent, pos, rot)
+			8:
+				_add_news_stand(parent, pos, rot)
+			9:
+				_add_newspaper_box(parent, pos, rot)
+			10:
+				_add_road_sign(parent, pos, rot, false)
+			11:
+				_add_road_sign(parent, pos, rot, true)
+			12:
+				_add_traffic_cone(parent, pos, rot)
+	_add_parked_cars(parent)
+	_add_bollard_line(parent)
 
 func _add_traffic_light(parent: Node3D, pos: Vector3, rot: float) -> void:
+	var holder := _instance_prop(PROP_DIR + "street/traffic_light.glb", "y", 6.0, true)
+	if holder == null:
+		_add_traffic_light_primitive(parent, pos, rot)
+		return
+	holder.name = "TrafficLight_%d_%d" % [int(pos.x), int(pos.z)]
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(holder)
+	var glow := OmniLight3D.new()
+	glow.name = "TLGlow"
+	glow.position = Vector3(0, 4.2, 0)
+	glow.light_color = Color(0.1, 0.9, 0.2, 1.0)
+	glow.light_energy = 1.2
+	glow.omni_range = 5.0
+	holder.add_child(glow)
+
+func _add_traffic_light_primitive(parent: Node3D, pos: Vector3, rot: float) -> void:
 	var prop := Node3D.new()
 	prop.name = "TrafficLight_%d_%d" % [int(pos.x), int(pos.z)]
 	prop.position = pos
@@ -1453,6 +1649,16 @@ func _add_traffic_light(parent: Node3D, pos: Vector3, rot: float) -> void:
 	prop.add_child(glow)
 
 func _add_bench(parent: Node3D, pos: Vector3, rot: float) -> void:
+	var holder := _instance_prop(PROP_DIR + "street/bench_park.glb", "y", 0.95, true)
+	if holder == null:
+		_add_bench_primitive(parent, pos, rot)
+		return
+	holder.name = "Bench_%d_%d" % [int(pos.x), int(pos.z)]
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(holder)
+
+func _add_bench_primitive(parent: Node3D, pos: Vector3, rot: float) -> void:
 	var prop := Node3D.new()
 	prop.name = "Bench_%d_%d" % [int(pos.x), int(pos.z)]
 	prop.position = pos
@@ -1471,6 +1677,16 @@ func _add_bench(parent: Node3D, pos: Vector3, rot: float) -> void:
 	_add_box(prop, "BenchAccent", Vector3(2.0, 0.03, 0.04), Vector3(0, 0.56, 0.3), accent)
 
 func _add_trash_bin(parent: Node3D, pos: Vector3, rot: float) -> void:
+	var holder := _instance_prop(PROP_DIR + "street/trash_bin.glb", "y", 1.1, true)
+	if holder == null:
+		_add_trash_bin_primitive(parent, pos, rot)
+		return
+	holder.name = "TrashBin_%d_%d" % [int(pos.x), int(pos.z)]
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(holder)
+
+func _add_trash_bin_primitive(parent: Node3D, pos: Vector3, rot: float) -> void:
 	var prop := Node3D.new()
 	prop.name = "TrashBin_%d_%d" % [int(pos.x), int(pos.z)]
 	prop.position = pos
@@ -1503,6 +1719,23 @@ func _add_trash_bin(parent: Node3D, pos: Vector3, rot: float) -> void:
 	_add_box(prop, "TrashBinRim", Vector3(0.96, 0.04, 0.08), Vector3(0, 1.1, 0.46), rim)
 
 func _add_planter(parent: Node3D, pos: Vector3, rot: float) -> void:
+	var holder := _instance_prop(PROP_DIR + "street/planter.glb", "y", 0.7, true)
+	if holder == null:
+		_add_planter_primitive(parent, pos, rot)
+		return
+	holder.name = "Planter_%d_%d" % [int(pos.x), int(pos.z)]
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(holder)
+	var glow := OmniLight3D.new()
+	glow.name = "PlanterGlow"
+	glow.position = Vector3(0, 0.6, 0)
+	glow.light_color = Color(0.1, 0.5, 0.2, 1.0)
+	glow.light_energy = 0.6
+	glow.omni_range = 3.0
+	holder.add_child(glow)
+
+func _add_planter_primitive(parent: Node3D, pos: Vector3, rot: float) -> void:
 	var prop := Node3D.new()
 	prop.name = "Planter_%d_%d" % [int(pos.x), int(pos.z)]
 	prop.position = pos
@@ -1532,6 +1765,25 @@ func _add_planter(parent: Node3D, pos: Vector3, rot: float) -> void:
 	prop.add_child(glow)
 
 func _add_scaffolding(parent: Node3D, pos: Vector3, rot: float) -> void:
+	# The source scaffold bay is a wide, short horizontal section; rotate it upright
+	# (roll 90°) so it reads as a tall multi-level construction frame on the street.
+	var holder := _instance_prop(PROP_DIR + "street/scaffolding.glb", "y", 6.0, true, Vector3(0, 0, 90))
+	if holder == null:
+		_add_scaffolding_primitive(parent, pos, rot)
+		return
+	holder.name = "Scaffolding_%d_%d" % [int(pos.x), int(pos.z)]
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(holder)
+	var warn := OmniLight3D.new()
+	warn.name = "ScaffoldWarnLight"
+	warn.position = Vector3(0, 6.0, 0)
+	warn.light_color = Color(0.9, 0.2, 0.1, 1.0)
+	warn.light_energy = 0.8
+	warn.omni_range = 4.0
+	holder.add_child(warn)
+
+func _add_scaffolding_primitive(parent: Node3D, pos: Vector3, rot: float) -> void:
 	var prop := Node3D.new()
 	prop.name = "Scaffolding_%d_%d" % [int(pos.x), int(pos.z)]
 	prop.position = pos
@@ -1563,6 +1815,16 @@ func _add_scaffolding(parent: Node3D, pos: Vector3, rot: float) -> void:
 	prop.add_child(warn)
 
 func _add_barrier(parent: Node3D, pos: Vector3, rot: float) -> void:
+	var holder := _instance_prop(PROP_DIR + "street/barrier.glb", "z", 2.0, true)
+	if holder == null:
+		_add_barrier_primitive(parent, pos, rot)
+		return
+	holder.name = "Barrier_%d_%d" % [int(pos.x), int(pos.z)]
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(holder)
+
+func _add_barrier_primitive(parent: Node3D, pos: Vector3, rot: float) -> void:
 	var prop := Node3D.new()
 	prop.name = "Barrier_%d_%d" % [int(pos.x), int(pos.z)]
 	prop.position = pos
@@ -1580,3 +1842,149 @@ func _add_barrier(parent: Node3D, pos: Vector3, rot: float) -> void:
 	for i in range(4):
 		var stripe_mat := _mat(Color(0.5, 0.4, 0.05, 1.0), Color(0.8, 0.65, 0.1, 1.0), 0.3) if i % 2 == 0 else _mat(Color(0.04, 0.04, 0.02, 1.0), Color(0.0, 0.0, 0.0, 1.0), 0.0)
 		_add_box(prop, "BarrierStripe_%d" % i, Vector3(0.45, 0.25, 0.03), Vector3(-0.7 + float(i) * 0.45, 0.45, 0.18), stripe_mat)
+
+# ── New real-model city props (no prior primitive; fall back to a tinted box) ──
+
+func _add_prop_fallback_box(parent: Node3D, prop_name: String, pos: Vector3, rot: float, size: Vector3, emission: Color) -> void:
+	var holder := Node3D.new()
+	holder.name = prop_name
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(holder)
+	_add_box(holder, "Body", size, Vector3(0, size.y * 0.5, 0), _mat(emission * 0.4, emission, 0.3))
+
+func _add_fire_hydrant(parent: Node3D, pos: Vector3, rot: float) -> void:
+	var holder := _instance_prop(PROP_DIR + "street/fire_hydrant.glb", "y", 1.0, true)
+	if holder == null:
+		_add_prop_fallback_box(parent, "FireHydrant_%d_%d" % [int(pos.x), int(pos.z)], pos, rot, Vector3(0.4, 0.9, 0.4), Color(0.8, 0.15, 0.1))
+		return
+	holder.name = "FireHydrant_%d_%d" % [int(pos.x), int(pos.z)]
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(holder)
+
+func _add_utility_box(parent: Node3D, pos: Vector3, rot: float) -> void:
+	var holder := _instance_prop(PROP_DIR + "street/utility_box.glb", "y", 1.3, true)
+	if holder == null:
+		_add_prop_fallback_box(parent, "UtilityBox_%d_%d" % [int(pos.x), int(pos.z)], pos, rot, Vector3(0.6, 1.3, 0.4), Color(0.2, 0.5, 0.4))
+		return
+	holder.name = "UtilityBox_%d_%d" % [int(pos.x), int(pos.z)]
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(holder)
+	var glow := OmniLight3D.new()
+	glow.name = "UtilityGlow"
+	glow.position = Vector3(0, 1.4, 0)
+	glow.light_color = Color(0.2, 0.8, 1.0, 1.0)
+	glow.light_energy = 0.5
+	glow.omni_range = 3.0
+	holder.add_child(glow)
+
+func _add_news_stand(parent: Node3D, pos: Vector3, rot: float) -> void:
+	var holder := _instance_prop(PROP_DIR + "street/news_stand.glb", "y", 2.6, true)
+	if holder == null:
+		_add_prop_fallback_box(parent, "NewsStand_%d_%d" % [int(pos.x), int(pos.z)], pos, rot, Vector3(2.4, 2.6, 1.6), Color(0.6, 0.4, 0.15))
+		return
+	holder.name = "NewsStand_%d_%d" % [int(pos.x), int(pos.z)]
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(holder)
+	var glow := OmniLight3D.new()
+	glow.name = "NewsStandGlow"
+	glow.position = Vector3(0, 2.4, 0)
+	glow.light_color = Color(1.0, 0.8, 0.4, 1.0)
+	glow.light_energy = 0.8
+	glow.omni_range = 5.0
+	holder.add_child(glow)
+
+func _add_newspaper_box(parent: Node3D, pos: Vector3, rot: float) -> void:
+	var holder := _instance_prop(PROP_DIR + "street/newspaper_box.glb", "y", 1.5, true)
+	if holder == null:
+		_add_prop_fallback_box(parent, "NewspaperBox_%d_%d" % [int(pos.x), int(pos.z)], pos, rot, Vector3(0.7, 1.5, 0.6), Color(0.2, 0.6, 0.9))
+		return
+	holder.name = "NewspaperBox_%d_%d" % [int(pos.x), int(pos.z)]
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(holder)
+
+func _add_road_sign(parent: Node3D, pos: Vector3, rot: float, is_speed: bool) -> void:
+	var path := PROP_DIR + ("street/road_sign_speed.glb" if is_speed else "street/road_sign_stop.glb")
+	var target := 2.8 if is_speed else 2.6
+	var holder := _instance_prop(path, "y", target, true)
+	if holder == null:
+		var col := Color(0.7, 0.7, 0.2) if is_speed else Color(0.8, 0.1, 0.1)
+		_add_prop_fallback_box(parent, "RoadSign_%d_%d" % [int(pos.x), int(pos.z)], pos, rot, Vector3(0.1, target, 0.7), col)
+		return
+	holder.name = "RoadSign_%s_%d_%d" % [("Speed" if is_speed else "Stop"), int(pos.x), int(pos.z)]
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(holder)
+
+func _add_traffic_cone(parent: Node3D, pos: Vector3, rot: float) -> void:
+	var holder := _instance_prop(PROP_DIR + "street/traffic_cone.glb", "y", 0.7, true)
+	if holder == null:
+		_add_prop_fallback_box(parent, "TrafficCone_%d_%d" % [int(pos.x), int(pos.z)], pos, rot, Vector3(0.4, 0.7, 0.4), Color(0.9, 0.4, 0.05))
+		return
+	holder.name = "TrafficCone_%d_%d" % [int(pos.x), int(pos.z)]
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(holder)
+
+func _add_bollard(parent: Node3D, prop_name: String, pos: Vector3, rot: float) -> void:
+	var holder := _instance_prop(PROP_DIR + "street/bollard.glb", "y", 1.0)
+	if holder == null:
+		_add_prop_fallback_box(parent, prop_name, pos, rot, Vector3(0.22, 1.0, 0.22), Color(0.2, 0.7, 0.9))
+		return
+	holder.name = prop_name
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(holder)
+
+# Bollards frame the open ground around the central plaza, marking the sidewalk
+# edge. Spaced evenly along the plaza perimeter corridors (clear of crosswalks).
+func _add_bollard_line(parent: Node3D) -> void:
+	for n in range(-10, 11, 4):
+		for side in [-12.0, 12.0]:
+			_add_bollard(parent, "Bollard_X_%d_%d" % [n, int(side)], Vector3(float(n), 0.0, side), 0.0)
+			_add_bollard(parent, "Bollard_Z_%d_%d" % [n, int(side)], Vector3(side, 0.0, float(n)), 0.0)
+
+const CAR_VARIANTS := [
+	"vehicles/car_sedan.glb",
+	"vehicles/car_suv.glb",
+	"vehicles/car_hatchback.glb",
+]
+
+func _add_car(parent: Node3D, car_name: String, pos: Vector3, rot: float, variant: int) -> void:
+	# Fit by length (Z) so the chunky low-poly cars read at a believable street scale.
+	var holder := _instance_prop(PROP_DIR + CAR_VARIANTS[variant], "z", 4.4, true)
+	if holder == null:
+		_add_prop_fallback_box(parent, car_name, pos, rot, Vector3(1.6, 1.2, 4.0), Color(0.3, 0.4, 0.6))
+		return
+	holder.name = car_name
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0, rot, 0)
+	parent.add_child(holder)
+
+# Parked cars line the open mid-block corridors (the genuinely clear lanes at the
+# ±11 half-gridlines, where the streetlights and trees already sit). Cars alternate
+# kerb side and cycle through the 3 colour/shape variants so no two neighbours match.
+func _add_parked_cars(parent: Node3D) -> void:
+	var idx := 0
+	for i in [-4, -2, 2, 4]:
+		var avenue := float(i) * 22.0
+		# North–south corridors at x = ±11 → cars aligned with Z (rot 0).
+		for kerb in [-11.0, 11.0]:
+			for off in [-7.0, 7.0]:
+				var z: float = avenue + off
+				if abs(kerb) < 4.5 and abs(z) < 4.5:
+					continue
+				_add_car(parent, "ParkedCar_NS_%d" % idx, Vector3(kerb, 0.0, z), 0.0, idx % CAR_VARIANTS.size())
+				idx += 1
+		# East–west corridors at z = ±11 → cars aligned with X (rot 90).
+		for kerb in [-11.0, 11.0]:
+			for off in [-7.0, 7.0]:
+				var x: float = avenue + off
+				if abs(x) < 4.5 and abs(kerb) < 4.5:
+					continue
+				_add_car(parent, "ParkedCar_EW_%d" % idx, Vector3(x, 0.0, kerb), 90.0, idx % CAR_VARIANTS.size())
+				idx += 1
