@@ -9,3 +9,4 @@ artifacts/screenshots/*.jpg
 artifacts/screenshots/*.log
 /tmp/
 .studio/*.log
+__pycache__/
