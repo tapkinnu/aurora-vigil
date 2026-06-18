@@ -3354,7 +3354,19 @@ func _apply_facade_texture_overlay(holder: Node3D, building_seed: int, texture_i
 	# Window grid derived from the building's footprint/height (deterministic per holder).
 	var floors_val: int = int(clamp(size.y / 4.0, 4.0, 12.0))
 	var windows_val: int = 3 + (abs(building_seed) % 4)
-	var uv_s: float = 3.5 + float(abs(building_seed) % 4) * 0.5
+	# Bigger footprints need more tiling to keep window/material density readable, so scale
+	# the base UV with the building footprint (2.0-6.0) instead of a flat 3.5-5.0.
+	var footprint: float = max(size.x, size.z)
+	var uv_s: float = clamp(2.0 + footprint * 0.18, 2.0, 6.0) + float(abs(building_seed) % 3) * 0.4
+	var uv_s2: float = uv_s * 2.7
+	# Per-building UV offset breaks the visible grid repeat across neighbouring towers.
+	var off_x: float = float(building_seed % 100) / 100.0
+	var off_y: float = float((building_seed / 100) % 100) / 100.0
+	# Second material set (next in the cycle) is blended in as detail to defeat tiling.
+	var tex_idx2: int = (tex_idx + 1) % _facade_albedo_textures.size()
+	# Window recess depth scales with building height; glass sets reflect the sky more.
+	var window_depth_val: float = clamp(0.3 + size.y / 80.0, 0.3, 0.6)
+	var glass_refl_val: float = (0.25 if tex_idx == 0 else 0.1 + float(tex_idx % 3) * 0.04)
 	var pbr: Dictionary = FACADE_PBR_PROPS[tex_idx]
 	var tint_r: float = 0.88 + float(abs(building_seed) % 5) * 0.02
 	var tint_g: float = 0.87 + float(abs(building_seed / 7) % 4) * 0.015
@@ -3390,10 +3402,15 @@ func _apply_facade_texture_overlay(holder: Node3D, building_seed: int, texture_i
 		mat.set_shader_parameter("floors", floors_val)
 		mat.set_shader_parameter("windows_per_floor", windows_val)
 		mat.set_shader_parameter("uv_scale", uv_s)
+		mat.set_shader_parameter("uv_scale_2", uv_s2)
+		mat.set_shader_parameter("uv_offset", Vector2(off_x, off_y))
+		mat.set_shader_parameter("window_depth", window_depth_val)
+		mat.set_shader_parameter("glass_reflectivity", glass_refl_val)
 		mat.set_shader_parameter("albedo_tint", albedo_tint)
 		mat.set_shader_parameter("lit_probability", 0.08)
 		mat.set_shader_parameter("emission_energy", 0.4)
 		mat.set_shader_parameter("albedo_tex", _facade_albedo_textures[tex_idx])
+		mat.set_shader_parameter("albedo_tex_2", _facade_albedo_textures[tex_idx2])
 		mat.set_shader_parameter("normal_tex", _facade_normal_textures[tex_idx])
 		mat.set_shader_parameter("roughness_tex", _facade_roughness_textures[tex_idx])
 		mat.set_shader_parameter("emission_tex", _facade_emission_textures[tex_idx])
@@ -3404,7 +3421,67 @@ func _apply_facade_texture_overlay(holder: Node3D, building_seed: int, texture_i
 		mat.set_shader_parameter("normal_map_scale", 0.8)
 		panel.material_override = mat
 		holder.add_child(panel)
+	_add_building_greebles(holder, bmin, bmax, building_seed)
 	holder.set_meta("facade_texture_pass", true)
+
+# Add small procedural geometric details (ledges, roof units, parapets, antennas,
+# entrance canopies) on top of an imported building so the boxy kit pieces gain
+# secondary silhouette/shadow detail. Deterministic per building_seed; not every
+# building gets every greeble. Children of `holder`, alongside the texture panels.
+func _add_building_greebles(holder: Node3D, bmin: Vector3, bmax: Vector3, building_seed: int) -> void:
+	var size: Vector3 = bmax - bmin
+	if size.x <= 0.01 or size.y <= 0.01 or size.z <= 0.01:
+		return
+	var center := (bmin + bmax) * 0.5
+	var seed: int = abs(building_seed)
+	var floors_est: int = int(size.y / 3.5)
+	var ledge_mat := _matte(Color(0.15, 0.15, 0.16, 1.0), 0.7, 0.3)
+	# 1. Horizontal floor ledges across the front face for taller buildings.
+	if floors_est >= 6:
+		var fracs := [0.25, 0.5, 0.75]
+		for li in range(fracs.size()):
+			# Skip one band on some buildings so the spacing varies.
+			if (seed / (li + 1)) % 5 == 0:
+				continue
+			var ly: float = bmin.y + size.y * float(fracs[li])
+			_add_box(holder, "Greeble_Ledge_%d" % li,
+				Vector3(size.x * 0.96, 0.15, 0.12),
+				Vector3(center.x, ly, bmax.z + 0.06), ledge_mat)
+	# 2. Roof HVAC units — 1-2 small boxes on top.
+	var roof_units: int = 1 + (seed % 2)
+	var hvac_mat := _matte(Color(0.25, 0.24, 0.22, 1.0), 0.8, 0.4)
+	for ui in range(roof_units):
+		var ox: float = (float((seed / (ui + 3)) % 100) / 100.0 - 0.5) * size.x * 0.4
+		var oz: float = (float((seed / (ui + 5)) % 100) / 100.0 - 0.5) * size.z * 0.4
+		_add_box(holder, "Greeble_RoofUnit_%d" % ui,
+			Vector3(size.x * 0.2, 0.4, size.z * 0.2),
+			Vector3(center.x + ox, bmax.y + 0.2, center.z + oz), hvac_mat)
+	# 3. Roof edge parapet around the perimeter.
+	_add_box(holder, "Greeble_Parapet_0",
+		Vector3(size.x * 0.98, 0.3, 0.08),
+		Vector3(center.x, bmax.y + 0.15, bmax.z + 0.02), ledge_mat)
+	_add_box(holder, "Greeble_Parapet_1",
+		Vector3(size.x * 0.98, 0.3, 0.08),
+		Vector3(center.x, bmax.y + 0.15, bmin.z - 0.02), ledge_mat)
+	_add_box(holder, "Greeble_Parapet_2",
+		Vector3(0.08, 0.3, size.z * 0.98),
+		Vector3(bmax.x + 0.02, bmax.y + 0.15, center.z), ledge_mat)
+	_add_box(holder, "Greeble_Parapet_3",
+		Vector3(0.08, 0.3, size.z * 0.98),
+		Vector3(bmin.x - 0.02, bmax.y + 0.15, center.z), ledge_mat)
+	# 4. Antenna/spire on tall buildings.
+	if size.y > 20.0:
+		var ax: float = (float(seed % 100) / 100.0 - 0.5) * size.x * 0.3
+		_add_box(holder, "Greeble_Antenna",
+			Vector3(0.08, 2.0, 0.08),
+			Vector3(center.x + ax, bmax.y + 1.0, center.z),
+			_matte(Color(0.1, 0.1, 0.1, 1.0), 0.4, 0.6))
+	# 5. Entrance canopy on the front face at ground level (most buildings).
+	if seed % 3 != 0:
+		_add_box(holder, "Greeble_Canopy",
+			Vector3(size.x * 0.3, 0.08, 0.6),
+			Vector3(center.x, bmin.y + 1.5, bmin.z - 0.3),
+			_matte(Color(0.12, 0.12, 0.13, 1.0), 0.6, 0.5))
 
 # Deterministic facade texture set index for a building, derived from its node name so
 # different buildings get different PBR sets (glass/concrete/brick/metal/commercial).

@@ -8,7 +8,10 @@ render_mode blend_mix, depth_draw_opaque, cull_back;
 
 group_uniforms albedo;
 uniform sampler2D albedo_tex : source_color, hint_default_white;
+uniform sampler2D albedo_tex_2 : source_color, hint_default_white; // second material for detail blending
 uniform vec4 albedo_tint : source_color = vec4(0.92, 0.90, 0.84, 1.0);
+uniform vec2 uv_offset = vec2(0.0, 0.0); // per-building UV offset to break grid tiling
+uniform float uv_scale_2 = 1.0;          // second detail layer scale
 
 group_uniforms pbr;
 uniform float roughness_base = 0.42;
@@ -40,6 +43,10 @@ uniform vec3 warm_amber = vec3(1.0, 0.72, 0.35);
 uniform vec3 frame_color = vec3(0.02, 0.04, 0.06);
 uniform vec3 dark_window = vec3(0.015, 0.03, 0.045);
 
+group_uniforms glass;
+uniform float window_depth = 0.0;        // how recessed dark windows appear
+uniform float glass_reflectivity = 0.15; // base reflectivity for unlit glass
+
 // ---- Hash function: integer → [0, 1) ----
 float hash21(int x, int y) {
 	int h = x * 374761393 + y * 668265263 + building_seed * 1442695040;
@@ -56,18 +63,26 @@ vec3 pick_emission_color(float r) {
 }
 
 void fragment() {
-	vec2 base_uv = UV * uv_scale;
+	// Base layer plus a second detail layer at a different scale/offset so large facades
+	// no longer show an obvious repeating grid. The offset is unique per building.
+	vec2 base_uv = UV * uv_scale + uv_offset;
+	vec2 detail_uv = UV * uv_scale_2 + uv_offset * 1.3;
 
 	// Sample PBR textures (defaults when not set: white albedo, white roughness)
 	vec4 albedo_sample = texture(albedo_tex, base_uv);
-	vec3 albedo = albedo_sample.rgb * albedo_tint.rgb;
+	vec4 albedo_detail = texture(albedo_tex_2, detail_uv);
+	vec3 albedo = mix(albedo_sample.rgb, albedo_detail.rgb, 0.3) * albedo_tint.rgb;
 
 	float rough_sample = texture(roughness_tex, base_uv).r;
-	float roughness = mix(roughness_base, rough_sample, roughness_tex_weight);
+	float rough_detail = texture(roughness_tex, detail_uv).r;
+	float rough_blend = mix(rough_sample, rough_detail, 0.3);
+	float roughness = mix(roughness_base, rough_blend, roughness_tex_weight);
 
 	// Normal map — only applied when use_normal_map is true
 	if (use_normal_map) {
 		vec3 nmap = texture(normal_tex, base_uv).rgb;
+		vec3 nmap_detail = texture(normal_tex, detail_uv).rgb;
+		nmap = mix(nmap, nmap_detail, 0.3);
 		// Scale normal map intensity: blend toward flat normal (0.5, 0.5, 1.0)
 		vec3 flat_normal = vec3(0.5, 0.5, 1.0);
 		NORMAL_MAP = mix(flat_normal, nmap, normal_map_scale);
@@ -119,10 +134,18 @@ void fragment() {
 		albedo = mix(albedo, frame_color, 0.25);
 		window_intensity = 0.0;
 	} else if (is_lit) {
-		final_emission = window_emission * window_intensity;
-		albedo = mix(albedo, window_emission, 0.06);
+		// Lit window: soft glow falloff from the pane centre fakes interior depth.
+		float window_glow = smoothstep(0.0, 0.5, 1.0 - length(local - vec2(0.5)) * 1.5);
+		final_emission = window_emission * window_intensity * window_glow;
+		albedo = mix(albedo, window_emission, 0.06 * window_glow);
 	} else {
+		// Dark window: recessed glass with a subtle sky reflection toward the centre.
+		float recess = smoothstep(frame_thickness, 0.5, local.x) * smoothstep(frame_thickness, 0.5, 1.0 - local.x)
+			* smoothstep(frame_thickness, 0.5, local.y) * smoothstep(frame_thickness, 0.5, 1.0 - local.y);
+		vec3 sky_tint = vec3(0.15, 0.12, 0.10) * (1.0 - recess * window_depth);
 		albedo = mix(albedo, dark_window, 0.15);
+		albedo = mix(albedo, sky_tint, recess * glass_reflectivity);
+		roughness = mix(roughness, 0.15, recess * glass_reflectivity); // glass is smoother
 	}
 
 	// Add only a tiny amount of any emission texture contribution so legacy maps no
