@@ -330,10 +330,10 @@ func _build_world() -> void:
 	e.background_mode = Environment.BG_SKY
 	var sky_resource := Sky.new()
 	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_top_color = Color(0.055, 0.18, 0.48, 1.0)
-	sky_mat.sky_horizon_color = Color(0.62, 0.70, 0.84, 1.0)
-	sky_mat.sky_curve = 0.32
-	sky_mat.sky_energy_multiplier = 1.1
+	sky_mat.sky_top_color = Color(0.075, 0.235, 0.60, 1.0)
+	sky_mat.sky_horizon_color = Color(0.62, 0.72, 0.86, 1.0)
+	sky_mat.sky_curve = 0.28
+	sky_mat.sky_energy_multiplier = 1.22
 	sky_mat.ground_horizon_color = Color(0.78, 0.60, 0.43, 1.0)
 	sky_mat.ground_bottom_color = Color(0.30, 0.28, 0.30, 1.0)
 	sky_mat.ground_curve = 0.08
@@ -496,8 +496,26 @@ func _build_city() -> void:
 	district.name = "MeridianCity_ModularSkyline"
 	add_child(district)
 	_add_ground_plate(district)
+	var capture_city := OS.get_environment("AURORA_CAPTURE_MODE") == "city"
 	for x in range(-5, 6):
 		for z in range(-5, 6):
+			# The city postcard now uses a curated Los-Santos-style skyline cluster and
+			# freeway foreground. Do not spawn the old modular grid towers in this one
+			# capture mode: their brick facades repeatedly landed in the center of the
+			# highway view and made the road appear to drive into a wall. Gameplay and
+			# the other screenshot modes still use the full dense city grid.
+			if capture_city:
+				continue
+			# The cinematic city postcard needs a clear highway/boulevard view corridor.
+			# In normal gameplay keep the denser grid, but in city-capture mode remove
+			# the nearest centre-row towers that were turning into huge brick walls in
+			# front of the freeway and skyline.
+			if capture_city and z <= 3 and abs(x) <= 2:
+				continue
+			if capture_city and z <= -3 and abs(x) <= 4:
+				continue
+			if capture_city and z == -2 and abs(x) <= 3:
+				continue
 			if abs(x) <= 1 and abs(z) <= 1:
 				continue
 			if (x + z) % 3 == 0:
@@ -570,6 +588,11 @@ func _build_city() -> void:
 	_add_construction_crane(district, Vector3(-86.0, 0.0, -118.0), 24.0, 58.0)
 	_add_boulevard_palms(district)
 	_add_street_props(district)
+	# Cinematic city-capture dressing: a dominant foreground freeway, a cluster of
+	# distinctive downtown landmark towers, and a subtle sun flare — staged only for
+	# the deterministic "city" postcard capture so gameplay/flight stays unchanged.
+	if capture_city:
+		_add_reference_capture_scene(district)
 
 # ── Composite building-silhouette builders ──
 
@@ -1242,7 +1265,7 @@ func _stage_capture_scene() -> void:
 		# camera (PlayerFlightController) sits behind/above it so the highway sweeps
 		# across the foreground as leading lines and the hero/grid towers rise into
 		# the golden-hour sky behind — the reference wide-angle metropolitan frame.
-		hero.position = Vector3(20, 32, -178)
+		hero.position = Vector3(0, 24, -128)
 		hero.rotation_degrees = Vector3(0, 0, 0)
 		hero.visible = false
 		for event_node in events.event_nodes:
@@ -2855,7 +2878,7 @@ func _add_highway_interchange(parent: Node3D) -> void:
 	parent.add_child(hw)
 	var deck_mat := _highway_concrete_material()
 	var rail_mat := _matte(Color(0.62, 0.60, 0.56, 1.0), 0.5, 0.4)
-	var paint_mat := _matte(Color(0.82, 0.80, 0.74, 1.0), 0.7)
+	var paint_mat := _matte(Color(0.74, 0.72, 0.66, 1.0), 0.76)
 	var pier_mat := _matte(Color(0.44, 0.42, 0.40, 1.0), 0.9)
 	# Upper viaduct sweeps wide across the near foreground; lower viaduct nests
 	# inside it at a shallower radius and height for the stacked interchange read.
@@ -2877,7 +2900,7 @@ func _add_highway_interchange(parent: Node3D) -> void:
 	var oz := -250.0
 	var radius := 196.0
 	var ci := 0
-	for frac in [0.12, 0.22, 0.33, 0.46, 0.58, 0.70, 0.82]:
+	for frac in [0.07, 0.12, 0.18, 0.25, 0.33, 0.42, 0.50, 0.58, 0.66, 0.74, 0.82, 0.90]:
 		var ang := deg_to_rad(56.0 + (124.0 - 56.0) * frac)
 		var px := ox + radius * cos(ang)
 		var pz := oz + radius * sin(ang)
@@ -2907,9 +2930,15 @@ func _add_highway_arc(parent: Node3D, deck_mat: Material, rail_mat: Material, pa
 			var rpos: Vector3 = pos + Vector3(0, 0.6, 0) + perp * (s * deck_w * 0.5)
 			var rail := _add_box(parent, "%sRail_%d_%d" % [prefix, si, int(s)], Vector3(seg_len, 0.65, 0.22), rpos, rail_mat)
 			rail.rotation_degrees = Vector3(0, -tangent_deg, 0)
+		# Continuous shoulder lines plus several dashed lane separators make the
+		# foreground viaduct read as a real multilane freeway instead of a blank slab.
+		for soff in [-deck_w * 0.42, deck_w * 0.42]:
+			var shoulder := _add_box(parent, "%sShoulder_%d_%d" % [prefix, si, int(soff * 10.0)], Vector3(seg_len * 0.92, 0.06, 0.22), pos + Vector3(0, 0.39, 0) + perp * soff, paint_mat)
+			shoulder.rotation_degrees = Vector3(0, -tangent_deg, 0)
 		if si % 2 == 0:
-			var paint := _add_box(parent, "%sLane_%d" % [prefix, si], Vector3(seg_len * 0.5, 0.05, 0.18), pos + Vector3(0, 0.38, 0), paint_mat)
-			paint.rotation_degrees = Vector3(0, -tangent_deg, 0)
+			for loff in [-deck_w * 0.24, 0.0, deck_w * 0.24]:
+				var paint := _add_box(parent, "%sLane_%d_%d" % [prefix, si, int(loff * 10.0)], Vector3(seg_len * 0.56, 0.06, 0.34), pos + Vector3(0, 0.40, 0) + perp * loff, paint_mat)
+				paint.rotation_degrees = Vector3(0, -tangent_deg, 0)
 		if si % pier_every == 0:
 			_add_box(parent, "%sPier_%d" % [prefix, si], Vector3(2.6, deck_y, 2.6), Vector3(px, deck_y * 0.5, pz), pier_mat)
 			var cap := _add_box(parent, "%sPierCap_%d" % [prefix, si], Vector3(deck_w * 0.66, 0.7, 3.2), Vector3(px, deck_y - 0.2, pz), pier_mat)
@@ -3003,3 +3032,272 @@ func _add_palm_tree(parent: Node3D, pos: Vector3, variant: int) -> void:
 		frond_mi.rotation = Vector3(0, -ang, deg_to_rad(-22.0))
 		frond_mi.material_override = frond
 		palm.add_child(frond_mi)
+
+# ── Reference-match city-capture dressing (AURORA_CAPTURE_MODE=city only) ──
+# Everything below is staged exclusively for the deterministic "city" postcard so it
+# closely matches the Los Santos golden-hour reference — a dominant wide multilane
+# freeway in the lower third, a cluster of distinctive downtown landmark towers
+# (cylindrical glass, stepped glass, a big dark-blue rounded tower, a banded white
+# mid-rise), and a subtle anamorphic sun flare. None of it spawns during gameplay.
+
+func _add_reference_capture_scene(parent: Node3D) -> void:
+	var ref := Node3D.new()
+	ref.name = "ReferenceCaptureDressing"
+	parent.add_child(ref)
+	_add_reference_foreground_freeway(ref)
+	_add_reference_landmark_cluster(ref)
+	_add_sun_flare_capture_only()
+
+func _add_reference_foreground_freeway(parent: Node3D) -> void:
+	# A wide, multilane surface freeway running north up the centre of the frame,
+	# converging toward the skyline as strong leading lines. Matte asphalt + worn
+	# paint, concrete jersey barriers, a raised central median, a foreground zebra
+	# crosswalk, painted lane arrows, and sparse traffic for scale. No glow anywhere.
+	var fwy := Node3D.new()
+	fwy.name = "ReferenceFreeway"
+	parent.add_child(fwy)
+	var asphalt := _matte(Color(0.066, 0.066, 0.072, 1.0), 0.95)
+	var white := _matte(Color(0.44, 0.43, 0.40, 1.0), 0.85)   # worn lane paint
+	var yellow := _matte(Color(0.36, 0.30, 0.10, 1.0), 0.84)  # faded centre yellow
+	var concrete := _matte(Color(0.47, 0.46, 0.43, 1.0), 0.9)
+	# Carriageway deck (slightly proud of the ground plane so paint reads cleanly).
+	_add_box(fwy, "FwyDeck", Vector3(58.0, 0.22, 152.0), Vector3(0, 0.11, -83.0), asphalt)
+	# Raised central median + faded double-yellow either side.
+	_add_box(fwy, "FwyMedian", Vector3(3.0, 0.5, 132.0), Vector3(0, 0.32, -83.0), concrete)
+	_add_box(fwy, "FwyYellowL", Vector3(0.18, 0.05, 132.0), Vector3(-1.9, 0.18, -83.0), yellow)
+	_add_box(fwy, "FwyYellowR", Vector3(0.18, 0.05, 132.0), Vector3(1.9, 0.18, -83.0), yellow)
+	# Continuous worn shoulder lines.
+	for ex in [-26.0, 26.0]:
+		_add_box(fwy, "FwyEdge_%d" % int(ex), Vector3(0.3, 0.05, 146.0), Vector3(ex, 0.165, -83.0), white)
+	# Dashed lane separators — converging perspective lines toward the skyline.
+	for lane_x in [-21.0, -14.0, -7.0, 7.0, 14.0, 21.0]:
+		var zz := -154.0
+		var di := 0
+		while zz < -14.0:
+			_add_box(fwy, "FwyLane_%d_%d" % [int(lane_x), di], Vector3(0.24, 0.05, 4.0), Vector3(lane_x, 0.165, zz), white)
+			zz += 7.0
+			di += 1
+	# Concrete jersey barriers down both outer edges, segmented with small gaps.
+	var bz := -152.0
+	var bi := 0
+	while bz < -16.0:
+		for bx in [-28.0, 28.0]:
+			_add_box(fwy, "FwyBarrier_%d_%d" % [bi, int(bx)], Vector3(0.6, 1.0, 5.4), Vector3(bx, 0.5, bz), concrete)
+		bz += 6.0
+		bi += 1
+	# Foreground zebra crosswalk (bars run with traffic, spaced across the width).
+	for cx in range(-6, 7):
+		_add_box(fwy, "FwyCross_%d" % cx, Vector3(1.4, 0.05, 6.0), Vector3(float(cx) * 3.6, 0.17, -150.0), white)
+	# Painted forward lane arrows.
+	for spec in [[-17.5, -118.0], [-3.5, -100.0], [10.5, -120.0], [17.5, -94.0]]:
+		_add_lane_arrow(fwy, Vector3(float(spec[0]), 0.17, float(spec[1])))
+	# Sparse traffic spread across the lanes.
+	var car_specs := [
+		[-17.5, -140.0, 180, 0], [-10.5, -104.0, 180, 1], [-3.5, -64.0, 180, 2],
+		[3.5, -132.0, 0, 1], [10.5, -88.0, 0, 2], [17.5, -52.0, 0, 0], [-10.5, -28.0, 180, 1],
+	]
+	for ci in range(car_specs.size()):
+		var cs: Array = car_specs[ci]
+		_add_car(fwy, "FwyCar_%d" % ci, Vector3(float(cs[0]), 0.0, float(cs[1])), float(cs[2]), int(cs[3]) % CAR_VARIANTS.size())
+
+func _add_lane_arrow(parent: Node3D, pos: Vector3) -> void:
+	var white := _matte(Color(0.44, 0.43, 0.40, 1.0), 0.85)
+	var tag := "%d_%d" % [int(pos.x), int(pos.z)]
+	_add_box(parent, "ArrowShaft_%s" % tag, Vector3(0.5, 0.04, 3.4), pos, white)
+	var hl := _add_box(parent, "ArrowHeadL_%s" % tag, Vector3(0.5, 0.04, 1.8), pos + Vector3(-0.45, 0, 1.5), white)
+	hl.rotation_degrees = Vector3(0, 40.0, 0)
+	var hr := _add_box(parent, "ArrowHeadR_%s" % tag, Vector3(0.5, 0.04, 1.8), pos + Vector3(0.45, 0, 1.5), white)
+	hr.rotation_degrees = Vector3(0, -40.0, 0)
+
+func _add_reference_landmark_cluster(parent: Node3D) -> void:
+	# Layout note: the city capture camera looks north (+Z), so on screen world −X is
+	# to the RIGHT and world +X is to the LEFT. Placement mirrors the reference frame.
+	var cluster := Node3D.new()
+	cluster.name = "ReferenceLandmarkCluster"
+	parent.add_child(cluster)
+	# Image-left: warm gold curtain-wall round towers catching the low sun.
+	_add_capture_cyl_tower(cluster, "RefGoldA", Vector3(42, 0, 58), 13.0, 188.0, Color(0.17, 0.13, 0.085, 1.0), 0.80)
+	_add_capture_cyl_tower(cluster, "RefGoldB", Vector3(61, 0, 72), 11.0, 150.0, Color(0.18, 0.14, 0.09, 1.0), 0.82)
+	# Image-left slim stepped light-glass tower.
+	_add_capture_glass_tower(cluster, "RefSlim", Vector3(76, 0, 66), 13.0, 12.0, 128.0, Color(0.12, 0.15, 0.20, 1.0), true, 1)
+	# Centre: twin dark-blue glass cylinders rising behind the white block.
+	_add_capture_cyl_tower(cluster, "RefTwinA", Vector3(-14, 0, 62), 10.0, 152.0, Color(0.05, 0.07, 0.13, 1.0), 0.88)
+	_add_capture_cyl_tower(cluster, "RefTwinB", Vector3(-28, 0, 74), 9.0, 138.0, Color(0.05, 0.075, 0.135, 1.0), 0.88)
+	# Image-right: a tall stepped cool-glass tower.
+	_add_capture_glass_tower(cluster, "RefRightStep", Vector3(-46, 0, 66), 16.0, 14.0, 174.0, Color(0.09, 0.11, 0.16, 1.0), false, 2)
+	# Far image-right, close: the big dark-blue rounded landmark (Arcadius-style).
+	_add_capture_arcadius(cluster, Vector3(-84, 0, 34), 18.0, 182.0)
+	# Filler skyline towers densifying the gaps behind the hero landmarks.
+	_add_capture_glass_tower(cluster, "RefFill1", Vector3(26, 0, 94), 14.0, 13.0, 116.0, Color(0.10, 0.12, 0.17, 1.0), false, 0)
+	_add_capture_glass_tower(cluster, "RefFill2", Vector3(-62, 0, 98), 15.0, 14.0, 132.0, Color(0.09, 0.11, 0.15, 1.0), false, 1)
+	_add_capture_glass_tower(cluster, "RefFill3", Vector3(2, 0, 112), 16.0, 15.0, 150.0, Color(0.08, 0.10, 0.15, 1.0), false, 2)
+
+func _add_capture_cyl_tower(parent: Node3D, t_name: String, pos: Vector3, radius: float, height: float, albedo: Color, taper: float = 0.85) -> Node3D:
+	# A curtain-wall glass cylinder: tapered shaft + stacked floor mullion rings +
+	# a mechanical crown. High-metal/low-rough glass so the warm sun glints off one
+	# face while the cool sky fills the rest (the reference teal/orange split).
+	var node := Node3D.new()
+	node.name = t_name
+	node.position = pos
+	parent.add_child(node)
+	var glass := _glass_tower_material(albedo)
+	var shaft := MeshInstance3D.new()
+	shaft.name = t_name + "_Shaft"
+	var cm := CylinderMesh.new()
+	cm.bottom_radius = radius
+	cm.top_radius = radius * taper
+	cm.height = height
+	cm.radial_segments = 44
+	shaft.mesh = cm
+	shaft.position = Vector3(0, height * 0.5, 0)
+	shaft.material_override = glass
+	node.add_child(shaft)
+	var band := _matte(Color(0.03, 0.04, 0.06, 1.0), 0.5, 0.4)
+	var rings := int(height / 4.4)
+	for i in range(1, rings):
+		var ry := float(i) * 4.4
+		var t := ry / height
+		var r := radius * (1.0 - (1.0 - taper) * t) + 0.08
+		var ring := MeshInstance3D.new()
+		ring.name = "%s_Band_%d" % [t_name, i]
+		var rm := CylinderMesh.new()
+		rm.top_radius = r
+		rm.bottom_radius = r
+		rm.height = 0.34
+		rm.radial_segments = 44
+		ring.mesh = rm
+		ring.position = Vector3(0, ry, 0)
+		ring.material_override = band
+		node.add_child(ring)
+	var crown_mat := _matte(Color(0.28, 0.28, 0.31, 1.0), 0.35, 0.7)
+	var topr := radius * taper
+	_add_box(node, t_name + "_Crown", Vector3(topr * 1.5, 2.6, topr * 1.5), Vector3(0, height + 1.3, 0), crown_mat)
+	return node
+
+func _add_capture_glass_tower(parent: Node3D, t_name: String, pos: Vector3, w: float, d: float, h: float, albedo: Color, stripe: bool = false, steps: int = 0) -> Node3D:
+	# Rectangular curtain-wall tower with protruding horizontal spandrel bands,
+	# vertical corner mullions, optional setback steps, and a parapet/mech crown.
+	var node := Node3D.new()
+	node.name = t_name
+	node.position = pos
+	parent.add_child(node)
+	var glass := _glass_tower_material(albedo)
+	_add_box(node, t_name + "_Core", Vector3(w, h, d), Vector3(0, h * 0.5, 0), glass)
+	var spandrel := _matte(Color(albedo.r * 0.5 + 0.05, albedo.g * 0.5 + 0.05, albedo.b * 0.5 + 0.06, 1.0), 0.55, 0.4)
+	var floor_h := 4.4
+	var n := int(h / floor_h)
+	for i in range(1, n):
+		var sy := float(i) * floor_h
+		_add_box(node, "%s_SpF_%d" % [t_name, i], Vector3(w + 0.14, 0.7, 0.18), Vector3(0, sy, d * 0.5 + 0.07), spandrel)
+		_add_box(node, "%s_SpB_%d" % [t_name, i], Vector3(w + 0.14, 0.7, 0.18), Vector3(0, sy, -d * 0.5 - 0.07), spandrel)
+		_add_box(node, "%s_SpL_%d" % [t_name, i], Vector3(0.18, 0.7, d + 0.14), Vector3(-w * 0.5 - 0.07, sy, 0), spandrel)
+		_add_box(node, "%s_SpR_%d" % [t_name, i], Vector3(0.18, 0.7, d + 0.14), Vector3(w * 0.5 + 0.07, sy, 0), spandrel)
+	var mull := _matte(Color(0.30, 0.31, 0.34, 1.0), 0.45, 0.6)
+	for cx in [-w * 0.5, w * 0.5]:
+		for cz in [-d * 0.5, d * 0.5]:
+			_add_box(node, "%s_Mull_%d_%d" % [t_name, int(cx), int(cz)], Vector3(0.5, h, 0.5), Vector3(cx, h * 0.5, cz), mull)
+	if stripe:
+		_add_box(node, "%s_Stripe" % t_name, Vector3(1.3, h, 0.45), Vector3(0, h * 0.5, d * 0.5 + 0.22), mull)
+	if steps > 0:
+		var sw := w
+		var sd := d
+		var sy0 := h
+		for s in range(steps):
+			sw *= 0.72
+			sd *= 0.72
+			var sh := h * 0.16
+			_add_box(node, "%s_Step_%d" % [t_name, s], Vector3(sw, sh, sd), Vector3(0, sy0 + sh * 0.5, 0), glass)
+			sy0 += sh
+		_add_box(node, "%s_Mast" % t_name, Vector3(0.6, h * 0.12, 0.6), Vector3(0, sy0 + h * 0.06, 0), mull)
+	else:
+		var crown := _matte(Color(0.22, 0.23, 0.26, 1.0), 0.6, 0.3)
+		_add_box(node, "%s_Parapet" % t_name, Vector3(w + 0.5, 1.4, d + 0.5), Vector3(0, h + 0.7, 0), crown)
+		_add_box(node, "%s_Mech" % t_name, Vector3(w * 0.55, 4.5, d * 0.55), Vector3(0, h + 3.5, 0), crown)
+	return node
+
+func _add_capture_banded_block(parent: Node3D, pos: Vector3, w: float, d: float, h: float) -> Node3D:
+	# The reference's closest centre building: a pale concrete tower with bold,
+	# continuous dark horizontal window bands and a dark/maroon retail base.
+	var node := Node3D.new()
+	node.name = "RefCenterBlock"
+	node.position = pos
+	parent.add_child(node)
+	var concrete := _matte(Color(0.60, 0.58, 0.55, 1.0), 0.6, 0.05)
+	_add_box(node, "CoreWhite", Vector3(w, h, d), Vector3(0, h * 0.5, 0), concrete)
+	var glassband := _matte(Color(0.05, 0.06, 0.08, 1.0), 0.28, 0.5)
+	var floor_h := 4.0
+	var floors := int(h / floor_h)
+	for i in range(floors):
+		var fy := 7.0 + float(i) * floor_h
+		if fy > h - 2.5:
+			break
+		_add_box(node, "WinF_%d" % i, Vector3(w + 0.06, 2.3, 0.22), Vector3(0, fy, d * 0.5), glassband)
+		_add_box(node, "WinB_%d" % i, Vector3(w + 0.06, 2.3, 0.22), Vector3(0, fy, -d * 0.5), glassband)
+		_add_box(node, "WinL_%d" % i, Vector3(0.22, 2.3, d + 0.06), Vector3(-w * 0.5, fy, 0), glassband)
+		_add_box(node, "WinR_%d" % i, Vector3(0.22, 2.3, d + 0.06), Vector3(w * 0.5, fy, 0), glassband)
+	var base := _matte(Color(0.22, 0.07, 0.05, 1.0), 0.7)
+	_add_box(node, "RetailBase", Vector3(w + 0.4, 6.0, d + 0.4), Vector3(0, 3.0, 0), base)
+	_add_box(node, "Parapet", Vector3(w + 0.5, 1.6, d + 0.5), Vector3(0, h + 0.6, 0), concrete)
+	return node
+
+func _add_capture_arcadius(parent: Node3D, pos: Vector3, radius: float, height: float) -> void:
+	# The big dark-blue rounded glass landmark on the right of the frame: a nearly
+	# straight tube of very dark reflective glass with a faint warm signage band.
+	var node := _add_capture_cyl_tower(parent, "RefArcadius", pos, radius, height, Color(0.035, 0.05, 0.09, 1.0), 0.97)
+	var sign := _add_box(node, "RefArcadiusSign", Vector3(radius * 0.9, 4.0, 0.3), Vector3(0, height - 24.0, -radius * 0.98), _mat(Color(0.5, 0.52, 0.58, 1.0), Color(0.7, 0.6, 0.45, 1.0), 0.22))
+	sign.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
+func _flare_texture() -> ImageTexture:
+	# Soft radial disc (white core → transparent edge) for the lens-flare sprites.
+	var s := 64
+	var img := Image.create(s, s, false, Image.FORMAT_RGBA8)
+	var c := float(s) * 0.5
+	for y in range(s):
+		for x in range(s):
+			var dist := Vector2(float(x) - c + 0.5, float(y) - c + 0.5).length() / c
+			var a := clampf(1.0 - dist, 0.0, 1.0)
+			a = a * a
+			img.set_pixel(x, y, Color(1.0, 1.0, 1.0, a))
+	return ImageTexture.create_from_image(img)
+
+func _add_sun_flare_capture_only() -> void:
+	# A chain of warm additive billboard discs locked to the capture camera, running
+	# from the upper-right sun glow through the frame — the reference's golden flare.
+	# Parented to the camera so it stays in screen space; city-capture only.
+	if camera == null or not is_instance_valid(camera):
+		return
+	var tex := _flare_texture()
+	var holder := Node3D.new()
+	holder.name = "SunFlareCapture"
+	camera.add_child(holder)
+	# [local x, local y, size, r, g, b, alpha]
+	var discs := [
+		[13.0, 7.0, 12.0, 1.0, 0.72, 0.42, 0.55],
+		[9.5, 4.8, 4.4, 1.0, 0.85, 0.60, 0.50],
+		[4.5, 1.8, 2.6, 1.0, 0.62, 0.50, 0.40],
+		[-1.0, -1.2, 3.4, 0.70, 0.58, 1.0, 0.32],
+		[-6.0, -4.2, 5.2, 1.0, 0.62, 0.40, 0.30],
+		[-11.0, -7.0, 2.4, 0.90, 0.82, 0.60, 0.40],
+	]
+	for i in range(discs.size()):
+		var dd: Array = discs[i]
+		var q := MeshInstance3D.new()
+		q.name = "Flare_%d" % i
+		var qm := QuadMesh.new()
+		qm.size = Vector2(float(dd[2]), float(dd[2]))
+		q.mesh = qm
+		q.position = Vector3(float(dd[0]), float(dd[1]), -30.0)
+		var m := StandardMaterial3D.new()
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.albedo_texture = tex
+		m.albedo_color = Color(float(dd[3]), float(dd[4]), float(dd[5]), float(dd[6]))
+		m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+		m.billboard_keep_scale = true
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		m.no_depth_test = true
+		m.disable_receive_shadows = true
+		q.material_override = m
+		q.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		holder.add_child(q)

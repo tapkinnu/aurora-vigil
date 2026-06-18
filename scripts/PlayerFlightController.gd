@@ -124,12 +124,14 @@ func update_camera(delta: float, nearest: Node3D) -> void:
 	# positive-Z offset could spawn the camera inside the first skyline ring.
 	var offset := Vector3(0, 10, -22)
 	if mode == "city":
-		# City capture frames the cinematic golden-hour vista: the camera sits south
-		# of and above the staged flying hero, looking north so the elevated highway
-		# interchange sweeps across the foreground and the skyline cluster rises into
-		# the warm sky behind. A shallow downward pitch keeps the deep-blue sky and
-		# the tower silhouettes in frame instead of a near top-down street plan.
-		offset = Vector3(-10, 34, -48)
+		# City capture frames the cinematic golden-hour vista in the style of the
+		# Los Santos reference: a low, near-eye-level camera so the wide multilane
+		# freeway dominates the lower third as converging leading lines, the
+		# distinctive downtown landmark cluster looms large across the mid/upper
+		# frame, and the deep-blue sky fills the top. The camera sits just behind and
+		# above the (hidden) staged hero looking north up the boulevard.
+		camera.fov = 78
+		offset = Vector3(0, 28, -66)
 	elif mode == "closeup":
 		camera.fov = 62
 		offset = Vector3(6, 1.2, -14)
@@ -140,11 +142,17 @@ func update_camera(delta: float, nearest: Node3D) -> void:
 		offset.y += _cam_pitch
 	var target := hero.position + Vector3(0, 1.2, 0)
 	if mode == "city":
-		target = Vector3(2, 30, 10)
+		# Aim up the boulevard toward the landmark cluster, biased slightly upward so
+		# the towers rise and the blue sky tops the frame rather than a top-down plan.
+		target = Vector3(0, 42, 48)
 	elif mode == "closeup":
 		target = hero.position + Vector3(0, 1.55, 0)
 	var desired := hero.position + offset
-	var resolved := _resolve_camera_collision(target, desired)
+	# The curated city postcard deliberately opens a clear procedural highway
+	# corridor. Collision resolution can still snap the camera against a remaining
+	# side tower and turn the frame into a brick wall, so use the exact staged pose
+	# for this non-gameplay capture.
+	var resolved := desired if mode == "city" else _resolve_camera_collision(target, desired)
 	camera.global_position = camera.global_position.lerp(resolved, clamp(delta * 5.0, 0, 1))
 	camera.look_at(target, Vector3.UP)
 
