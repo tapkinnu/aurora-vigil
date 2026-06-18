@@ -1,15 +1,14 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_opaque, cull_back;
 
-// Emissive window-grid facade shader for Aurora Vigil buildings.
-// Divides UV into a grid of windows; randomly lights some per-building (seeded),
-// varies emission color (warm white / cool cyan / warm amber), supports
-// time-based flicker, and draws darker frame lines between cells.
+// Grounded daylight facade shader for Aurora Vigil buildings.
+// Divides UV into a grid of windows; most panes stay dark/reflective and only a
+// sparse subset gets a low warm interior glow. No cyan neon frame emission.
 // Falls back to procedural albedo when texture uniforms are not set.
 
 group_uniforms albedo;
 uniform sampler2D albedo_tex : source_color, hint_default_white;
-uniform vec4 albedo_tint : source_color = vec4(0.85, 0.92, 1.0, 1.0);
+uniform vec4 albedo_tint : source_color = vec4(0.92, 0.90, 0.84, 1.0);
 
 group_uniforms pbr;
 uniform float roughness_base = 0.42;
@@ -27,16 +26,16 @@ group_uniforms window_grid;
 uniform int floors = 8;
 uniform int windows_per_floor = 4;
 uniform float frame_thickness = 0.08;
-uniform float lit_probability = 0.55;
-uniform float flicker_probability = 0.15;
+uniform float lit_probability = 0.08;
+uniform float flicker_probability = 0.03;
 uniform float flicker_speed = 3.0;
 uniform int building_seed = 0;
-uniform float emission_energy = 1.0;
+uniform float emission_energy = 0.08;
 uniform float uv_scale = 1.0;
 
 group_uniforms colors;
 uniform vec3 warm_white = vec3(1.0, 0.92, 0.78);
-uniform vec3 cool_cyan = vec3(0.45, 0.88, 1.0);
+uniform vec3 cool_office_white = vec3(0.88, 0.88, 0.84);
 uniform vec3 warm_amber = vec3(1.0, 0.72, 0.35);
 uniform vec3 frame_color = vec3(0.02, 0.04, 0.06);
 uniform vec3 dark_window = vec3(0.015, 0.03, 0.045);
@@ -51,8 +50,8 @@ float hash21(int x, int y) {
 
 // Choose one of three emission colors based on hash
 vec3 pick_emission_color(float r) {
-	if (r < 0.40) return warm_white;
-	if (r < 0.72) return cool_cyan;
+	if (r < 0.55) return warm_white;
+	if (r < 0.75) return cool_office_white;
 	return warm_amber;
 }
 
@@ -113,23 +112,23 @@ void fragment() {
 		window_intensity = emission_energy * flicker_factor;
 	}
 
-	// Combine: frame line → dark frame; lit window → emission; dark window → dimmed but visible albedo
-	vec3 final_emission;
+	// Combine: frame line → dark frame; lit window → very low warm interior glow;
+	// dark window → dim reflective glass. Frames/dark panes do not emit.
+	vec3 final_emission = vec3(0.0);
 	if (is_frame) {
-		final_emission = frame_color;
 		albedo = mix(albedo, frame_color, 0.25);
 		window_intensity = 0.0;
 	} else if (is_lit) {
 		final_emission = window_emission * window_intensity;
-		albedo = mix(albedo, window_emission, 0.1);
+		albedo = mix(albedo, window_emission, 0.06);
 	} else {
-		final_emission = dark_window * 0.3;
 		albedo = mix(albedo, dark_window, 0.15);
 	}
 
-	// Add emission texture contribution if provided
+	// Add only a tiny amount of any emission texture contribution so legacy maps no
+	// longer turn facades into glowing grids.
 	vec3 em_sample = texture(emission_tex, base_uv).rgb;
-	final_emission += em_sample * emission_energy;
+	final_emission += em_sample * emission_energy * 0.12;
 
 	ALBEDO = albedo;
 	ROUGHNESS = roughness;

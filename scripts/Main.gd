@@ -39,11 +39,11 @@ const FACADE_TEXTURE_DIRS: Array[String] = [
 	"res://assets/textures/facades/commercial_facade_",
 ] 
 const FACADE_PBR_PROPS: Array[Dictionary] = [
-	{"roughness": 0.15, "metallic": 0.85, "emission_energy": 0.35},
-	{"roughness": 0.85, "metallic": 0.02, "emission_energy": 0.18},
-	{"roughness": 0.75, "metallic": 0.05, "emission_energy": 0.22},
-	{"roughness": 0.25, "metallic": 0.90, "emission_energy": 0.18},
-	{"roughness": 0.35, "metallic": 0.60, "emission_energy": 0.55},
+	{"roughness": 0.35, "metallic": 0.35, "emission_energy": 0.05},
+	{"roughness": 0.88, "metallic": 0.02, "emission_energy": 0.03},
+	{"roughness": 0.80, "metallic": 0.04, "emission_energy": 0.04},
+	{"roughness": 0.42, "metallic": 0.45, "emission_energy": 0.04},
+	{"roughness": 0.48, "metallic": 0.35, "emission_energy": 0.06},
 ]
 var _facade_albedo_textures: Array[Texture2D] = []
 var _facade_normal_textures: Array[Texture2D] = []
@@ -207,67 +207,57 @@ func _load_ground_textures() -> void:
 	print("AURORA_GROUND_TEXTURES: loaded ", _ground_albedo_textures.size(), " sets")
 
 func _ground_asphalt_material() -> StandardMaterial3D:
-	# Dark wet-asphalt PBR material for the city ground plane.
-	# Low roughness + high metallic for a rain-slicked neon-reflective surface.
+	# Dry asphalt PBR for the city ground plane — high roughness, no metallic, no
+	# emission, so it reads as real road tar in daylight, not a wet neon mirror.
 	var mat := StandardMaterial3D.new()
 	if not _ground_albedo_textures.is_empty():
 		mat.albedo_texture = _ground_albedo_textures[0]
 		if not _ground_normal_textures.is_empty() and _ground_normal_textures[0] != null:
+			mat.normal_enabled = true
 			mat.normal_texture = _ground_normal_textures[0]
 		if not _ground_roughness_textures.is_empty() and _ground_roughness_textures[0] != null:
 			mat.roughness_texture = _ground_roughness_textures[0]
 			mat.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_GREEN
-		if not _ground_emission_textures.is_empty() and _ground_emission_textures[0] != null:
-			mat.emission_enabled = true
-			mat.emission_texture = _ground_emission_textures[0]
-			mat.emission = Color(0.15, 0.20, 0.35, 1.0)
-			mat.emission_energy_multiplier = 0.25
-	mat.roughness = 0.35
-	mat.metallic = 0.15
+	mat.albedo_color = Color(0.30, 0.30, 0.31, 1.0)
+	mat.roughness = 0.92
+	mat.metallic = 0.0
 	mat.uv1_scale = Vector3(12.0, 12.0, 12.0)
 	return mat
 
 func _ground_grass_material() -> StandardMaterial3D:
-	# Grass PBR for park zones — high roughness, no metallic, subtle emission
-	# so park patches read as "green space" under the bloom without glowing.
+	# Grass PBR for park zones — high roughness, no metallic, no emission; lit
+	# entirely by the daytime sun and sky so parks read as ordinary green space.
 	var mat := StandardMaterial3D.new()
 	var idx := 1  # GROUND_TEXTURE_DIRS index 1 = grass
 	if _ground_albedo_textures.size() > idx:
 		mat.albedo_texture = _ground_albedo_textures[idx]
 		if _ground_normal_textures.size() > idx and _ground_normal_textures[idx] != null:
+			mat.normal_enabled = true
 			mat.normal_texture = _ground_normal_textures[idx]
 		if _ground_roughness_textures.size() > idx and _ground_roughness_textures[idx] != null:
 			mat.roughness_texture = _ground_roughness_textures[idx]
 			mat.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_GREEN
-		if _ground_emission_textures.size() > idx and _ground_emission_textures[idx] != null:
-			mat.emission_enabled = true
-			mat.emission_texture = _ground_emission_textures[idx]
-			mat.emission = Color(0.04, 0.12, 0.06, 1.0)
-			mat.emission_energy_multiplier = 0.08
-	mat.roughness = 0.85
+	mat.roughness = 0.9
 	mat.metallic = 0.0
 	mat.uv1_scale = Vector3(6.0, 6.0, 6.0)
 	return mat
 
 func _ground_plaza_material() -> StandardMaterial3D:
-	# Polished plaza/concrete PBR near collector towers — moderate roughness,
-	# slight metallic for wet-stone reflective sheen under SSR.
+	# Concrete-pavement PBR for plazas and sidewalks — dry, fairly rough, no
+	# emission. Reads as poured/cast concrete slabs in daylight.
 	var mat := StandardMaterial3D.new()
 	var idx := 2  # GROUND_TEXTURE_DIRS index 2 = plaza
 	if _ground_albedo_textures.size() > idx:
 		mat.albedo_texture = _ground_albedo_textures[idx]
 		if _ground_normal_textures.size() > idx and _ground_normal_textures[idx] != null:
+			mat.normal_enabled = true
 			mat.normal_texture = _ground_normal_textures[idx]
 		if _ground_roughness_textures.size() > idx and _ground_roughness_textures[idx] != null:
 			mat.roughness_texture = _ground_roughness_textures[idx]
 			mat.roughness_texture_channel = BaseMaterial3D.TEXTURE_CHANNEL_GREEN
-		if _ground_emission_textures.size() > idx and _ground_emission_textures[idx] != null:
-			mat.emission_enabled = true
-			mat.emission_texture = _ground_emission_textures[idx]
-			mat.emission = Color(0.10, 0.15, 0.25, 1.0)
-			mat.emission_energy_multiplier = 0.15
-	mat.roughness = 0.45
-	mat.metallic = 0.10
+	mat.albedo_color = Color(0.48, 0.47, 0.45, 1.0)
+	mat.roughness = 0.8
+	mat.metallic = 0.0
 	mat.uv1_scale = Vector3(4.0, 4.0, 4.0)
 	return mat
 
@@ -331,70 +321,60 @@ func _dispatch_civilian_audio(id: String) -> void:
 			push_error("Main: unknown civilian audio trigger id '%s'" % id)
 
 func _build_world() -> void:
-	# Night/dusk sky with stars + magenta horizon glow via ProceduralSkyMaterial.
+	# Daytime sky via ProceduralSkyMaterial — a hazy blue dome fading to a pale
+	# grey-blue horizon, the way Manhattan reads on a clear, slightly humid
+	# afternoon. No magenta band, no night plate; the sun is the dominant light.
 	var env := WorldEnvironment.new()
 	var e := Environment.new()
 	e.background_mode = Environment.BG_SKY
 	var sky_resource := Sky.new()
 	var sky_mat := ProceduralSkyMaterial.new()
-	# Deep night sky with a warm magenta horizon band — keeps the dark
-	# cyberpunk aesthetic but reads as a real sky, not a flat black plate.
-	sky_mat.sky_top_color = Color(0.012, 0.018, 0.05, 1.0)
-	sky_mat.sky_horizon_color = Color(0.18, 0.06, 0.28, 1.0)
-	sky_mat.ground_horizon_color = Color(0.04, 0.02, 0.08, 1.0)
-	sky_mat.ground_bottom_color = Color(0.005, 0.005, 0.012, 1.0)
-	# Subtle sun curve — the visible "sun" never peaks but a faint warm
-	# gradient washes the horizon, giving volumetric-fog colour a target.
-	sky_mat.sun_angle_max = 30.0
-	sky_mat.sun_curve = 0.18
+	sky_mat.sky_top_color = Color(0.34, 0.48, 0.70, 1.0)
+	sky_mat.sky_horizon_color = Color(0.74, 0.78, 0.83, 1.0)
+	sky_mat.ground_horizon_color = Color(0.74, 0.78, 0.83, 1.0)
+	sky_mat.ground_bottom_color = Color(0.50, 0.52, 0.55, 1.0)
+	# Soft, fairly tight sun disk so the upper tower faces catch a clear highlight.
+	sky_mat.sun_angle_max = 9.0
+	sky_mat.sun_curve = 0.12
 	sky_resource.sky_material = sky_mat
 	e.sky = sky_resource
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	e.ambient_light_color = Color(0.35, 0.42, 0.6, 1.0)
-	e.ambient_light_energy = 0.65
-	# Layered atmospheric haze. Exponential distance fog plus a height gradient:
-	# dense, slightly warmer murk pools in the low streets and thins toward a
-	# cooler veil up high. Aerial perspective desaturates distant towers toward the
-	# sky so the far skyline reads as a faint silhouette (real depth cue).
+	e.ambient_light_energy = 1.0
+	# Neutral daytime haze for aerial depth: distant towers desaturate into the
+	# pale sky rather than a coloured cyber-murk. Low density keeps the streets
+	# crisp and readable; aerial perspective fades only the far skyline.
 	e.fog_enabled = true
 	e.fog_mode = Environment.FOG_MODE_EXPONENTIAL
-	e.fog_density = 0.0032
-	e.fog_light_color = Color(0.20, 0.21, 0.34, 1.0)
+	e.fog_density = 0.0014
+	e.fog_light_color = Color(0.77, 0.80, 0.84, 1.0)
 	e.fog_light_energy = 1.0
-	e.fog_sky_affect = 0.35
-	e.fog_aerial_perspective = 0.55
-	# Height band: fog accumulates below ~12 m and thins out above it, so the
-	# 0-10 m ground band is the haziest and the upper floors clear up.
-	e.fog_height = 12.0
-	e.fog_height_density = 0.05
-	# Volumetric fog — gives the avenues a "haze under the streetlights" reading.
-	e.volumetric_fog_enabled = true
-	e.volumetric_fog_density = 0.012
-	e.volumetric_fog_albedo = Color(0.32, 0.42, 0.65, 1.0)
-	e.volumetric_fog_emission = Color(0.06, 0.10, 0.18, 1.0)
-	e.volumetric_fog_emission_energy = 0.4
-	e.volumetric_fog_length = 96.0
-	e.volumetric_fog_detail_spread = 4.0
-	e.volumetric_fog_anisotropy = 0.3
-	# Bloom/glow tuned for neon streetlights and crown bands.
-	e.glow_enabled = true
-	e.glow_intensity = 1.25
-	e.glow_strength = 1.05
-	e.glow_bloom = 0.25
-	e.glow_hdr_threshold = 0.9
-	e.glow_hdr_scale = 1.6
-	e.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
+	e.fog_sky_affect = 0.25
+	e.fog_aerial_perspective = 0.7
+	# A gentle ground-level haze; nothing pools thickly enough to read as murk.
+	e.fog_height = 18.0
+	e.fog_height_density = 0.015
+	# No coloured volumetric fog in daylight — the flat distance fog carries depth.
+	e.volumetric_fog_enabled = false
+	# No global bloom: the user asked for grounded NYC realism, so materials should
+	# read by sun/sky lighting instead of haloing like a cyberpunk scene.
+	e.glow_enabled = false
+	e.glow_intensity = 0.0
+	e.glow_strength = 0.0
+	e.glow_bloom = 0.0
+	e.glow_hdr_threshold = 1.1
+	e.glow_hdr_scale = 2.0
+	e.glow_blend_mode = Environment.GLOW_BLEND_MODE_SCREEN
 	# glow_levels/1..7 are individual properties, not an array/dict.
-	# Default curve + boost on the mid mip levels for stronger neon halos.
 	e.set("glow_levels/1", 0.0)
-	e.set("glow_levels/2", 0.5)
-	e.set("glow_levels/3", 0.85)
-	e.set("glow_levels/4", 1.0)
-	e.set("glow_levels/5", 0.75)
-	e.set("glow_levels/6", 0.5)
-	e.set("glow_levels/7", 0.3)
-	# Screen-space reflections for the wet-pavement look.
-	e.ssr_enabled = true
+	e.set("glow_levels/2", 0.0)
+	e.set("glow_levels/3", 0.5)
+	e.set("glow_levels/4", 0.8)
+	e.set("glow_levels/5", 0.6)
+	e.set("glow_levels/6", 0.4)
+	e.set("glow_levels/7", 0.2)
+	# Dry daytime streets: disable SSR so asphalt/concrete do not look like a wet
+	# reflective sci-fi floor.
+	e.ssr_enabled = false
 	e.ssr_max_steps = 32
 	e.ssr_fade_in = 0.6
 	e.ssr_fade_out = 2.0
@@ -404,17 +384,17 @@ func _build_world() -> void:
 	e.ssao_radius = 1.2
 	e.ssao_intensity = 1.4
 	e.ssao_power = 1.4
-	# ACES tonemap — better contrast for the neon / dark split.
+	# ACES tonemap — rolls the bright daytime highlights off smoothly.
 	e.tonemap_mode = Environment.TONE_MAPPER_ACES
-	e.tonemap_exposure = 1.0
-	e.tonemap_white = 6.0
+	e.tonemap_exposure = 0.95
+	e.tonemap_white = 12.0
 	env.environment = e
 	# Camera attributes drive exposure under Forward+ (auto-exposure moved off
 	# Environment to CameraAttributesPractical in Godot 4). Auto-exposure is left
-	# OFF deliberately: this is a fixed-time-of-day night city, so metering only
-	# normalises the carefully tuned dark/neon contrast away and blows the scene
-	# out to a flat white wash. The node is kept (with a sane sensitivity band)
-	# so a future day/night cycle can flip auto_exposure_enabled on and tune it.
+	# OFF deliberately: this is a fixed-time-of-day daylight city, so the exposure
+	# stays at the hand-tuned value rather than drifting per frame. The node is
+	# kept (with a sane sensitivity band) so a future day/night cycle can flip
+	# auto_exposure_enabled on and tune it.
 	var cam_attrs := CameraAttributesPractical.new()
 	cam_attrs.auto_exposure_enabled = false
 	cam_attrs.auto_exposure_scale = 0.4
@@ -424,13 +404,13 @@ func _build_world() -> void:
 	env.camera_attributes = cam_attrs
 	add_child(env)
 
-	# Faint warm sun direction — adds directional shading on the upper
-	# tower faces without overpowering the night sky.
+	# Primary daylight key — a high, near-white afternoon sun that rakes the
+	# avenues and casts crisp building shadows. This is the dominant light now.
 	var sun := DirectionalLight3D.new()
-	sun.name = "MorningIonSun"
-	sun.rotation_degrees = Vector3(-55, 35, 0)
-	sun.light_color = Color(0.9, 0.7, 0.55, 1.0)
-	sun.light_energy = 0.6
+	sun.name = "DaylightSun"
+	sun.rotation_degrees = Vector3(-52, 48, 0)
+	sun.light_color = Color(1.0, 0.97, 0.91, 1.0)
+	sun.light_energy = 1.5
 	# Forward+ directional shadows — cast crisp tower shadows down the avenues.
 	sun.shadow_enabled = true
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
@@ -458,7 +438,7 @@ func _build_world() -> void:
 	gi.position = Vector3(0, 40, 0)
 	add_child(gi)
 
-	# ReflectionProbe — window/wet-pavement reflections across the core city.
+	# ReflectionProbe — subtle daylight reflections for glass windows/metal only.
 	var ref_probe := ReflectionProbe.new()
 	ref_probe.name = "CityReflectionProbe"
 	ref_probe.size = Vector3(400, 100, 400)
@@ -543,14 +523,13 @@ func _build_city() -> void:
 			var top_w: float = float(top_info["top_w"])
 			var top_d: float = float(top_info["top_d"])
 			_add_vertical_ribs(tower_body, top_w, top_d, top_y, is_collector)
-			_add_crown_neon(tower_body, top_w, top_d, top_y)
+			_add_cornice(tower_body, top_w, top_d, top_y)
 			_add_roof_detail(tower_body, top_w, top_d, top_y, x, z, is_collector)
-			if is_collector or (x - z) % 2 == 0:
+			# Tiny red aviation lamps only on the tallest towers, as on real
+			# high-rises — not a glowing beacon on every other roof.
+			if is_collector or h > 54.0:
 				_add_rooftop_beacon(tower_body, Vector3(0, top_y + 3.8, 0), is_collector)
-	_add_civic_grid(district)
-	_add_skyline_props(district)
 	_add_city_avenues(district)
-	_add_transit_corridor(district)
 	_add_park_zones(district)
 	_add_plaza_paving(district)
 	_add_sidewalks(district)
@@ -648,11 +627,13 @@ func _build_setback(parent: StaticBody3D, width: float, depth: float, h: float, 
 	return {"top_y": h, "top_w": upper_w, "top_d": upper_d}
 
 func _add_city_avenues(parent: Node3D) -> void:
-	# Avenues get a brighter, slightly emissive surface so they read from high capture
-	# angles as glowing streets instead of vanishing into the dark ground plane.
-	var road_mat := _mat(Color(0.025, 0.04, 0.06, 1.0), Color(0.04, 0.18, 0.26, 1.0), 0.18)
-	var lane_mat := _mat(Color(0.7, 0.95, 1.0, 1.0), Color(0.4, 0.85, 1.0, 1.0), 0.95)
-	var curb_mat := _mat(Color(0.04, 0.07, 0.09, 1.0), Color(0.0, 0.5, 0.7, 1.0), 0.45)
+	# Real road network: dark asphalt carriageways, poured-concrete curbs, and worn
+	# white/yellow lane paint — all non-emissive, lit only by the daytime sun. No
+	# glowing lines: the streets read as tarmac, not a neon lattice.
+	var road_mat := _matte(Color(0.060, 0.060, 0.065, 1.0), 0.95)
+	var lane_mat := _matte(Color(0.24, 0.235, 0.215, 1.0), 0.82)     # very worn dirty-white lane paint
+	var center_mat := _matte(Color(0.32, 0.27, 0.08, 1.0), 0.82)     # faded double-yellow centre line
+	var curb_mat := _matte(Color(0.24, 0.235, 0.225, 1.0), 0.88)     # aged concrete curb
 	for i in range(-5, 6):
 		var road_x := MeshInstance3D.new()
 		road_x.name = "AvenueEastWest_%d" % i
@@ -702,23 +683,28 @@ func _add_city_avenues(parent: Node3D) -> void:
 		curb_w.position = Vector3(i * 22.0 - 3.05, 0.09, 0)
 		curb_w.material_override = curb_mat
 		parent.add_child(curb_w)
-		for j in range(-5, 6):
-			var dash_x := MeshInstance3D.new()
-			dash_x.name = "LaneDashEW_%d_%d" % [i, j]
-			var dx := BoxMesh.new()
-			dx.size = Vector3(5.0, 0.06, 0.32)
-			dash_x.mesh = dx
-			dash_x.position = Vector3(j * 22.0, 0.22, i * 22.0)
-			dash_x.material_override = lane_mat
-			parent.add_child(dash_x)
-			var dash_z := MeshInstance3D.new()
-			dash_z.name = "LaneDashNS_%d_%d" % [i, j]
-			var dz := BoxMesh.new()
-			dz.size = Vector3(0.32, 0.06, 5.0)
-			dash_z.mesh = dz
-			dash_z.position = Vector3(i * 22.0, 0.23, j * 22.0)
-			dash_z.material_override = lane_mat
-			parent.add_child(dash_z)
+		# Extremely sparse, muted lane paint. From aerial/gameplay cameras bright
+		# repeated dashes read like a digital grid, so only the main central avenues
+		# retain worn road markings.
+		if i != 0:
+			continue
+		var seg := 12.0
+		var n := int(132.0 / seg)
+		for m in range(-n, n + 1):
+			var t := float(m) * seg
+			# Leave a gap through the 6 m intersection boxes so paint doesn't cross them.
+			if absi(int(round(t)) % 22) <= 4:
+				continue
+			# East–west carriageway at z = i*22 (paint runs along X).
+			_add_box(parent, "CtrEW_%d_%d" % [i, m], Vector3(seg * 0.22, 0.025, 0.07), Vector3(t, 0.205, i * 22.0), center_mat)
+			if i == 0 and m % 3 == 0:
+				_add_box(parent, "LnEWa_%d_%d" % [i, m], Vector3(seg * 0.18, 0.02, 0.045), Vector3(t, 0.2, i * 22.0 + 1.9), lane_mat)
+				_add_box(parent, "LnEWb_%d_%d" % [i, m], Vector3(seg * 0.18, 0.02, 0.045), Vector3(t, 0.2, i * 22.0 - 1.9), lane_mat)
+			# North–south carriageway at x = i*22 (paint runs along Z).
+			_add_box(parent, "CtrNS_%d_%d" % [i, m], Vector3(0.07, 0.025, seg * 0.22), Vector3(i * 22.0, 0.205, t), center_mat)
+			if i == 0 and m % 3 == 0:
+				_add_box(parent, "LnNSa_%d_%d" % [i, m], Vector3(0.045, 0.02, seg * 0.18), Vector3(i * 22.0 + 1.9, 0.2, t), lane_mat)
+				_add_box(parent, "LnNSb_%d_%d" % [i, m], Vector3(0.045, 0.02, seg * 0.18), Vector3(i * 22.0 - 1.9, 0.2, t), lane_mat)
 		if i in [-4, -2, 2, 4]:
 			_add_streetlight(parent, Vector3(-11.0, 0.0, i * 22.0), 0.0)
 			_add_streetlight(parent, Vector3(11.0, 0.0, i * 22.0), PI)
@@ -729,14 +715,44 @@ func _add_city_avenues(parent: Node3D) -> void:
 		if abs(i) <= 1:
 			_add_crosswalk(parent, i * 22.0, true)
 			_add_crosswalk(parent, i * 22.0, false)
+	_add_road_surface_details(parent)
 
-func _add_civic_grid(parent: Node3D) -> void:
-	var grid := Decal.new()
-	grid.name = "CivicGrid_Decal"
-	grid.position = Vector3(0, 0.42, 0)
-	grid.size = Vector3(128.0, 0.2, 128.0)
-	grid.texture_albedo = _city_texture("grid", Color(0.0, 0.0, 0.0, 0.0), Color(0.28, 0.9, 1.0, 0.9), Color(0.04, 0.16, 0.22, 0.35))
-	parent.add_child(grid)
+func _add_road_surface_details(parent: Node3D) -> void:
+	# Cast-iron manhole covers, kerbside storm drains and a few asphalt patch
+	# repairs scattered over the central carriageways. Small, dark, non-emissive
+	# details that break up the flat tarmac and sell it as a real, worn street.
+	var iron := _matte(Color(0.13, 0.13, 0.135, 1.0), 0.78, 0.25)
+	var grate := _matte(Color(0.1, 0.1, 0.11, 1.0), 0.8, 0.2)
+	var patch := _matte(Color(0.055, 0.055, 0.06, 1.0), 0.95)
+	for i in range(-4, 5):
+		for j in range(-4, 5):
+			var hsh := absi(i * 73 + j * 31)
+			if hsh % 3 == 0:
+				continue
+			var bx := float(i) * 22.0 + float((hsh % 5) - 2) * 1.6
+			var bz := float(j) * 22.0 + float((hsh / 5 % 5) - 2) * 1.6
+			if abs(bx) < 5.0 and abs(bz) < 5.0:
+				continue
+			if hsh % 5 == 0:
+				# Rectangular asphalt patch repair (slightly darker, fresher tar).
+				var pw := 2.0 + float(hsh % 3)
+				_add_box(parent, "RoadPatch_%d_%d" % [i, j], Vector3(pw, 0.02, pw * 0.7), Vector3(bx, 0.175, bz), patch)
+			else:
+				var cover := MeshInstance3D.new()
+				cover.name = "Manhole_%d_%d" % [i, j]
+				var cm := CylinderMesh.new()
+				cm.top_radius = 0.42
+				cm.bottom_radius = 0.42
+				cm.height = 0.04
+				cover.mesh = cm
+				cover.position = Vector3(bx, 0.18, bz)
+				cover.material_override = iron
+				parent.add_child(cover)
+	# Storm drains tucked against the kerb on the central avenues.
+	for k in [-2, -1, 1, 2]:
+		var z := float(k) * 22.0 - 3.4
+		_add_box(parent, "Drain_%d" % k, Vector3(1.1, 0.05, 0.4), Vector3(float(k) * 4.0, 0.185, z), grate)
+		_add_box(parent, "DrainX_%d" % k, Vector3(0.4, 0.05, 1.1), Vector3(float(k) * 22.0 - 3.4, 0.185, float(k) * 4.0), grate)
 
 func _add_ground_plate(parent: Node3D) -> void:
 	# City district ground plate — uses PBR asphalt material matching the main
@@ -750,112 +766,33 @@ func _add_ground_plate(parent: Node3D) -> void:
 	ground.material_override = _ground_asphalt_material()
 	parent.add_child(ground)
 
-func _add_skyline_props(parent: Node3D) -> void:
-	var accent_mat := _mat(Color(0.25, 0.9, 1.0, 1.0), Color(0.15, 0.75, 1.0, 1.0), 0.85)
-	var magenta_mat := _mat(Color(0.9, 0.25, 0.75, 1.0), Color(0.7, 0.05, 0.45, 1.0), 0.75)
-	for x in [-66.0, 66.0]:
-		for z in [-66.0, 66.0]:
-			_add_plaza_pylon(parent, Vector3(x, 0.0, z), accent_mat if x > 0.0 else magenta_mat)
-	_add_city_prop(parent, "NorthSignalArray", Vector3(0, 0.0, -112.0), Vector3(0, 90, 0), accent_mat)
-	_add_city_prop(parent, "SouthSignalArray", Vector3(0, 0.0, 112.0), Vector3(0, 90, 0), magenta_mat)
-	_add_city_prop(parent, "WestRelayStack", Vector3(-112.0, 0.0, 0), Vector3(0, 0, 0), accent_mat)
-	_add_city_prop(parent, "EastRelayStack", Vector3(112.0, 0.0, 0), Vector3(0, 0, 0), magenta_mat)
-	_add_box(parent, "SkybridgeWestEast", Vector3(120.0, 0.55, 0.55), Vector3(0, 24.0, 0), accent_mat)
-	_add_box(parent, "SkybridgeNorthSouth", Vector3(0.55, 0.55, 120.0), Vector3(0, 24.0, 0), magenta_mat)
-	var arch := MeshInstance3D.new()
-	arch.name = "CentralSkyArch"
-	var arch_mesh := TorusMesh.new()
-	arch_mesh.inner_radius = 28.0
-	arch_mesh.outer_radius = 28.35
-	arch.mesh = arch_mesh
-	arch.position = Vector3(0, 24.0, 0)
-	arch.rotation_degrees = Vector3(90, 0, 0)
-	arch.material_override = _transparent_mat(Color(0.25, 0.9, 1.0, 0.12), Color(0.2, 0.8, 1.0, 1.0), 0.9)
-	parent.add_child(arch)
-
-func _add_plaza_pylon(parent: Node3D, pos: Vector3, mat: Material) -> void:
+func _add_plaza_pylon(parent: Node3D, pos: Vector3, _mat_unused: Material = null) -> void:
+	# A stone monument obelisk on a stepped base — a neutral civic plaza
+	# centrepiece (think a small war memorial / commemorative column) that
+	# replaces the old glowing sci-fi pylon. No emission, no coloured light.
 	var pylon := Node3D.new()
-	pylon.name = "PlazaPylon"
+	pylon.name = "PlazaMonument"
 	pylon.position = pos
 	parent.add_child(pylon)
-	_add_box(pylon, "PylonShaft", Vector3(1.2, 18.0, 1.2), Vector3(0, 9.0, 0), _mat(Color(0.06, 0.12, 0.16, 1.0), Color(0.0, 0.25, 0.35, 1.0), 0.12))
+	var stone := _mat(Color(0.66, 0.64, 0.6, 1.0), Color(0, 0, 0, 1.0), 0.0)
+	stone.roughness = 0.85
+	var dark_stone := _mat(Color(0.5, 0.48, 0.45, 1.0), Color(0, 0, 0, 1.0), 0.0)
+	dark_stone.roughness = 0.9
+	_add_box(pylon, "MonumentBase", Vector3(3.2, 0.5, 3.2), Vector3(0, 0.25, 0), dark_stone)
+	_add_box(pylon, "MonumentPlinth", Vector3(2.2, 0.7, 2.2), Vector3(0, 0.85, 0), stone)
+	# Tapered obelisk shaft (two stacked boxes give a slight taper read).
+	_add_box(pylon, "MonumentShaftLower", Vector3(1.3, 5.5, 1.3), Vector3(0, 3.95, 0), stone)
+	_add_box(pylon, "MonumentShaftUpper", Vector3(0.9, 3.5, 0.9), Vector3(0, 8.45, 0), stone)
 	var cap := MeshInstance3D.new()
-	cap.name = "PylonCore"
-	var cap_mesh := SphereMesh.new()
-	cap_mesh.radius = 1.5
-	cap_mesh.height = 3.0
+	cap.name = "MonumentCap"
+	var cap_mesh := CylinderMesh.new()
+	cap_mesh.top_radius = 0.0
+	cap_mesh.bottom_radius = 0.7
+	cap_mesh.height = 1.1
 	cap.mesh = cap_mesh
-	cap.position = Vector3(0, 18.5, 0)
-	cap.material_override = mat
+	cap.position = Vector3(0, 10.75, 0)
+	cap.material_override = stone
 	pylon.add_child(cap)
-	var light := OmniLight3D.new()
-	light.name = "PylonGlow"
-	light.position = cap.position
-	light.light_color = Color(0.2, 0.85, 1.0, 1.0)
-	light.light_energy = 7.0
-	light.omni_range = 20.0
-	pylon.add_child(light)
-
-func _add_city_prop(parent: Node3D, name: String, pos: Vector3, rot: Vector3, mat: Material) -> void:
-	var prop := Node3D.new()
-	prop.name = name
-	prop.position = pos
-	prop.rotation_degrees = rot
-	parent.add_child(prop)
-	_add_box(prop, "RelayBase", Vector3(12.0, 1.0, 8.0), Vector3(0, 0.5, 0), _mat(Color(0.05, 0.1, 0.14, 1.0), Color(0.0, 0.2, 0.28, 1.0), 0.12))
-	_add_box(prop, "RelayCore", Vector3(5.0, 14.0, 5.0), Vector3(0, 7.0, 0), mat)
-	_add_box(prop, "RelayCrossA", Vector3(16.0, 0.55, 0.55), Vector3(0, 14.0, 0), mat)
-	_add_box(prop, "RelayCrossB", Vector3(0.55, 0.55, 16.0), Vector3(0, 14.0, 0), mat)
-	for side in [-1.0, 1.0]:
-		var dish := MeshInstance3D.new()
-		dish.name = "SignalDish_%s" % str(side)
-		var dish_mesh := CylinderMesh.new()
-		dish_mesh.top_radius = 1.0
-		dish_mesh.bottom_radius = 1.4
-		dish_mesh.height = 0.45
-		dish.mesh = dish_mesh
-		dish.position = Vector3(side * 6.2, 14.0, 0)
-		dish.rotation_degrees = Vector3(90, 0, 0)
-		dish.material_override = mat
-		prop.add_child(dish)
-	var light := OmniLight3D.new()
-	light.name = "RelayGlow"
-	light.position = Vector3(0, 14.0, 0)
-	light.light_color = Color(0.2, 0.85, 1.0, 1.0)
-	light.light_energy = 10.0
-	light.omni_range = 24.0
-	prop.add_child(light)
-
-func _add_transit_corridor(parent: Node3D) -> void:
-	for i in [-4, -2, 2, 4]:
-		_add_transit_support(parent, Vector3(0, 0.0, i * 22.0), false)
-		_add_transit_support(parent, Vector3(i * 22.0, 0.0, 0), true)
-	var gate := _add_transit_support(parent, Vector3(0, 0.0, 0), false)
-	gate.name = "CentralTransitGate"
-	var beam := gate.get_node_or_null("TransitBeam") as MeshInstance3D
-	if beam != null:
-		beam.scale = Vector3(1.35, 1.0, 1.0)
-
-func _add_transit_support(parent: Node3D, pos: Vector3, rotate_beam: bool) -> Node3D:
-	var support := Node3D.new()
-	support.name = "TransitSupport"
-	support.position = pos
-	parent.add_child(support)
-	var mast_mat := _mat(Color(0.08, 0.13, 0.18, 1.0), Color(0.0, 0.25, 0.38, 1.0), 0.12)
-	var glow_mat := _mat(Color(0.25, 0.9, 1.0, 1.0), Color(0.2, 0.8, 1.0, 1.0), 0.8)
-	_add_box(support, "LeftMast", Vector3(0.35, 16.0, 0.35), Vector3(-3.6, 8.0, 0.0), mast_mat)
-	_add_box(support, "RightMast", Vector3(0.35, 16.0, 0.35), Vector3(3.6, 8.0, 0.0), mast_mat)
-	var beam := _add_box(support, "TransitBeam", Vector3(8.2, 0.45, 0.45), Vector3(0, 16.0, 0.0), glow_mat)
-	if rotate_beam:
-		beam.rotation_degrees = Vector3(0, 90, 0)
-	var light := OmniLight3D.new()
-	light.name = "TransitGlow"
-	light.position = Vector3(0, 15.8, 0)
-	light.light_color = Color(0.2, 0.85, 1.0, 1.0)
-	light.light_energy = 8.0
-	light.omni_range = 18.0
-	support.add_child(light)
-	return support
 
 func _add_streetlight(parent: Node3D, pos: Vector3, rot: float) -> void:
 	var holder := _instance_prop(PROP_DIR + "street/street_light_modern.glb", "y", 5.6)
@@ -866,13 +803,14 @@ func _add_streetlight(parent: Node3D, pos: Vector3, rot: float) -> void:
 	holder.position = pos
 	holder.rotation_degrees = Vector3(0, rad_to_deg(rot), 0)
 	parent.add_child(holder)
-	# Warm-cyan lamp glow at the top of the post, parented to the model.
+	# Warm sodium-vapour lamp glow — low energy so it barely reads in daylight
+	# but keeps the fixture believable; no cyan.
 	var omni := OmniLight3D.new()
 	omni.name = "StreetLightOmni"
 	omni.position = Vector3(0, 5.3, 0)
-	omni.light_color = Color(0.55, 0.85, 1.0, 1.0)
-	omni.light_energy = 3.0
-	omni.omni_range = 11.0
+	omni.light_color = Color(1.0, 0.85, 0.6, 1.0)
+	omni.light_energy = 1.0
+	omni.omni_range = 9.0
 	holder.add_child(omni)
 
 func _add_streetlight_primitive(parent: Node3D, pos: Vector3, rot: float) -> void:
@@ -881,37 +819,32 @@ func _add_streetlight_primitive(parent: Node3D, pos: Vector3, rot: float) -> voi
 	light.position = pos
 	light.rotation_degrees = Vector3(0, rad_to_deg(rot), 0)
 	parent.add_child(light)
-	_add_box(light, "StreetLightPole", Vector3(0.18, 5.5, 0.18), Vector3(0, 2.75, 0), _mat(Color(0.05, 0.08, 0.11, 1.0), Color(0.0, 0.18, 0.25, 1.0), 0.08))
-	_add_box(light, "StreetLightArm", Vector3(1.8, 0.16, 0.16), Vector3(0.85, 5.35, 0.0), _mat(Color(0.08, 0.12, 0.16, 1.0), Color(0.0, 0.18, 0.25, 1.0), 0.08))
+	_add_box(light, "StreetLightPole", Vector3(0.18, 5.5, 0.18), Vector3(0, 2.75, 0), _mat(Color(0.12, 0.12, 0.13, 1.0), Color(0, 0, 0, 1.0), 0.0))
+	_add_box(light, "StreetLightArm", Vector3(1.8, 0.16, 0.16), Vector3(0.85, 5.35, 0.0), _mat(Color(0.12, 0.12, 0.13, 1.0), Color(0, 0, 0, 1.0), 0.0))
 	var bulb := MeshInstance3D.new()
 	bulb.name = "StreetLightGlow"
 	var bulb_mesh := SphereMesh.new()
-	bulb_mesh.radius = 0.35
-	bulb_mesh.height = 0.7
+	bulb_mesh.radius = 0.3
+	bulb_mesh.height = 0.5
 	bulb.mesh = bulb_mesh
-	bulb.position = Vector3(1.85, 5.35, 0)
-	bulb.material_override = _mat(Color(0.9, 0.95, 1.0, 1.0), Color(0.55, 0.85, 1.0, 1.0), 1.1)
+	bulb.position = Vector3(1.85, 5.3, 0)
+	bulb.material_override = _mat(Color(0.85, 0.82, 0.75, 1.0), Color(1.0, 0.85, 0.6, 1.0), 0.4)
 	light.add_child(bulb)
 	var omni := OmniLight3D.new()
 	omni.name = "StreetLightOmni"
 	omni.position = bulb.position
-	omni.light_color = Color(0.55, 0.85, 1.0, 1.0)
-	omni.light_energy = 3.0
-	omni.omni_range = 10.0
+	omni.light_color = Color(1.0, 0.85, 0.6, 1.0)
+	omni.light_energy = 1.0
+	omni.omni_range = 9.0
 	light.add_child(omni)
 
 # Real CC0 Kenney Nature Kit trees, rotated through 3 variants. Placed every other
 # block so they don't choke the avenue. Trees sit between the road and the tower
-# footprints, breaking up the long flat curb line. A faint canopy glow keeps the
-# foliage reading against the night sky like the rest of the neon city.
+# footprints, breaking up the long flat curb line under ordinary daylight.
 const TREE_VARIANTS := [
 	"vegetation/tree_01.glb",
 	"vegetation/tree_02.glb",
 	"vegetation/tree_03.glb",
-]
-const TREE_GLOW_COLORS := [
-	Color(0.1, 0.85, 0.6, 1.0),
-	Color(0.6, 0.18, 0.95, 1.0),
 ]
 
 func _add_street_trees(parent: Node3D, avenue_z: float, north_side: bool) -> void:
@@ -928,29 +861,21 @@ func _add_street_trees(parent: Node3D, avenue_z: float, north_side: bool) -> voi
 			continue
 		var tree_name := "StreetTree_%s_%d" % [("N" if north_side else "S"), step]
 		var variant := absi(int(avenue_z) + step) % TREE_VARIANTS.size()
-		var glow_color: Color = TREE_GLOW_COLORS[0] if step > 0 else TREE_GLOW_COLORS[1]
-		_add_tree(parent, tree_name, Vector3(x, 0.0, z), variant, glow_color)
+		_add_tree(parent, tree_name, Vector3(x, 0.0, z), variant)
 
-func _add_tree(parent: Node3D, tree_name: String, pos: Vector3, variant: int, glow_color: Color) -> void:
+func _add_tree(parent: Node3D, tree_name: String, pos: Vector3, variant: int) -> void:
 	var holder := _instance_prop(PROP_DIR + TREE_VARIANTS[variant], "y", 5.0)
 	if holder == null:
-		_add_tree_primitive(parent, tree_name, pos, glow_color)
+		_add_tree_primitive(parent, tree_name, pos)
 		return
 	holder.name = tree_name
 	holder.position = pos
 	holder.rotation_degrees = Vector3(0, float((int(pos.x) + int(pos.z)) % 4) * 90.0, 0)
 	parent.add_child(holder)
-	var glow := OmniLight3D.new()
-	glow.name = "TreeGlow"
-	glow.position = Vector3(0, 3.2, 0)
-	glow.light_color = glow_color
-	glow.light_energy = 1.4
-	glow.omni_range = 5.5
-	holder.add_child(glow)
 
-func _add_tree_primitive(parent: Node3D, tree_name: String, pos: Vector3, glow_color: Color) -> void:
-	var trunk_mat := _mat(Color(0.05, 0.08, 0.1, 1.0), Color(0.0, 0.18, 0.25, 1.0), 0.08)
-	var canopy_mat := _mat(glow_color * 0.45, glow_color, 0.6)
+func _add_tree_primitive(parent: Node3D, tree_name: String, pos: Vector3) -> void:
+	var trunk_mat := _matte(Color(0.19, 0.13, 0.08, 1.0), 0.85)
+	var canopy_mat := _matte(Color(0.08, 0.30, 0.12, 1.0), 0.9)
 	var tree := Node3D.new()
 	tree.name = tree_name
 	tree.position = pos
@@ -974,27 +899,20 @@ func _add_tree_primitive(parent: Node3D, tree_name: String, pos: Vector3, glow_c
 	canopy.position = Vector3(0, 3.3, 0)
 	canopy.material_override = canopy_mat
 	tree.add_child(canopy)
-	var glow := OmniLight3D.new()
-	glow.name = "TreeGlow"
-	glow.position = Vector3(0, 3.3, 0)
-	glow.light_color = glow_color
-	glow.light_energy = 1.8
-	glow.omni_range = 6.0
-	tree.add_child(glow)
 
 func _add_crosswalk(parent: Node3D, avenue_z: float, east_west: bool) -> void:
-	# Zebra-striped crosswalk blocks placed where two avenues intersect so the
-	# dark road network picks up a brighter graphic accent under the camera.
-	var stripe_mat := _mat(Color(0.85, 0.95, 1.0, 1.0), Color(0.5, 0.9, 1.0, 1.0), 0.85)
-	for k in range(-3, 4):
+	# Painted zebra crosswalks where avenues intersect — worn white thermoplastic
+	# paint, non-emissive, so they read as real continental-style markings.
+	var stripe_mat := _matte(Color(0.34, 0.335, 0.31, 1.0), 0.84)
+	for k in range(-1, 2):
 		var stripe := MeshInstance3D.new()
 		stripe.name = "CrosswalkStripe_%s_%d" % [("EW" if east_west else "NS"), k]
 		var s_mesh := BoxMesh.new()
 		if east_west:
-			s_mesh.size = Vector3(0.9, 0.06, 4.4)
+			s_mesh.size = Vector3(0.45, 0.025, 2.7)
 			stripe.position = Vector3(float(k) * 5.5, 0.27, avenue_z)
 		else:
-			s_mesh.size = Vector3(4.4, 0.06, 0.9)
+			s_mesh.size = Vector3(2.7, 0.025, 0.45)
 			stripe.position = Vector3(avenue_z, 0.27, float(k) * 5.5)
 		stripe.mesh = s_mesh
 		stripe.material_override = stripe_mat
@@ -1002,8 +920,8 @@ func _add_crosswalk(parent: Node3D, avenue_z: float, east_west: bool) -> void:
 
 func _add_floor_strips(parent: Node3D, width: float, depth: float, h: float) -> void:
 	var rows := int(clamp(h / 4.2, 5.0, 11.0))
-	var window_mat := _mat(Color(0.42, 0.88, 1.0, 1.0), Color(0.28, 0.8, 1.0, 1.0), 0.42)
-	var pod_mat := _mat(Color(0.18, 0.32, 0.38, 1.0), Color(0.0, 0.45, 0.6, 1.0), 0.28)
+	var window_mat := _matte(Color(0.12, 0.14, 0.16, 1.0), 0.55, 0.15)
+	var pod_mat := _matte(Color(0.28, 0.29, 0.30, 1.0), 0.7, 0.2)
 	for r in range(rows):
 		var y := -h * 0.45 + (float(r) + 0.5) * h / float(rows)
 		_add_box(parent, "WindowStripFront_%d" % r, Vector3(width + 0.08, 0.07, 0.13), Vector3(0, y, depth * 0.5 + 0.08), window_mat)
@@ -1016,35 +934,35 @@ func _add_floor_strips(parent: Node3D, width: float, depth: float, h: float) -> 
 		_add_box(parent, "FrontServicePod_%d" % r, Vector3(2.4, 0.75, 1.15), Vector3(-width * 0.22, y, depth * 0.5 + 0.48), pod_mat)
 		_add_box(parent, "BackServicePod_%d" % r, Vector3(2.4, 0.75, 1.15), Vector3(width * 0.22, y, -depth * 0.5 - 0.48), pod_mat)
 
-func _add_crown_neon(parent: Node3D, width: float, depth: float, top_y: float) -> void:
-	# Bright neon rim band wrapped around the top segment so the skyline
-	# silhouettes read against the dark sky from any capture altitude. Variants
-	# cycle cyan / magenta per tower so the city feels populated.
-	var hue := fposmod(width + depth + top_y, 4.0)
-	var crown_mat: StandardMaterial3D
-	if hue < 1.5:
-		crown_mat = _mat(Color(0.25, 0.95, 1.0, 1.0), Color(0.25, 0.95, 1.0, 1.0), 1.0)
-	elif hue < 3.0:
-		crown_mat = _mat(Color(0.95, 0.25, 0.85, 1.0), Color(0.95, 0.25, 0.85, 1.0), 0.95)
-	else:
-		crown_mat = _mat(Color(1.0, 0.85, 0.3, 1.0), Color(1.0, 0.85, 0.3, 1.0), 0.9)
-	var y := top_y - 0.18
-	_add_box(parent, "CrownBandFront", Vector3(width + 0.4, 0.16, 0.18), Vector3(0, y, depth * 0.5 + 0.16), crown_mat)
-	_add_box(parent, "CrownBandBack", Vector3(width + 0.4, 0.16, 0.18), Vector3(0, y, -depth * 0.5 - 0.16), crown_mat)
-	_add_box(parent, "CrownBandLeft", Vector3(0.18, 0.16, depth + 0.4), Vector3(-width * 0.5 - 0.16, y, 0), crown_mat)
-	_add_box(parent, "CrownBandRight", Vector3(0.18, 0.16, depth + 0.4), Vector3(width * 0.5 + 0.16, y, 0), crown_mat)
-	var crown_light := OmniLight3D.new()
-	crown_light.name = "CrownNeonLight"
-	crown_light.position = Vector3(0, y, 0)
-	crown_light.light_color = crown_mat.emission
-	crown_light.light_energy = 1.4
-	crown_light.omni_range = 12.0
-	parent.add_child(crown_light)
+func _add_cornice(parent: Node3D, width: float, depth: float, top_y: float) -> void:
+	# A projecting stone/concrete cornice at the parapet line — the horizontal cap
+	# that crowns most pre-war NYC buildings — plus a low parapet wall above the
+	# roofline. Non-emissive masonry; replaces the old neon crown band. The tone
+	# varies subtly per building so the skyline isn't uniform.
+	var tone := 0.6 + fposmod(width + depth + top_y, 5.0) * 0.04
+	var cornice_mat := _mat(Color(tone, tone * 0.97, tone * 0.92, 1.0), Color(0, 0, 0, 1.0), 0.0)
+	cornice_mat.roughness = 0.85
+	var y := top_y - 0.25
+	var proj := 0.45
+	_add_box(parent, "CorniceFront", Vector3(width + proj * 2.0, 0.55, proj), Vector3(0, y, depth * 0.5 + proj * 0.5), cornice_mat)
+	_add_box(parent, "CorniceBack", Vector3(width + proj * 2.0, 0.55, proj), Vector3(0, y, -depth * 0.5 - proj * 0.5), cornice_mat)
+	_add_box(parent, "CorniceLeft", Vector3(proj, 0.55, depth + proj * 2.0), Vector3(-width * 0.5 - proj * 0.5, y, 0), cornice_mat)
+	_add_box(parent, "CorniceRight", Vector3(proj, 0.55, depth + proj * 2.0), Vector3(width * 0.5 + proj * 0.5, y, 0), cornice_mat)
+	# Low parapet wall standing just above the roof slab behind the cornice.
+	var parapet_mat := _mat(Color(tone * 0.9, tone * 0.88, tone * 0.84, 1.0), Color(0, 0, 0, 1.0), 0.0)
+	parapet_mat.roughness = 0.9
+	_add_box(parent, "ParapetFront", Vector3(width + 0.1, 0.7, 0.18), Vector3(0, top_y + 0.35, depth * 0.5 - 0.05), parapet_mat)
+	_add_box(parent, "ParapetBack", Vector3(width + 0.1, 0.7, 0.18), Vector3(0, top_y + 0.35, -depth * 0.5 + 0.05), parapet_mat)
+	_add_box(parent, "ParapetLeft", Vector3(0.18, 0.7, depth + 0.1), Vector3(-width * 0.5 + 0.05, top_y + 0.35, 0), parapet_mat)
+	_add_box(parent, "ParapetRight", Vector3(0.18, 0.7, depth + 0.1), Vector3(width * 0.5 - 0.05, top_y + 0.35, 0), parapet_mat)
 
 func _add_vertical_ribs(parent: Node3D, width: float, depth: float, top_y: float, collector: bool) -> void:
-	var rib_mat := _mat(Color(0.16, 0.24, 0.29, 1.0), Color(0.0, 0.25, 0.34, 1.0), 0.1)
+	# Vertical corner pilasters — projecting masonry/limestone ribs that run the
+	# full height of the facade (a common pre-war detail). Non-emissive; the old
+	# cyan glow that lit up every tower edge is gone.
+	var rib_mat := _matte(Color(0.50, 0.49, 0.46, 1.0), 0.85)
 	if collector:
-		rib_mat = _mat(Color(0.18, 0.34, 0.42, 1.0), Color(0.0, 0.45, 0.65, 1.0), 0.2)
+		rib_mat = _matte(Color(0.40, 0.42, 0.45, 1.0), 0.6, 0.25)  # metal-clad mullion on commercial towers
 	var rib_h: float = top_y + 0.3
 	var rib_cy: float = top_y * 0.5
 	_add_box(parent, "FrontLeftRib", Vector3(0.18, rib_h, 0.18), Vector3(-width * 0.48, rib_cy, depth * 0.48), rib_mat)
@@ -1053,96 +971,103 @@ func _add_vertical_ribs(parent: Node3D, width: float, depth: float, top_y: float
 	_add_box(parent, "BackRightRib", Vector3(0.18, rib_h, 0.18), Vector3(width * 0.48, rib_cy, -depth * 0.48), rib_mat)
 
 func _add_roof_detail(parent: Node3D, width: float, depth: float, top_y: float, x: int, z: int, collector: bool) -> void:
-	var cap_mat := _mat(Color(0.18, 0.28, 0.34, 1.0), Color(0.0, 0.32, 0.42, 1.0), 0.12)
-	var roof := _add_box(parent, "RooftopCap", Vector3(width + 0.8, 0.45, depth + 0.8), Vector3(0, top_y + 0.22, 0), cap_mat)
-	var antenna := MeshInstance3D.new()
-	antenna.name = "RooftopAntenna"
-	var antenna_mesh := CylinderMesh.new()
-	antenna_mesh.top_radius = 0.18
-	antenna_mesh.bottom_radius = 0.18
-	antenna_mesh.height = 3.0
-	antenna.mesh = antenna_mesh
-	antenna.position = Vector3(0, top_y + 1.9, 0)
-	antenna.material_override = _mat(Color(0.2, 0.9, 1.0, 1.0), Color(0.2, 0.9, 1.0, 1.0), 0.9)
-	parent.add_child(antenna)
+	# Real NYC rooftops: a tar-and-gravel roof slab cluttered with mechanical kit —
+	# a timber water tank, HVAC/condenser boxes, vent stacks, a stair bulkhead. All
+	# matte and non-emissive; the only roof light is the red aviation lamp added
+	# separately on the tallest towers. No spires, beacons, drone pads or energy rings.
+	var roof_mat := _matte(Color(0.12, 0.12, 0.125, 1.0), 0.95)      # tar/gravel roof
+	var mech_mat := _matte(Color(0.46, 0.47, 0.48, 1.0), 0.65, 0.25) # galvanised metal
+	var brick_mat := _matte(Color(0.4, 0.34, 0.3, 1.0), 0.85)        # bulkhead masonry
+	_add_box(parent, "RooftopSlab", Vector3(width + 0.6, 0.4, depth + 0.6), Vector3(0, top_y + 0.2, 0), roof_mat)
+	var seed := absi(x * 31 + z * 17)
+	# Stair / elevator bulkhead — a small penthouse box set to one side.
+	var bw: float = clampf(width * 0.34, 1.6, 3.4)
+	var bd: float = clampf(depth * 0.34, 1.6, 3.4)
+	_add_box(parent, "RoofBulkhead", Vector3(bw, 2.4, bd), Vector3(-width * 0.18, top_y + 1.6, depth * 0.16), brick_mat)
+	# HVAC / condenser units.
+	for u in range(1 + seed % 2):
+		_add_box(parent, "RoofHVAC_%d" % u, Vector3(1.5, 0.9, 1.1), Vector3(width * (0.12 + 0.16 * float(u)), top_y + 0.85, -depth * 0.22), mech_mat)
+	# Vent stacks.
+	for v in range(2):
+		var vent := MeshInstance3D.new()
+		vent.name = "RoofVent_%d" % v
+		var vm := CylinderMesh.new()
+		vm.top_radius = 0.16
+		vm.bottom_radius = 0.16
+		vm.height = 1.1
+		vent.mesh = vm
+		vent.position = Vector3(width * (0.3 - 0.5 * float(v)), top_y + 0.95, depth * 0.3)
+		vent.material_override = mech_mat
+		parent.add_child(vent)
+	# Iconic timber water tank on most mid/large roofs.
+	if collector or width > 9.0 or seed % 3 != 0:
+		var s: float = clampf(minf(width, depth) / 3.2, 0.55, 1.2)
+		_add_water_tank(parent, Vector3(width * 0.14, top_y + 0.4, -depth * 0.04), s)
+	# Slim antenna whip on a subset (dark metal, no glow).
+	if seed % 4 == 0:
+		var antenna := MeshInstance3D.new()
+		antenna.name = "RooftopAntenna"
+		var antenna_mesh := CylinderMesh.new()
+		antenna_mesh.top_radius = 0.04
+		antenna_mesh.bottom_radius = 0.08
+		antenna_mesh.height = 3.4
+		antenna.mesh = antenna_mesh
+		antenna.position = Vector3(-width * 0.28, top_y + 2.1, -depth * 0.28)
+		antenna.material_override = mech_mat
+		parent.add_child(antenna)
+	# Landmark collectors keep a taller masonry crown + a metal finial (no neon).
 	if collector:
-		_add_box(parent, "CollectorCrown", Vector3(width * 0.7, 3.2, depth * 0.7), Vector3(0, top_y + 2.2, 0), _mat(Color(0.12, 0.32, 0.42, 1.0), Color(0.0, 0.7, 1.0, 1.0), 0.7))
-		var spire := MeshInstance3D.new()
-		spire.name = "CollectorSpire"
-		var spire_mesh := CylinderMesh.new()
-		spire_mesh.top_radius = 0.18
-		spire_mesh.bottom_radius = 0.55
-		spire_mesh.height = 7.5
-		spire.mesh = spire_mesh
-		spire.position = Vector3(0, top_y + 6.1, 0)
-		spire.material_override = _mat(Color(0.25, 0.95, 1.0, 1.0), Color(0.1, 0.8, 1.0, 1.0), 1.0)
-		parent.add_child(spire)
-	elif (x + z) % 4 == 0:
-		_add_box(parent, "CrownBlock", Vector3(width * 0.55, 2.8, depth * 0.55), Vector3(0, top_y + 1.85, 0), _mat(Color(0.22, 0.3, 0.36, 1.0), Color(0.0, 0.35, 0.48, 1.0), 0.25))
-	elif (x - z) % 4 == 0:
-		var spire := MeshInstance3D.new()
-		spire.name = "SignalSpire"
-		var spire_mesh := CylinderMesh.new()
-		spire_mesh.top_radius = 0.18
-		spire_mesh.bottom_radius = 0.7
-		spire_mesh.height = 5.5
-		spire.mesh = spire_mesh
-		spire.position = Vector3(0, top_y + 3.3, 0)
-		spire.material_override = _mat(Color(0.22, 0.88, 1.0, 1.0), Color(0.1, 0.7, 1.0, 1.0), 0.85)
-		parent.add_child(spire)
-	if collector or (abs(x) + abs(z)) % 5 == 0:
-		var pad := MeshInstance3D.new()
-		pad.name = "RooftopDronePad"
-		var pad_mesh := CylinderMesh.new()
-		pad_mesh.top_radius = 2.2
-		pad_mesh.bottom_radius = 2.2
-		pad_mesh.height = 0.18
-		pad.mesh = pad_mesh
-		pad.position = Vector3(0, top_y + 0.42, 0)
-		pad.material_override = _mat(Color(0.04, 0.11, 0.16, 1.0), Color(0.0, 0.35, 0.5, 1.0), 0.25)
-		parent.add_child(pad)
-		var ring := MeshInstance3D.new()
-		ring.name = "DronePadRing"
-		var ring_mesh := TorusMesh.new()
-		ring_mesh.inner_radius = 2.0
-		ring_mesh.outer_radius = 2.25
-		ring.mesh = ring_mesh
-		ring.position = Vector3(0, top_y + 0.58, 0)
-		ring.rotation_degrees = Vector3(90, 0, 0)
-		ring.material_override = _mat(Color(0.35, 0.9, 1.0, 1.0), Color(0.25, 0.8, 1.0, 1.0), 0.9)
-		parent.add_child(ring)
-	if collector:
-		for offset in [3.0, 5.0]:
-			var ring := MeshInstance3D.new()
-			ring.name = "CollectorEnergyRing_%s" % str(offset)
-			var ring_mesh := TorusMesh.new()
-			ring_mesh.inner_radius = max(width, depth) * 0.55 + offset
-			ring_mesh.outer_radius = ring_mesh.inner_radius + 0.18
-			ring.mesh = ring_mesh
-			ring.position = Vector3(0, top_y + offset, 0)
-			ring.rotation_degrees = Vector3(90, 0, 0)
-			ring.material_override = _transparent_mat(Color(0.0, 0.55, 0.9, 0.28), Color(0.0, 0.9, 1.0, 1.0), 0.75)
-			parent.add_child(ring)
-		var core := MeshInstance3D.new()
-		core.name = "CollectorCoreGlow"
-		var core_mesh := CylinderMesh.new()
-		core_mesh.top_radius = 1.2
-		core_mesh.bottom_radius = 1.2
-		core_mesh.height = top_y + 4.0
-		core.mesh = core_mesh
-		core.position = Vector3(0, (top_y + 4.0) * 0.5, 0)
-		core.material_override = _transparent_mat(Color(0.0, 0.45, 0.8, 0.08), Color(0.0, 0.8, 1.0, 1.0), 0.65)
-		parent.add_child(core)
+		_add_box(parent, "CollectorCrown", Vector3(width * 0.6, 3.0, depth * 0.6), Vector3(0, top_y + 2.0, 0), brick_mat)
+		var finial := MeshInstance3D.new()
+		finial.name = "CollectorFinial"
+		var finial_mesh := CylinderMesh.new()
+		finial_mesh.top_radius = 0.0
+		finial_mesh.bottom_radius = 0.45
+		finial_mesh.height = 5.0
+		finial.mesh = finial_mesh
+		finial.position = Vector3(0, top_y + 3.5 + 2.5, 0)
+		finial.material_override = mech_mat
+		parent.add_child(finial)
+
+func _add_water_tank(parent: Node3D, base: Vector3, s: float = 1.0) -> void:
+	# Classic rooftop timber water tank on a steel-leg frame with a conical lid —
+	# one of the most recognisable silhouettes on the Manhattan skyline.
+	var wood := _matte(Color(0.34, 0.23, 0.15, 1.0), 0.92)
+	var steel := _matte(Color(0.16, 0.16, 0.17, 1.0), 0.7, 0.3)
+	var leg_h: float = 2.3 * s
+	for lx in [-1.0, 1.0]:
+		for lz in [-1.0, 1.0]:
+			_add_box(parent, "WTLeg_%d_%d" % [int(lx), int(lz)], Vector3(0.15 * s, leg_h, 0.15 * s), base + Vector3(lx * 0.85 * s, leg_h * 0.5, lz * 0.85 * s), steel)
+	var body := MeshInstance3D.new()
+	body.name = "WaterTankBody"
+	var bm := CylinderMesh.new()
+	bm.top_radius = 1.2 * s
+	bm.bottom_radius = 1.32 * s
+	bm.height = 2.7 * s
+	body.mesh = bm
+	body.position = base + Vector3(0, leg_h + 1.35 * s, 0)
+	body.material_override = wood
+	parent.add_child(body)
+	var cap := MeshInstance3D.new()
+	cap.name = "WaterTankCap"
+	var cm := CylinderMesh.new()
+	cm.top_radius = 0.0
+	cm.bottom_radius = 1.36 * s
+	cm.height = 0.9 * s
+	cap.mesh = cm
+	cap.position = base + Vector3(0, leg_h + 2.7 * s + 0.45 * s, 0)
+	cap.material_override = steel
+	parent.add_child(cap)
 
 func _add_rooftop_beacon(parent: Node3D, pos: Vector3, collector: bool = false) -> void:
 	var beacon := MeshInstance3D.new()
-	beacon.name = "RooftopBeacon"
+	beacon.name = "AviationWarningLamp"
 	var mesh := SphereMesh.new()
-	mesh.radius = 1.0 if collector else 0.7
-	mesh.height = 2.0 if collector else 1.4
+	mesh.radius = 0.22 if collector else 0.16
+	mesh.height = 0.34 if collector else 0.24
 	beacon.mesh = mesh
 	beacon.position = pos
-	beacon.material_override = _mat(Color(0.2, 0.9, 1.0, 1.0), Color(0.2, 0.9, 1.0, 1.0), 1.1 if collector else 0.9)
+	beacon.material_override = _mat(Color(0.45, 0.04, 0.035, 1.0), Color(0.8, 0.04, 0.03, 1.0), 0.12 if collector else 0.08)
 	parent.add_child(beacon)
 
 func _add_box(parent: Node3D, name: String, size: Vector3, pos: Vector3, mat: Material) -> MeshInstance3D:
@@ -1612,22 +1537,25 @@ func _city_facade_material(h: float, x: int, z: int, width: float, depth: float,
 	# Window grid params derived from building dimensions
 	var floors_val: int = int(clamp(h / 4.2, 5.0, 11.0))
 	var windows_val: int = 3 + (abs(x * 13 + z * 7) % 4)
-	# Collectors: more lit windows, brighter emission
-	var lit_prob := 0.55 if not collector else 0.75
-	var em_energy := 1.0 if not collector else 1.6
+	# Daytime: windows read as dark/reflective glass. Only a sparse handful are lit
+	# (a few interior lights left on), at low energy — no wall of glowing offices.
+	var lit_prob := 0.08 if not collector else 0.12
+	var em_energy := 0.45 if not collector else 0.7
 	# UV scale variation per building — real PBR textures need higher tiling for visible detail
 	var uv_s := 4.0 + float(abs(x + z) % 3) * 0.5
 	if h > 42.0:
 		uv_s += 0.5
 	if collector:
 		uv_s += 0.3
-	# Albedo tint variation
-	var tint_r := 0.80 + float(abs(x) % 5) * 0.03
-	var tint_g := 0.88 + float(abs(z) % 4) * 0.025
-	var tint_b := 1.0
+	# Albedo tint variation — warm neutral stone/brick tones (not the old cool blue
+	# cast). Lets the real PBR brick/concrete textures show their own colour.
+	var tint_r := 0.90 + float(abs(x) % 5) * 0.018
+	var tint_g := 0.88 + float(abs(z) % 4) * 0.015
+	var tint_b := 0.82 + float(abs(x + z) % 3) * 0.02
 	if collector:
-		tint_r = 0.70
-		tint_g = 0.85
+		tint_r = 0.86
+		tint_g = 0.89
+		tint_b = 0.94  # commercial curtain-wall glass reads a touch cooler
 	# Cycle through PBR texture sets (collectors → commercial facade = index 4)
 	var mat_idx: int = 4 if collector else abs(x * 3 + z * 7) % 5
 	var mat := ShaderMaterial.new()
@@ -1640,8 +1568,13 @@ func _city_facade_material(h: float, x: int, z: int, width: float, depth: float,
 	mat.set_shader_parameter("uv_scale", uv_s)
 	mat.set_shader_parameter("albedo_tint", Color(tint_r, tint_g, tint_b, 1.0))
 	mat.set_shader_parameter("flicker_speed", 2.5 + float(abs(x * 3 + z) % 5) * 0.5)
-	mat.set_shader_parameter("frame_color", Color(0.02, 0.04, 0.06, 1.0))
-	mat.set_shader_parameter("dark_window", Color(0.015, 0.03, 0.045, 1.0))
+	# Mullion frames in dark warm grey; unlit panes as dark neutral glass. The lit
+	# palette is all warm interior tones — the cyan office glow is gone.
+	mat.set_shader_parameter("frame_color", Color(0.06, 0.06, 0.065, 1.0))
+	mat.set_shader_parameter("dark_window", Color(0.07, 0.08, 0.095, 1.0))
+	mat.set_shader_parameter("warm_white", Color(1.0, 0.95, 0.84, 1.0))
+	mat.set_shader_parameter("cool_office_white", Color(0.88, 0.89, 0.86, 1.0))
+	mat.set_shader_parameter("warm_amber", Color(1.0, 0.82, 0.55, 1.0))
 	# PBR texture uniforms — passed from preloaded facade texture sets
 	if not _facade_albedo_textures.is_empty():
 		var idx: int = clamp(mat_idx, 0, _facade_albedo_textures.size() - 1)
@@ -1801,6 +1734,16 @@ func _mat(albedo: Color, emission: Color, energy: float) -> StandardMaterial3D:
 	mat.metallic = 0.05
 	return mat
 
+func _matte(albedo: Color, rough: float = 0.85, metal: float = 0.0) -> StandardMaterial3D:
+	# Non-emissive diffuse material — the workhorse for realistic daytime surfaces
+	# (asphalt, concrete, road paint, masonry, painted metal). No glow whatsoever,
+	# so these read as real materials lit by the sun rather than neon graphics.
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = albedo
+	mat.roughness = rough
+	mat.metallic = metal
+	return mat
+
 func _transparent_mat(albedo: Color, emission: Color, energy: float) -> StandardMaterial3D:
 	var mat := _mat(albedo, emission, energy)
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -1881,10 +1824,10 @@ func _add_park_zones(parent: Node3D) -> void:
 		]
 		for tpos in tree_positions:
 			_add_park_tree(parent, tpos)
-		# Bioluminescent shrub glow
+		# Low shrubs/planting beds as ordinary daylight greenery.
 		for i in range(3):
 			var shrub_pos := Vector3(px + float((i * 7 - 7)), 0, pz + float((i * 5 - 5)))
-			_add_glow_shrub(parent, shrub_pos, i)
+			_add_park_shrub(parent, shrub_pos, i)
 
 func _add_park_tree(parent: Node3D, pos: Vector3) -> void:
 	var tree := Node3D.new()
@@ -1902,9 +1845,9 @@ func _add_park_tree(parent: Node3D, pos: Vector3) -> void:
 	trunk.position = Vector3(0, 2.0, 0)
 	trunk.material_override = trunk_mat
 	tree.add_child(trunk)
-	# Layered canopy — two spheres for volume
-	var canopy_a_mat := _mat(Color(0.06, 0.35, 0.18, 1.0), Color(0.08, 0.6, 0.35, 1.0), 0.35)
-	var canopy_b_mat := _mat(Color(0.04, 0.45, 0.22, 1.0), Color(0.1, 0.75, 0.4, 1.0), 0.45)
+	# Layered canopy — two matte spheres for volume.
+	var canopy_a_mat := _matte(Color(0.06, 0.33, 0.16, 1.0), 0.9)
+	var canopy_b_mat := _matte(Color(0.05, 0.38, 0.18, 1.0), 0.9)
 	var canopy1 := MeshInstance3D.new()
 	canopy1.name = "ParkTreeCanopy1"
 	var c1_mesh := SphereMesh.new()
@@ -1923,26 +1866,19 @@ func _add_park_tree(parent: Node3D, pos: Vector3) -> void:
 	canopy2.position = Vector3(0.8, 6.5, 0.5)
 	canopy2.material_override = canopy_b_mat
 	tree.add_child(canopy2)
-	var glow := OmniLight3D.new()
-	glow.name = "ParkTreeGlow"
-	glow.position = Vector3(0, 5.0, 0)
-	glow.light_color = Color(0.1, 0.6, 0.35, 1.0)
-	glow.light_energy = 1.2
-	glow.omni_range = 8.0
-	tree.add_child(glow)
 
-func _add_glow_shrub(parent: Node3D, pos: Vector3, variant: int) -> void:
+func _add_park_shrub(parent: Node3D, pos: Vector3, variant: int) -> void:
 	var shrub := Node3D.new()
-	shrub.name = "GlowShrub_%d_%d" % [int(pos.x), int(pos.z)]
+	shrub.name = "ParkShrub_%d_%d" % [int(pos.x), int(pos.z)]
 	shrub.position = pos
 	parent.add_child(shrub)
 	var colors: Array[Color] = [
-		Color(0.25, 0.9, 1.0, 1.0),
-		Color(0.9, 0.25, 0.75, 1.0),
-		Color(0.3, 0.95, 0.5, 1.0),
+		Color(0.05, 0.24, 0.10, 1.0),
+		Color(0.08, 0.30, 0.13, 1.0),
+		Color(0.12, 0.34, 0.16, 1.0),
 	]
 	var c: Color = colors[variant % colors.size()]
-	var shrub_mat := _mat(c * 0.3, c, 0.6)
+	var shrub_mat := _matte(c, 0.92)
 	var mesh_inst := MeshInstance3D.new()
 	mesh_inst.name = "ShrubMesh"
 	var s_mesh := SphereMesh.new()
@@ -1952,13 +1888,6 @@ func _add_glow_shrub(parent: Node3D, pos: Vector3, variant: int) -> void:
 	mesh_inst.position = Vector3(0, 0.5, 0)
 	mesh_inst.material_override = shrub_mat
 	shrub.add_child(mesh_inst)
-	var glow := OmniLight3D.new()
-	glow.name = "ShrubGlow"
-	glow.position = Vector3(0, 0.5, 0)
-	glow.light_color = c
-	glow.light_energy = 1.5
-	glow.omni_range = 4.0
-	shrub.add_child(glow)
 
 func _add_plaza_paving(parent: Node3D) -> void:
 	# Polished plaza-textured quads around the 4 collector towers at (±5, ±5).
@@ -1973,7 +1902,7 @@ func _add_plaza_paving(parent: Node3D) -> void:
 			plaza.position = Vector3(float(x) * 22.0, 0.15, float(z) * 22.0)
 			plaza.material_override = plaza_mat
 			parent.add_child(plaza)
-			# Decorative plaza border strip — cyan inlay
+			# Raised concrete/stone edging around the paved plaza — no emissive inlay.
 			for side in [-1.0, 1.0]:
 				var strip_x := MeshInstance3D.new()
 				strip_x.name = "PlazaStripX_%d_%d_%d" % [x, z, int(side)]
@@ -1981,7 +1910,7 @@ func _add_plaza_paving(parent: Node3D) -> void:
 				sx_mesh.size = Vector3(24.0, 0.04, 0.3)
 				strip_x.mesh = sx_mesh
 				strip_x.position = Vector3(float(x) * 22.0, 0.17, float(z) * 22.0 + side * 11.5)
-				strip_x.material_override = _mat(Color(0.25, 0.9, 1.0, 1.0), Color(0.2, 0.8, 1.0, 1.0), 0.7)
+				strip_x.material_override = _matte(Color(0.38, 0.37, 0.35, 1.0), 0.82)
 				parent.add_child(strip_x)
 				var strip_z := MeshInstance3D.new()
 				strip_z.name = "PlazaStripZ_%d_%d_%d" % [x, z, int(side)]
@@ -1989,7 +1918,7 @@ func _add_plaza_paving(parent: Node3D) -> void:
 				sz_mesh.size = Vector3(0.3, 0.04, 24.0)
 				strip_z.mesh = sz_mesh
 				strip_z.position = Vector3(float(x) * 22.0 + side * 11.5, 0.17, float(z) * 22.0)
-				strip_z.material_override = _mat(Color(0.25, 0.9, 1.0, 1.0), Color(0.2, 0.8, 1.0, 1.0), 0.7)
+				strip_z.material_override = _matte(Color(0.38, 0.37, 0.35, 1.0), 0.82)
 				parent.add_child(strip_z)
 
 # ── Grid-breaking topology: diagonals, curves, plazas, sidewalks, parking ──
@@ -2009,15 +1938,15 @@ func _add_aligned_tower(parent: Node3D, t_name: String, pos: Vector3, rot_deg: f
 	var top_w: float = float(top["top_w"])
 	var top_d: float = float(top["top_d"])
 	_add_vertical_ribs(body, top_w, top_d, top_y, false)
-	_add_crown_neon(body, top_w, top_d, top_y)
+	_add_cornice(body, top_w, top_d, top_y)
 
 func _add_diagonal_streets(parent: Node3D) -> void:
 	# Three boulevards slicing across the rigid grid at 30-45 degrees. Each lays a
-	# glowing road surface + centre dashes + raised sidewalks, and lines its outer
+	# matte asphalt road surface + faded centre dashes + raised sidewalks, and lines its outer
 	# (suburban) reaches with towers rotated to the street direction so the city
 	# reads as real topology rather than a pure lattice.
-	var road_mat := _mat(Color(0.03, 0.03, 0.05, 1.0), Color(0.22, 0.06, 0.20, 1.0), 0.22)
-	var dash_mat := _mat(Color(1.0, 0.85, 0.5, 1.0), Color(1.0, 0.7, 0.3, 1.0), 0.9)
+	var road_mat := _matte(Color(0.085, 0.085, 0.09, 1.0), 0.93)
+	var dash_mat := _matte(Color(0.34, 0.28, 0.08, 1.0), 0.82)  # very faded yellow centre line
 	var walk_mat := _ground_plaza_material()
 	# [angle_deg, perpendicular offset from centre, length]
 	var diagonals := [
@@ -2043,7 +1972,7 @@ func _add_diagonal_streets(parent: Node3D) -> void:
 		for k in range(-n_dash / 2, n_dash / 2):
 			var t := float(k) * 9.0 + 4.5
 			var dpos: Vector3 = center + dir * t + Vector3(0, 0.22, 0)
-			var dash := _add_box(parent, "DiagDash_%d_%d" % [di, k], Vector3(4.5, 0.06, 0.3), dpos, dash_mat)
+			var dash := _add_box(parent, "DiagDash_%d_%d" % [di, k], Vector3(2.6, 0.035, 0.14), dpos, dash_mat)
 			dash.rotation_degrees = Vector3(0, ang, 0)
 		# Aligned towers along the outer reaches (beyond the dense core).
 		var t2 := -length * 0.5 + 20.0
@@ -2068,8 +1997,8 @@ func _add_diagonal_streets(parent: Node3D) -> void:
 func _add_curved_avenues(parent: Node3D) -> void:
 	# Two sweeping arcs approximated by short tangent-aligned road segments. Outer
 	# reaches carry towers rotated to the local tangent so the curve feels built.
-	var road_mat := _mat(Color(0.03, 0.04, 0.05, 1.0), Color(0.06, 0.20, 0.24, 1.0), 0.2)
-	var dash_mat := _mat(Color(0.7, 0.95, 1.0, 1.0), Color(0.4, 0.85, 1.0, 1.0), 0.9)
+	var road_mat := _matte(Color(0.085, 0.085, 0.09, 1.0), 0.93)
+	var dash_mat := _matte(Color(0.30, 0.295, 0.27, 1.0), 0.84)  # worn white lane paint
 	# [origin_x, origin_z, radius, start_deg, end_deg]
 	var curves := [
 		[220.0, 220.0, 300.0, 182.0, 268.0],
@@ -2095,7 +2024,7 @@ func _add_curved_avenues(parent: Node3D) -> void:
 			if si < seg_count:
 				var road := _add_box(parent, "CurveSeg_%d_%d" % [ci, si], Vector3(seg_len, 0.16, 7.2), pos, road_mat)
 				road.rotation_degrees = Vector3(0, -tangent_deg, 0)
-				var dash := _add_box(parent, "CurveDash_%d_%d" % [ci, si], Vector3(seg_len * 0.5, 0.06, 0.3), pos + Vector3(0, 0.11, 0), dash_mat)
+				var dash := _add_box(parent, "CurveDash_%d_%d" % [ci, si], Vector3(seg_len * 0.30, 0.035, 0.14), pos + Vector3(0, 0.11, 0), dash_mat)
 				dash.rotation_degrees = Vector3(0, -tangent_deg, 0)
 			var r := Vector2(px, pz).length()
 			if r > 118.0 and r < 215.0 and si % 2 == 0:
@@ -2117,7 +2046,7 @@ func _add_irregular_plazas(parent: Node3D) -> void:
 	# converge — built from a few overlapping rotated quads for an irregular
 	# outline, ringed (not filled) with towers and dressed with a beacon + benches.
 	var plaza_mat := _ground_plaza_material()
-	var edge_mat := _mat(Color(0.25, 0.9, 1.0, 1.0), Color(0.2, 0.8, 1.0, 1.0), 0.7)
+	var edge_mat := _matte(Color(0.46, 0.45, 0.43, 1.0), 0.8)  # poured-concrete kerb trim
 	# [cx, cz, base_size, rot]
 	var plazas := [
 		[150.0, 36.0, 30.0, 18.0],
@@ -2146,10 +2075,8 @@ func _add_irregular_plazas(parent: Node3D) -> void:
 			strip.rotation_degrees = Vector3(0, rot, 0)
 			var strip2 := _add_box(parent, "IrrPlazaEdgeZ_%d_%d" % [pidx, int(s)], Vector3(0.3, 0.05, bs), center + Vector3(s * bs * 0.5, 0.04, 0), edge_mat)
 			strip2.rotation_degrees = Vector3(0, rot, 0)
-		var beacon_mat := _mat(Color(0.9, 0.25, 0.75, 1.0), Color(0.7, 0.05, 0.45, 1.0), 0.8)
-		if pidx % 2 == 1:
-			beacon_mat = _mat(Color(0.25, 0.9, 1.0, 1.0), Color(0.15, 0.75, 1.0, 1.0), 0.85)
-		_add_plaza_pylon(parent, Vector3(cx, 0.0, cz), beacon_mat)
+		# Stone commemorative monument at the plaza centre (no glowing beacon).
+		_add_plaza_pylon(parent, Vector3(cx, 0.0, cz))
 		for a in range(6):
 			var ring_ang := float(a) * 60.0 + rot
 			var rad := bs * 0.95
@@ -2170,7 +2097,7 @@ func _add_sidewalks(parent: Node3D) -> void:
 	# Raised sidewalks with a 0.15 m curb along the open mid-block corridors — the
 	# real pedestrian streets that run between building rows at the half-gridlines.
 	var walk_mat := _ground_plaza_material()
-	var curb_mat := _mat(Color(0.06, 0.09, 0.12, 1.0), Color(0.0, 0.5, 0.7, 1.0), 0.4)
+	var curb_mat := _matte(Color(0.30, 0.295, 0.28, 1.0), 0.86)  # weathered concrete curb
 	var corridors := [-55.0, -33.0, -11.0, 11.0, 33.0, 55.0]
 	for c in corridors:
 		for s in [-1.0, 1.0]:
@@ -2178,8 +2105,9 @@ func _add_sidewalks(parent: Node3D) -> void:
 			_add_box(parent, "SidewalkCurbNS_%d_%d" % [int(c), int(s)], Vector3(0.25, 0.17, 220.0), Vector3(c + s * 3.3, 0.085, 0.0), curb_mat)
 			_add_box(parent, "SidewalkEW_%d_%d" % [int(c), int(s)], Vector3(220.0, 0.15, 2.6), Vector3(0.0, 0.075, c + s * 4.6), walk_mat)
 			_add_box(parent, "SidewalkCurbEW_%d_%d" % [int(c), int(s)], Vector3(220.0, 0.17, 0.25), Vector3(0.0, 0.085, c + s * 3.3), curb_mat)
-	# Fresh crosswalks at the mid-block corridor intersections (curb-cut ramps).
-	for c in [-33.0, -11.0, 11.0, 33.0]:
+	# A few muted crosswalks at key mid-block corridor intersections. Too many
+	# repeated bright stripes read like a prototype grid from high cameras.
+	for c in [-11.0, 11.0]:
 		_add_crosswalk(parent, c, true)
 		_add_crosswalk(parent, c, false)
 		for s in [-1.0, 1.0]:
@@ -2189,8 +2117,8 @@ func _add_sidewalks(parent: Node3D) -> void:
 func _add_parking_lots(parent: Node3D) -> void:
 	# Flat asphalt lots with painted stalls + parked cars, dropped onto otherwise
 	# empty lots and one suburban clearing — more grid-breaking open space.
-	var lot_mat := _mat(Color(0.04, 0.045, 0.055, 1.0), Color(0.02, 0.05, 0.07, 1.0), 0.06)
-	var line_mat := _mat(Color(0.85, 0.85, 0.6, 1.0), Color(0.6, 0.6, 0.3, 1.0), 0.5)
+	var lot_mat := _matte(Color(0.09, 0.09, 0.095, 1.0), 0.92)  # asphalt lot
+	var line_mat := _matte(Color(0.34, 0.33, 0.30, 1.0), 0.84)   # faded painted stall lines
 	# [cx, cz, cols, rows, rot]
 	var lots := [
 		[66.0, 0.0, 4, 3, 0.0],
@@ -2387,13 +2315,6 @@ func _add_traffic_light(parent: Node3D, pos: Vector3, rot: float) -> void:
 	holder.position = pos
 	holder.rotation_degrees = Vector3(0, rot, 0)
 	parent.add_child(holder)
-	var glow := OmniLight3D.new()
-	glow.name = "TLGlow"
-	glow.position = Vector3(0, 4.2, 0)
-	glow.light_color = Color(0.1, 0.9, 0.2, 1.0)
-	glow.light_energy = 1.2
-	glow.omni_range = 5.0
-	holder.add_child(glow)
 
 func _add_traffic_light_primitive(parent: Node3D, pos: Vector3, rot: float) -> void:
 	var prop := Node3D.new()
@@ -2416,13 +2337,6 @@ func _add_traffic_light_primitive(parent: Node3D, pos: Vector3, rot: float) -> v
 	# Green (bottom) — brightest, active signal
 	var green_mat := _mat(Color(0.05, 0.5, 0.1, 1.0), Color(0.1, 0.9, 0.2, 1.0), 0.8)
 	_add_box(prop, "TLGreen", Vector3(0.35, 0.3, 0.05), Vector3(2.2, 3.95, 0.18), green_mat)
-	var glow := OmniLight3D.new()
-	glow.name = "TLGlow"
-	glow.position = Vector3(2.2, 3.95, 0.3)
-	glow.light_color = Color(0.1, 0.9, 0.2, 1.0)
-	glow.light_energy = 1.0
-	glow.omni_range = 5.0
-	prop.add_child(glow)
 
 func _add_bench(parent: Node3D, pos: Vector3, rot: float) -> void:
 	var holder := _instance_prop(PROP_DIR + "street/bench_park.glb", "y", 0.95, true)
@@ -2490,8 +2404,8 @@ func _add_trash_bin_primitive(parent: Node3D, pos: Vector3, rot: float) -> void:
 	lid.position = Vector3(0, 1.18, 0)
 	lid.material_override = bin_mat
 	prop.add_child(lid)
-	# Cyan rim
-	var rim := _mat(Color(0.25, 0.9, 1.0, 1.0), Color(0.2, 0.8, 1.0, 1.0), 0.5)
+	# Dark plastic rim; no sci-fi cyan accent.
+	var rim := _matte(Color(0.055, 0.075, 0.065, 1.0), 0.82)
 	_add_box(prop, "TrashBinRim", Vector3(0.96, 0.04, 0.08), Vector3(0, 1.1, 0.46), rim)
 
 func _add_planter(parent: Node3D, pos: Vector3, rot: float) -> void:
@@ -2503,13 +2417,6 @@ func _add_planter(parent: Node3D, pos: Vector3, rot: float) -> void:
 	holder.position = pos
 	holder.rotation_degrees = Vector3(0, rot, 0)
 	parent.add_child(holder)
-	var glow := OmniLight3D.new()
-	glow.name = "PlanterGlow"
-	glow.position = Vector3(0, 0.6, 0)
-	glow.light_color = Color(0.1, 0.5, 0.2, 1.0)
-	glow.light_energy = 0.6
-	glow.omni_range = 3.0
-	holder.add_child(glow)
 
 func _add_planter_primitive(parent: Node3D, pos: Vector3, rot: float) -> void:
 	var prop := Node3D.new()
@@ -2521,7 +2428,7 @@ func _add_planter_primitive(parent: Node3D, pos: Vector3, rot: float) -> void:
 	# Planter box
 	_add_box(prop, "PlanterBox", Vector3(1.2, 0.5, 0.8), Vector3(0, 0.25, 0), box_mat)
 	# Soil/plant mass
-	var plant_mat := _mat(Color(0.05, 0.3, 0.12, 1.0), Color(0.1, 0.5, 0.2, 1.0), 0.3)
+	var plant_mat := _matte(Color(0.05, 0.30, 0.12, 1.0), 0.9)
 	var plant := MeshInstance3D.new()
 	plant.name = "PlanterFoliage"
 	var p_mesh := SphereMesh.new()
@@ -2531,14 +2438,7 @@ func _add_planter_primitive(parent: Node3D, pos: Vector3, rot: float) -> void:
 	plant.position = Vector3(0, 0.7, 0)
 	plant.material_override = plant_mat
 	prop.add_child(plant)
-	# Small glow
-	var glow := OmniLight3D.new()
-	glow.name = "PlanterGlow"
-	glow.position = Vector3(0, 0.7, 0)
-	glow.light_color = Color(0.1, 0.5, 0.2, 1.0)
-	glow.light_energy = 0.6
-	glow.omni_range = 3.0
-	prop.add_child(glow)
+
 
 func _add_scaffolding(parent: Node3D, pos: Vector3, rot: float) -> void:
 	# The source scaffold bay is a wide, short horizontal section; rotate it upright
@@ -2555,7 +2455,7 @@ func _add_scaffolding(parent: Node3D, pos: Vector3, rot: float) -> void:
 	warn.name = "ScaffoldWarnLight"
 	warn.position = Vector3(0, 6.0, 0)
 	warn.light_color = Color(0.9, 0.2, 0.1, 1.0)
-	warn.light_energy = 0.8
+	warn.light_energy = 0.05
 	warn.omni_range = 4.0
 	holder.add_child(warn)
 
@@ -2586,7 +2486,7 @@ func _add_scaffolding_primitive(parent: Node3D, pos: Vector3, rot: float) -> voi
 	warn.name = "ScaffoldWarnLight"
 	warn.position = Vector3(0, 6.2, 0)
 	warn.light_color = Color(0.9, 0.2, 0.1, 1.0)
-	warn.light_energy = 0.8
+	warn.light_energy = 0.05
 	warn.omni_range = 4.0
 	prop.add_child(warn)
 
@@ -2606,7 +2506,7 @@ func _add_barrier_primitive(parent: Node3D, pos: Vector3, rot: float) -> void:
 	prop.position = pos
 	prop.rotation_degrees = Vector3(0, rot, 0)
 	parent.add_child(prop)
-	var bar_mat := _mat(Color(0.15, 0.15, 0.08, 1.0), Color(0.6, 0.45, 0.1, 1.0), 0.2)
+	var bar_mat := _matte(Color(0.42, 0.34, 0.06, 1.0), 0.72)
 	# Base
 	_add_box(prop, "BarrierBase", Vector3(2.0, 0.08, 0.4), Vector3(0, 0.06, 0), bar_mat)
 	# Vertical posts
@@ -2616,7 +2516,7 @@ func _add_barrier_primitive(parent: Node3D, pos: Vector3, rot: float) -> void:
 	_add_box(prop, "BarrierRail", Vector3(2.0, 0.08, 0.08), Vector3(0, 0.9, 0), bar_mat)
 	# Hazard stripes — alternating dark/yellow via 4 small boxes
 	for i in range(4):
-		var stripe_mat := _mat(Color(0.5, 0.4, 0.05, 1.0), Color(0.8, 0.65, 0.1, 1.0), 0.3) if i % 2 == 0 else _mat(Color(0.04, 0.04, 0.02, 1.0), Color(0.0, 0.0, 0.0, 1.0), 0.0)
+		var stripe_mat := _matte(Color(0.62, 0.50, 0.08, 1.0), 0.7) if i % 2 == 0 else _matte(Color(0.04, 0.04, 0.035, 1.0), 0.8)
 		_add_box(prop, "BarrierStripe_%d" % i, Vector3(0.45, 0.25, 0.03), Vector3(-0.7 + float(i) * 0.45, 0.45, 0.18), stripe_mat)
 
 # ── New real-model city props (no prior primitive; fall back to a tinted box) ──
@@ -2627,7 +2527,7 @@ func _add_prop_fallback_box(parent: Node3D, prop_name: String, pos: Vector3, rot
 	holder.position = pos
 	holder.rotation_degrees = Vector3(0, rot, 0)
 	parent.add_child(holder)
-	_add_box(holder, "Body", size, Vector3(0, size.y * 0.5, 0), _mat(emission * 0.4, emission, 0.3))
+	_add_box(holder, "Body", size, Vector3(0, size.y * 0.5, 0), _matte(emission, 0.78, 0.05))
 
 func _add_fire_hydrant(parent: Node3D, pos: Vector3, rot: float) -> void:
 	var holder := _instance_prop(PROP_DIR + "street/fire_hydrant.glb", "y", 1.0, true)
@@ -2648,13 +2548,6 @@ func _add_utility_box(parent: Node3D, pos: Vector3, rot: float) -> void:
 	holder.position = pos
 	holder.rotation_degrees = Vector3(0, rot, 0)
 	parent.add_child(holder)
-	var glow := OmniLight3D.new()
-	glow.name = "UtilityGlow"
-	glow.position = Vector3(0, 1.4, 0)
-	glow.light_color = Color(0.2, 0.8, 1.0, 1.0)
-	glow.light_energy = 0.5
-	glow.omni_range = 3.0
-	holder.add_child(glow)
 
 func _add_news_stand(parent: Node3D, pos: Vector3, rot: float) -> void:
 	var holder := _instance_prop(PROP_DIR + "street/news_stand.glb", "y", 2.6, true)
@@ -2665,13 +2558,6 @@ func _add_news_stand(parent: Node3D, pos: Vector3, rot: float) -> void:
 	holder.position = pos
 	holder.rotation_degrees = Vector3(0, rot, 0)
 	parent.add_child(holder)
-	var glow := OmniLight3D.new()
-	glow.name = "NewsStandGlow"
-	glow.position = Vector3(0, 2.4, 0)
-	glow.light_color = Color(1.0, 0.8, 0.4, 1.0)
-	glow.light_energy = 0.8
-	glow.omni_range = 5.0
-	holder.add_child(glow)
 
 func _add_newspaper_box(parent: Node3D, pos: Vector3, rot: float) -> void:
 	var holder := _instance_prop(PROP_DIR + "street/newspaper_box.glb", "y", 1.5, true)
