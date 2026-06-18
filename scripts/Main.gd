@@ -3073,10 +3073,111 @@ func _add_reference_capture_scene(parent: Node3D) -> void:
 	var ref := Node3D.new()
 	ref.name = "ReferenceCaptureAssetCity"
 	parent.add_child(ref)
+	# Ground cover goes down first so the freeway/buildings/props sit on a fully paved
+	# metropolitan floor instead of the bare tan ground plane that dominated the old
+	# side thirds of the frame.
+	_add_city_kit_ground_cover(ref)
 	_add_city_kit_freeway_foreground(ref)
 	_add_city_kit_skyline_blocks(ref)
+	_add_city_kit_dense_sides(ref)
+	_add_city_kit_horizon_fill(ref)
 	_add_city_kit_street_life(ref)
+	_add_city_kit_street_detailing(ref)
 	_add_sun_flare_capture_only()
+
+func _add_city_kit_ground_cover(parent: Node3D) -> void:
+	# Capture-only paved floor. The old city postcard exposed the bare tan ground
+	# plane across the left/right foreground thirds; here a cool dark-asphalt street
+	# slab fills the whole visible footprint, raised concrete sidewalks flank the
+	# freeway where the buildings sit, a downtown plaza joins the freeway to the
+	# skyline base, and worn paint/crosswalks break up the foreground. Everything is
+	# flat non-building geometry (simple meshes + a few Road Kit pieces), so it stays
+	# headless-safe and never reads as procedural skyline.
+	var ground := Node3D.new()
+	ground.name = "KenneyCityKit_GroundCover"
+	parent.add_child(ground)
+	# Cool, slightly desaturated asphalt so the lower frame reads as wet-free city
+	# tarmac at golden hour rather than the warm desert-brown of the old ground plane.
+	var street := _matte(Color(0.105, 0.110, 0.125, 1.0), 0.93)
+	var sidewalk := _matte(Color(0.44, 0.43, 0.41, 1.0), 0.82)
+	var kerb := _matte(Color(0.56, 0.55, 0.52, 1.0), 0.78)
+	var plaza := _matte(Color(0.40, 0.395, 0.385, 1.0), 0.8)
+	# One large street slab covering the entire camera footprint (top ~0.40, flush
+	# with the Road Kit deck) so no ground plane shows around the freeway and blocks.
+	# Sized to blanket the whole ground-plane footprint within the wide capture FOV so
+	# neither the near corners nor the far-right horizon gap show bare tan; the distant
+	# edge fades into the warm aerial fog instead of a hard brown band.
+	_add_box(ground, "CaptureStreetFloor", Vector3(640.0, 0.5, 640.0), Vector3(0.0, 0.15, 30.0), street)
+	# Low-contrast asphalt seams/wear over the giant slab. These are deliberately
+	# geometric, not glowing: they break up the single-sheet look that QA caught while
+	# keeping the base surface cheap and headless-safe.
+	var asphalt_seam := _matte(Color(0.055, 0.058, 0.065, 1.0), 0.97)
+	var asphalt_wear := _matte(Color(0.155, 0.150, 0.145, 1.0), 0.94)
+	for si in range(13):
+		var seam_z := -196.0 + float(si) * 23.0
+		_add_box(ground, "CaptureAsphaltExpansion_%d" % si, Vector3(158.0, 0.035, 0.42), Vector3(0.0, 0.425, seam_z), asphalt_seam)
+		if si % 2 == 0:
+			_add_box(ground, "CaptureAsphaltWear_%d" % si, Vector3(32.0, 0.03, 1.8), Vector3(-18.0 + float(si % 5) * 8.0, 0.43, seam_z + 7.0), asphalt_wear)
+	for sx in [-54.0, -36.0, 36.0, 54.0, 96.0, -96.0]:
+		_add_box(ground, "CaptureLongPavementJoint_%d" % int(sx), Vector3(0.32, 0.035, 238.0), Vector3(sx, 0.426, -48.0), asphalt_seam)
+	# Raised sidewalks flanking the freeway — the paved band the side blocks rise from.
+	for side in [-1.0, 1.0]:
+		_add_box(ground, "CaptureSidewalk_%d" % int(side), Vector3(58.0, 0.62, 168.0), Vector3(side * 65.0, 0.30, -72.0), sidewalk)
+		# Inner kerb line where the sidewalk meets the freeway shoulder.
+		_add_box(ground, "CaptureKerb_%d" % int(side), Vector3(0.7, 0.66, 168.0), Vector3(side * 37.0, 0.32, -72.0), kerb)
+		# Far set-back sidewalk for the second building row.
+		_add_box(ground, "CaptureSidewalkFar_%d" % int(side), Vector3(34.0, 0.6, 150.0), Vector3(side * 104.0, 0.29, -64.0), sidewalk)
+		# Sidewalk slab joints + building-base shadow strips anchor the imported kit
+		# facades. Without these, the pale blocks read as floating on a tan/pink void.
+		for sj in range(9):
+			var joint_z := -152.0 + float(sj) * 22.0
+			_add_box(ground, "CaptureSidewalkJoint_%d_%d" % [int(side), sj], Vector3(58.0, 0.035, 0.22), Vector3(side * 65.0, 0.625, joint_z), asphalt_seam)
+			_add_box(ground, "CaptureFarSidewalkJoint_%d_%d" % [int(side), sj], Vector3(34.0, 0.035, 0.22), Vector3(side * 104.0, 0.615, joint_z), asphalt_seam)
+		_add_box(ground, "CaptureInnerBuildingContact_%d" % int(side), Vector3(5.5, 0.045, 178.0), Vector3(side * 49.5, 0.64, -66.0), asphalt_seam)
+		_add_box(ground, "CaptureOuterBuildingContact_%d" % int(side), Vector3(6.0, 0.045, 178.0), Vector3(side * 88.0, 0.62, -60.0), asphalt_seam)
+	# Downtown plaza joining the freeway head to the skyline base.
+	_add_box(ground, "CapturePlaza", Vector3(150.0, 0.56, 46.0), Vector3(0.0, 0.27, 8.0), plaza)
+	# Foreground crosswalk + worn paint on the near asphalt so the lower third reads
+	# as a real road approach, not a flat slab.
+	var paint := _matte(Color(0.50, 0.49, 0.45, 1.0), 0.86)
+	for cx in range(-7, 8):
+		_add_box(ground, "CaptureCross_%d" % cx, Vector3(1.5, 0.04, 6.0), Vector3(float(cx) * 3.7, 0.42, -168.0), paint)
+	for lx in [-27.0, -9.0, 9.0, 27.0]:
+		var zz := -196.0
+		var di := 0
+		while zz < -158.0:
+			_add_box(ground, "CaptureApronDash_%d_%d" % [int(lx), di], Vector3(0.26, 0.04, 4.6), Vector3(lx, 0.42, zz), paint)
+			zz += 9.0
+			di += 1
+	# A few Road Kit zebra crossings keep the cover asset-based at the freeway head.
+	for zx in [-18.0, 0.0, 18.0]:
+		_add_city_kit_road(ground, "road-crossing.glb", "CaptureCrossingTile_%d" % int(zx), Vector3(zx, 0.02, -6.0), 0.0, 18.0)
+
+func _add_city_kit_dense_sides(parent: Node3D) -> void:
+	# Two flanking rows of imported low/mid-rise kit blocks down each side of the
+	# freeway, turning the empty side thirds into a continuous street canyon with real
+	# depth layering. Inner row sits on the raised sidewalk facing the road; the taller
+	# outer row reads behind it. All blocks stay outside the x=±36 freeway lanes.
+	var blocks := Node3D.new()
+	blocks.name = "KenneyCityKit_DenseSides"
+	parent.add_child(blocks)
+	for side in [-1, 1]:
+		var sf := float(side)
+		# Inner row: low-detail storefront blocks lining the sidewalk, z from the near
+		# foreground up to the downtown base.
+		for r in range(8):
+			var z := -150.0 + float(r) * 21.0
+			var asset := str(CITY_KIT_LOW_DETAIL_VARIANTS[(r * 2 + (0 if side < 0 else 5)) % CITY_KIT_LOW_DETAIL_VARIANTS.size()])
+			var fp := 15.0 + float(r % 3) * 2.0
+			var ys := 1.0 + float((r + side) % 4) * 0.4
+			_add_city_kit_building(blocks, asset, "SideInner_%d_%d" % [side, r], Vector3(sf * (50.0 + float(r % 2) * 4.0), 0.0, z), fp, ys, sf * -6.0)
+		# Outer row: taller mid-rise/commercial blocks set back behind the inner row.
+		for r in range(6):
+			var z := -138.0 + float(r) * 27.0
+			var asset := str(CITY_KIT_MIDRISE_VARIANTS[(r * 3 + (1 if side < 0 else 8)) % CITY_KIT_MIDRISE_VARIANTS.size()])
+			var fp := 17.0 + float(r % 3) * 2.0
+			var ys := 1.7 + float((r * 2 + side) % 5) * 0.35
+			_add_city_kit_building(blocks, asset, "SideOuter_%d_%d" % [side, r], Vector3(sf * (88.0 + float(r % 2) * 8.0), 0.0, z), fp, ys, sf * -4.0)
 
 func _add_city_kit_road(parent: Node3D, asset_name: String, node_name: String, pos: Vector3, rot_y: float, target_size: float, y_offset: float = 0.0) -> Node3D:
 	var holder := _instance_prop(CITY_KIT_ROAD_DIR + asset_name, "x", target_size, true)
@@ -3281,6 +3382,128 @@ func _add_city_kit_street_life(parent: Node3D) -> void:
 		if i % 2 == 0:
 			_add_tree(life, "AssetStreetTreeL_%d" % i, Vector3(-48.0, 0.0, z + 6.0), i % TREE_VARIANTS.size())
 			_add_tree(life, "AssetStreetTreeR_%d" % i, Vector3(48.0, 0.0, z - 6.0), (i + 1) % TREE_VARIANTS.size())
+	# Road Kit lamp standards down the freeway shoulders add scale and vertical rhythm
+	# between the streetlights, then sidewalk furniture (benches, planters, bins,
+	# hydrants, news stands) and cafe parasols dress the flanking sidewalks so the
+	# side thirds read as inhabited street, not bare blocks.
+	for i in range(8):
+		var z := -150.0 + float(i) * 20.0
+		var lamp := "light-square-double.glb" if i % 2 == 0 else "light-curved-double.glb"
+		_add_city_kit_road_prop(life, lamp, "AssetLampL_%d" % i, Vector3(-38.0, 0.6, z), 90.0, "y", 7.4)
+		_add_city_kit_road_prop(life, lamp, "AssetLampR_%d" % i, Vector3(38.0, 0.6, z), -90.0, "y", 7.4)
+	for i in range(7):
+		var z := -144.0 + float(i) * 22.0
+		var lf := -44.0
+		var rf := 44.0
+		match i % 4:
+			0:
+				_add_bench(life, Vector3(lf, 0.6, z), 90.0)
+				_add_planter(life, Vector3(rf, 0.6, z), 0.0)
+			1:
+				_add_news_stand(life, Vector3(lf, 0.6, z), 90.0)
+				_add_trash_bin(life, Vector3(rf, 0.6, z), 0.0)
+			2:
+				_add_planter(life, Vector3(lf, 0.6, z), 0.0)
+				_add_fire_hydrant(life, Vector3(rf, 0.6, z), 0.0)
+			3:
+				_add_trash_bin(life, Vector3(lf, 0.6, z), 0.0)
+				_add_bench(life, Vector3(rf, 0.6, z), -90.0)
+	for i in range(6):
+		var asset := "detail-parasol-a.glb" if i % 2 == 0 else "detail-parasol-b.glb"
+		var side := -1.0 if i % 2 == 0 else 1.0
+		_add_city_kit_detail(life, asset, "AssetSidewalkCafe_%d" % i, Vector3(side * 42.0, 0.6, -120.0 + float(i) * 30.0), float(i) * 41.0, "y", 3.4)
+	# A couple more vehicles on the foreground apron approaching the crosswalk.
+	_add_car(life, "AssetApronCar_0", Vector3(-9.0, 0.42, -176.0), 0.0, 1)
+	_add_car(life, "AssetApronCar_1", Vector3(9.0, 0.42, -188.0), 180.0, 2)
+	_add_car(life, "AssetApronCar_2", Vector3(27.0, 0.42, -182.0), 0.0, 0)
+
+func _add_city_kit_horizon_fill(parent: Node3D) -> void:
+	# Capture-only deep-background fill. The wide 78° FOV city frame exposed a bare
+	# tan ground/horizon wedge on the flanks (clearest on the right) where the
+	# foreground side rows stop and the distant downtown cluster has not yet begun.
+	# These set-back imported kit rows extend the canyon walls continuously into the
+	# midground on both sides and seal the horizon with a wide low-rise band, so no
+	# desert ground shows past the city. All rows stay well outside the freeway lanes.
+	var fill := Node3D.new()
+	fill.name = "KenneyCityKit_HorizonFill"
+	parent.add_child(fill)
+	# Solid lateral periphery: a multi-column grid of set-back imported blocks filling
+	# the entire flank from the near foreground through the midground on each side, so
+	# the wide-angle screen edges never open onto bare horizon ground (the right-side
+	# tan wedge). Columns march outward and rows span the full visible depth.
+	for side in [-1, 1]:
+		var sf := float(side)
+		for cx in range(4):
+			var x := sf * (100.0 + float(cx) * 40.0)
+			for rz in range(11):
+				var z := -140.0 + float(rz) * 30.0
+				var asset := str(CITY_KIT_MIDRISE_VARIANTS[absi(cx * 7 + rz * 3 + (side + 1) * 5) % CITY_KIT_MIDRISE_VARIANTS.size()])
+				var fp := 17.0 + float((cx + rz) % 4) * 3.0
+				var ys := 1.5 + float(absi(cx * 2 + rz + side) % 5) * 0.5
+				_add_city_kit_building(fill, asset, "Periphery_%d_%d_%d" % [side, cx, rz], Vector3(x, 0.0, z), fp, ys, sf * float((rz % 3) - 1) * 4.0)
+		# A taller outer skyscraper screen catches the very widest viewing angle.
+		for r in range(6):
+			var z := 30.0 + float(r) * 28.0
+			var x := sf * (228.0 + float(r % 2) * 22.0)
+			var asset := str(CITY_KIT_SKYSCRAPER_VARIANTS[(r + (1 if side < 0 else 3)) % CITY_KIT_SKYSCRAPER_VARIANTS.size()])
+			_add_city_kit_building(fill, asset, "FlankScreen_%d_%d" % [side, r], Vector3(x, 0.0, z), 16.0 + float(r % 2) * 3.0, 1.4 + float(r % 3) * 0.3, sf * 6.0)
+	# Continuous low-rise horizon band sealing the gap between the downtown cluster and
+	# the existing distant skyline; spans the full frame width so neither flank shows
+	# horizon ground at any camera angle. It fades into the warm aerial fog far back.
+	var bx := -276.0
+	var bi := 0
+	while bx <= 276.0:
+		var asset := str(CITY_KIT_LOW_DETAIL_VARIANTS[absi(bi * 5 + 3) % CITY_KIT_LOW_DETAIL_VARIANTS.size()])
+		var z := 150.0 + float(absi(bi) % 3) * 12.0
+		var ys := 1.2 + float(absi(bi * 3) % 4) * 0.3
+		_add_city_kit_building(fill, asset, "HorizonBand_%d" % bi, Vector3(bx, 0.0, z), 20.0 + float(absi(bi) % 3) * 3.0, ys, float(bi % 4) * 3.0)
+		bx += 18.0
+		bi += 1
+
+func _add_city_kit_street_detailing(parent: Node3D) -> void:
+	# Capture-only foreground enrichment so the freeway reads as a landscaped divided
+	# boulevard instead of a sterile slab. A raised planted central median runs the
+	# length of the carriageway as a strong converging leading line, brighter curb
+	# caps sharpen the sidewalk separation, and larger imported signs/planters/barriers
+	# sit where the low near-eye camera reads them big. The median occupies only the
+	# centre lane gap (x≈0, never a travel lane); all furniture sits off the lanes.
+	var dress := Node3D.new()
+	dress.name = "KenneyCityKit_StreetDetailing"
+	parent.add_child(dress)
+	var concrete := _matte(Color(0.50, 0.49, 0.46, 1.0), 0.82)
+	var curb_cap := _matte(Color(0.62, 0.61, 0.57, 1.0), 0.70)
+	var hedge := _matte(Color(0.16, 0.30, 0.13, 1.0), 0.90)
+	# Raised planted central median between the opposing inner lanes: concrete kerb +
+	# a continuous clipped hedge + spaced real planters so the centre reads as a green
+	# divider sweeping north to the skyline.
+	_add_box(dress, "MedianKerb", Vector3(2.2, 0.6, 150.0), Vector3(0.0, 0.45, -80.0), concrete)
+	_add_box(dress, "MedianKerbCap", Vector3(2.4, 0.12, 150.0), Vector3(0.0, 0.78, -80.0), curb_cap)
+	var mz := -150.0
+	var mi := 0
+	while mz < -10.0:
+		_add_box(dress, "MedianHedge_%d" % mi, Vector3(1.7, 0.95, 5.2), Vector3(0.0, 1.0, mz), hedge)
+		if mi % 3 == 0:
+			_add_planter(dress, Vector3(0.0, 0.78, mz + 2.6), 0.0)
+		mz += 7.0
+		mi += 1
+	# Brighter raised curb caps over the freeway-shoulder kerbs so the sidewalk/road
+	# separation the flat slab lost at distance reads sharply again.
+	for side in [-1.0, 1.0]:
+		_add_box(dress, "ShoulderCurbCap_%d" % int(side), Vector3(0.8, 0.16, 168.0), Vector3(side * 37.0, 0.66, -72.0), curb_cap)
+	# Larger prominent foreground furniture on the near sidewalks where the low camera
+	# reads it big: overhead-scale highway signs, planters and barriers.
+	_add_city_kit_road_prop(dress, "sign-highway-wide.glb", "ApronSignL", Vector3(-44.0, 0.0, -150.0), 25.0, "y", 9.4)
+	_add_city_kit_road_prop(dress, "sign-highway-detailed.glb", "ApronSignR", Vector3(46.0, 0.0, -138.0), -20.0, "y", 8.6)
+	for i in range(6):
+		var z := -176.0 + float(i) * 30.0
+		var side := -1.0 if i % 2 == 0 else 1.0
+		_add_planter(dress, Vector3(side * 42.0, 0.6, z), 0.0)
+		_add_barrier(dress, Vector3(side * 38.0, 0.6, z + 6.0), 0.0)
+	# Big foreground apron planters flanking the crosswalk approach, large and close so
+	# the lower frame carries significant set dressing instead of bare paint.
+	for px in [-48.0, -40.0, 40.0, 48.0]:
+		_add_box(dress, "ApronPlanterBox_%d" % int(px), Vector3(3.2, 0.9, 3.2), Vector3(px, 0.6, -182.0), concrete)
+		_add_box(dress, "ApronPlanterGreen_%d" % int(px), Vector3(2.8, 0.8, 2.8), Vector3(px, 1.25, -182.0), hedge)
 
 func _add_reference_foreground_freeway(parent: Node3D) -> void:
 	# A wide, multilane surface freeway running north up the centre of the frame,
