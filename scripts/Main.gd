@@ -68,6 +68,29 @@ var _cleanup_tweens: Array[Tween] = []
 # caches the PackedScenes; every _add_* prop builder instances the real model and
 # falls back to a primitive build if its GLB is missing or fails to import.
 const PROP_DIR := "res://assets/3d/props/"
+const CITY_KIT_BUILDING_DIR := "res://assets/3d/kenney_city/commercial/"
+const CITY_KIT_ROAD_DIR := "res://assets/3d/kenney_city/roads/"
+const CITY_KIT_SKYSCRAPER_VARIANTS := [
+	"building-skyscraper-a.glb",
+	"building-skyscraper-b.glb",
+	"building-skyscraper-c.glb",
+	"building-skyscraper-d.glb",
+	"building-skyscraper-e.glb",
+]
+const CITY_KIT_MIDRISE_VARIANTS := [
+	"building-a.glb", "building-b.glb", "building-c.glb", "building-d.glb",
+	"building-e.glb", "building-f.glb", "building-g.glb", "building-h.glb",
+	"building-i.glb", "building-j.glb", "building-k.glb", "building-l.glb",
+	"building-m.glb", "building-n.glb",
+]
+const CITY_KIT_LOW_DETAIL_VARIANTS := [
+	"low-detail-building-a.glb", "low-detail-building-b.glb", "low-detail-building-c.glb",
+	"low-detail-building-d.glb", "low-detail-building-e.glb", "low-detail-building-f.glb",
+	"low-detail-building-g.glb", "low-detail-building-h.glb", "low-detail-building-i.glb",
+	"low-detail-building-j.glb", "low-detail-building-k.glb", "low-detail-building-l.glb",
+	"low-detail-building-m.glb", "low-detail-building-n.glb", "low-detail-building-wide-a.glb",
+	"low-detail-building-wide-b.glb",
+]
 var _prop_scene_cache: Dictionary = {}
 
 # Focused gameplay systems, wired in _ready.
@@ -574,7 +597,10 @@ func _build_city() -> void:
 		_add_curved_avenues(district)
 		_add_irregular_plazas(district)
 		_add_parking_lots(district)
-	_add_distant_skyline(district)
+	if capture_city:
+		_add_city_kit_distant_skyline(district)
+	else:
+		_add_distant_skyline(district)
 	_add_haze_layers(district)
 	if not capture_city:
 		_add_highway_interchange(district)
@@ -3045,11 +3071,216 @@ func _add_palm_tree(parent: Node3D, pos: Vector3, variant: int) -> void:
 
 func _add_reference_capture_scene(parent: Node3D) -> void:
 	var ref := Node3D.new()
-	ref.name = "ReferenceCaptureDressing"
+	ref.name = "ReferenceCaptureAssetCity"
 	parent.add_child(ref)
-	_add_reference_foreground_freeway(ref)
-	_add_reference_landmark_cluster(ref)
+	_add_city_kit_freeway_foreground(ref)
+	_add_city_kit_skyline_blocks(ref)
+	_add_city_kit_street_life(ref)
 	_add_sun_flare_capture_only()
+
+func _add_city_kit_road(parent: Node3D, asset_name: String, node_name: String, pos: Vector3, rot_y: float, target_size: float, y_offset: float = 0.0) -> Node3D:
+	var holder := _instance_prop(CITY_KIT_ROAD_DIR + asset_name, "x", target_size, true)
+	if holder == null:
+		push_warning("City road kit asset failed: " + CITY_KIT_ROAD_DIR + asset_name)
+		return null
+	holder.name = node_name
+	holder.position = pos + Vector3(0.0, y_offset, 0.0)
+	holder.rotation_degrees = Vector3(0.0, rot_y, 0.0)
+	parent.add_child(holder)
+	return holder
+
+func _add_city_kit_road_prop(parent: Node3D, asset_name: String, node_name: String, pos: Vector3, rot_y: float, fit_axis: String, target_size: float) -> Node3D:
+	var holder := _instance_prop(CITY_KIT_ROAD_DIR + asset_name, fit_axis, target_size, true)
+	if holder == null:
+		push_warning("City road prop asset failed: " + CITY_KIT_ROAD_DIR + asset_name)
+		return null
+	holder.name = node_name
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0.0, rot_y, 0.0)
+	parent.add_child(holder)
+	return holder
+
+func _add_city_kit_building(parent: Node3D, asset_name: String, node_name: String, pos: Vector3, footprint: float, vertical_scale: float, rot_y: float) -> Node3D:
+	var holder := _instance_prop(CITY_KIT_BUILDING_DIR + asset_name, "x", footprint, true)
+	if holder == null:
+		push_warning("City building kit asset failed: " + CITY_KIT_BUILDING_DIR + asset_name)
+		return null
+	holder.name = node_name
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0.0, rot_y, 0.0)
+	# Keep the imported facade/window/awning geometry but stretch the Godot holder in
+	# Y so the kit pieces form a GTA-style downtown skyline instead of identical toy
+	# blocks. The source model is still the visible city asset; no BoxMesh skyline.
+	holder.scale.y *= vertical_scale
+	parent.add_child(holder)
+	return holder
+
+func _add_city_kit_detail(parent: Node3D, asset_name: String, node_name: String, pos: Vector3, rot_y: float, fit_axis: String, target_size: float) -> Node3D:
+	var holder := _instance_prop(CITY_KIT_BUILDING_DIR + asset_name, fit_axis, target_size, true)
+	if holder == null:
+		push_warning("City detail kit asset failed: " + CITY_KIT_BUILDING_DIR + asset_name)
+		return null
+	holder.name = node_name
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0.0, rot_y, 0.0)
+	parent.add_child(holder)
+	return holder
+
+func _add_city_kit_freeway_foreground(parent: Node3D) -> void:
+	# City Kit Roads replaces the old handmade freeway boxes: four parallel tiled
+	# road strips, an asset overpass, bridge pillars, highway signs, barriers and
+	# construction props. This keeps the showcase city model-based, not procedural.
+	var freeway := Node3D.new()
+	freeway.name = "KenneyCityKit_FreewayForeground"
+	parent.add_child(freeway)
+	var tile_size := 18.0
+	var lane_xs := [-27.0, -9.0, 9.0, 27.0]
+	var zs := [-154.0, -136.0, -118.0, -100.0, -82.0, -64.0, -46.0, -28.0, -10.0]
+	for zi in range(zs.size()):
+		for xi in range(lane_xs.size()):
+			var road_asset := "road-straight.glb"
+			if xi == 0 or xi == lane_xs.size() - 1:
+				road_asset = "road-straight-barrier.glb"
+			if zi == 0:
+				road_asset = "road-crossroad-line.glb"
+			elif zi == 2 and (xi == 1 or xi == 2):
+				road_asset = "road-side-entry.glb"
+			_add_city_kit_road(freeway, road_asset, "FreewayTile_%d_%d" % [xi, zi], Vector3(float(lane_xs[xi]), 0.02, float(zs[zi])), 0.0, tile_size)
+	# Asset-built lateral overpass crossing the foreground freeway.
+	for xi in range(-4, 5):
+		var asset := "road-bridge.glb" if xi >= -2 and xi <= 2 else "road-straight-barrier.glb"
+		_add_city_kit_road(freeway, asset, "FreewayOverpass_%d" % xi, Vector3(float(xi) * tile_size, 0.0, -57.0), 90.0, tile_size, 5.4)
+	for px in [-58.0, -28.0, 0.0, 28.0, 58.0]:
+		_add_city_kit_road_prop(freeway, "bridge-pillar-wide.glb", "OverpassPillar_%d" % int(px), Vector3(px, 0.04, -57.0), 0.0, "y", 5.4)
+	# Curved/sloped ramps give the foreground the stacked-interchange read of the reference.
+	_add_city_kit_road(freeway, "road-slant-high.glb", "RampLeftHigh", Vector3(-75.0, 0.0, -75.0), 0.0, tile_size, 2.6)
+	_add_city_kit_road(freeway, "road-slant-high-barrier.glb", "RampRightHigh", Vector3(75.0, 0.0, -75.0), 180.0, tile_size, 2.6)
+	_add_city_kit_road(freeway, "road-slant-curve.glb", "RampLeftCurve", Vector3(-75.0, 0.0, -93.0), 0.0, tile_size, 1.2)
+	_add_city_kit_road(freeway, "road-slant-curve-barrier.glb", "RampRightCurve", Vector3(75.0, 0.0, -93.0), 180.0, tile_size, 1.2)
+	_add_city_kit_road_prop(freeway, "sign-highway-wide.glb", "HighwaySignNear", Vector3(-20.0, 0.0, -120.0), 0.0, "y", 8.2)
+	_add_city_kit_road_prop(freeway, "sign-highway-detailed.glb", "HighwaySignFar", Vector3(22.0, 0.0, -37.0), 0.0, "y", 7.2)
+	for i in range(8):
+		var side := -1.0 if i % 2 == 0 else 1.0
+		var px := side * (35.0 + float(i % 3) * 5.0)
+		var pz := -150.0 + float(i) * 17.0
+		_add_city_kit_road_prop(freeway, "construction-cone.glb", "FreewayCone_%d" % i, Vector3(px, 0.0, pz), float(i) * 35.0, "y", 1.0)
+		if i % 3 == 0:
+			_add_city_kit_road_prop(freeway, "construction-barrier.glb", "FreewayBarrierAsset_%d" % i, Vector3(px + side * 2.5, 0.0, pz + 3.0), 90.0, "x", 3.0)
+	_add_city_kit_freeway_markings(freeway)
+
+func _add_city_kit_freeway_markings(parent: Node3D) -> void:
+	# Thin paint-only helpers over the imported Road Kit deck. The road geometry stays
+	# model-based; these make the lanes read at screenshot distance where the low-poly
+	# road material alone can collapse into a pale slab.
+	var white := _matte(Color(0.50, 0.49, 0.45, 1.0), 0.88)
+	var yellow := _matte(Color(0.44, 0.35, 0.10, 1.0), 0.86)
+	for ex in [-35.5, 35.5]:
+		_add_box(parent, "AssetFwyEdgePaint_%d" % int(ex), Vector3(0.35, 0.035, 142.0), Vector3(ex, 0.44, -82.0), white)
+	for lx in [-18.0, 0.0, 18.0]:
+		var zz := -151.0
+		var idx := 0
+		while zz < -12.0:
+			_add_box(parent, "AssetFwyDash_%d_%d" % [int(lx), idx], Vector3(0.26, 0.035, 4.8), Vector3(lx, 0.45, zz), white if lx != 0.0 else yellow)
+			zz += 9.0
+			idx += 1
+	for spec in [[-27.0, -134.0], [-9.0, -104.0], [9.0, -122.0], [27.0, -88.0]]:
+		_add_lane_arrow(parent, Vector3(float(spec[0]), 0.45, float(spec[1])))
+
+func _add_city_kit_skyline_blocks(parent: Node3D) -> void:
+	var skyline := Node3D.new()
+	skyline.name = "KenneyCityKit_DowntownSkyline"
+	parent.add_child(skyline)
+	var hero_specs := [
+		["building-skyscraper-d.glb", -84.0, 34.0, 23.0, 1.45, -8.0],
+		["building-skyscraper-b.glb", -55.0, 68.0, 19.0, 1.55, 6.0],
+		["building-skyscraper-e.glb", -22.0, 88.0, 18.0, 1.35, -4.0],
+		["building-skyscraper-c.glb", 14.0, 76.0, 17.0, 1.30, 3.0],
+		["building-skyscraper-a.glb", 49.0, 62.0, 16.0, 1.42, -6.0],
+		["building-skyscraper-b.glb", 76.0, 92.0, 18.0, 1.50, 7.0],
+	]
+	for i in range(hero_specs.size()):
+		var s: Array = hero_specs[i]
+		_add_city_kit_building(skyline, str(s[0]), "HeroAssetTower_%d" % i, Vector3(float(s[1]), 0.0, float(s[2])), float(s[3]), float(s[4]), float(s[5]))
+	# Dense mid-rise blocks in front and between hero towers. Hand-placed, not grid-random.
+	var mid_specs := [
+		[-102.0, 78.0, 15.0, 2.0, -10.0], [-72.0, 104.0, 13.0, 2.3, 8.0],
+		[-40.0, 118.0, 14.0, 2.5, -4.0], [-8.0, 126.0, 15.0, 2.2, 6.0],
+		[24.0, 114.0, 13.0, 2.4, -9.0], [56.0, 106.0, 14.0, 2.1, 5.0],
+		[94.0, 76.0, 15.0, 2.0, -6.0], [-118.0, 34.0, 14.0, 1.7, 2.0],
+		[112.0, 38.0, 14.0, 1.8, -3.0], [-52.0, 22.0, 13.0, 1.6, 0.0],
+		[45.0, 24.0, 13.0, 1.7, 0.0], [-18.0, 36.0, 12.0, 1.5, 4.0],
+		[18.0, 40.0, 12.0, 1.5, -4.0],
+	]
+	for i in range(mid_specs.size()):
+		var s: Array = mid_specs[i]
+		var asset := str(CITY_KIT_MIDRISE_VARIANTS[i % CITY_KIT_MIDRISE_VARIANTS.size()])
+		_add_city_kit_building(skyline, asset, "MidriseAssetBlock_%d" % i, Vector3(float(s[0]), 0.0, float(s[1])), float(s[2]), float(s[3]), float(s[4]))
+	# Low foreground city blocks along the freeway shoulders cover the empty ground.
+	for side in [-1, 1]:
+		for row in range(6):
+			var asset := str(CITY_KIT_LOW_DETAIL_VARIANTS[(row + (0 if side < 0 else 7)) % CITY_KIT_LOW_DETAIL_VARIANTS.size()])
+			var x := float(side) * (52.0 + float(row % 2) * 12.0)
+			var z := -132.0 + float(row) * 29.0
+			_add_city_kit_building(skyline, asset, "FreewayShoulderBlock_%d_%d" % [side, row], Vector3(x, 0.0, z), 16.0 + float(row % 3) * 2.0, 1.15 + float(row % 3) * 0.35, float(side) * 4.0)
+	_add_city_kit_facade_details(skyline)
+
+func _add_city_kit_facade_details(parent: Node3D) -> void:
+	# Visible imported commercial-kit accessories at street level keep the postcard
+	# from reading as bare stretched prisms: awnings, overhangs, cafe parasols and
+	# small storefront color accents along the freeway-facing blocks.
+	var awnings := [
+		["detail-awning-wide.glb", -64.0, -124.0, 0.0, 6.0],
+		["detail-overhang-wide.glb", 64.0, -96.0, 180.0, 7.0],
+		["detail-awning.glb", -52.0, -65.0, 0.0, 4.4],
+		["detail-overhang.glb", 52.0, -38.0, 180.0, 4.8],
+		["detail-awning-wide.glb", -118.0, 31.0, 90.0, 5.6],
+		["detail-overhang-wide.glb", 112.0, 35.0, -90.0, 6.4],
+	]
+	for i in range(awnings.size()):
+		var a: Array = awnings[i]
+		_add_city_kit_detail(parent, str(a[0]), "ImportedStorefrontDetail_%d" % i, Vector3(float(a[1]), 3.2, float(a[2])), float(a[3]), "x", float(a[4]))
+	for i in range(6):
+		var asset := "detail-parasol-a.glb" if i % 2 == 0 else "detail-parasol-b.glb"
+		var x := -38.0 + float(i) * 15.0
+		var z := -18.0 + float(i % 3) * 14.0
+		_add_city_kit_detail(parent, asset, "ImportedSidewalkParasol_%d" % i, Vector3(x, 0.0, z), float(i) * 27.0, "y", 3.2)
+
+func _add_city_kit_distant_skyline(parent: Node3D) -> void:
+	var far := Node3D.new()
+	far.name = "KenneyCityKit_DistantSkyline"
+	parent.add_child(far)
+	for i in range(-9, 10):
+		var idx := absi(i * 3 + 11) % CITY_KIT_LOW_DETAIL_VARIANTS.size()
+		var x := float(i) * 24.0
+		var z := 178.0 + float(absi(i) % 3) * 11.0
+		var footprint := 18.0 + float(absi(i) % 4) * 2.0
+		var yscale := 1.1 + float(absi(i * 5) % 4) * 0.22
+		_add_city_kit_building(far, str(CITY_KIT_LOW_DETAIL_VARIANTS[idx]), "FarAssetSkyline_%d" % i, Vector3(x, 0.0, z), footprint, yscale, float(i % 3) * 4.0)
+	for i in range(-5, 6):
+		var idx := absi(i * 7 + 2) % CITY_KIT_SKYSCRAPER_VARIANTS.size()
+		var x := float(i) * 42.0
+		var z := 220.0 + float(absi(i) % 2) * 16.0
+		_add_city_kit_building(far, str(CITY_KIT_SKYSCRAPER_VARIANTS[idx]), "FarAssetTower_%d" % i, Vector3(x, 0.0, z), 13.0, 1.1 + float(absi(i) % 3) * 0.18, float(i % 2) * 5.0)
+
+func _add_city_kit_street_life(parent: Node3D) -> void:
+	var life := Node3D.new()
+	life.name = "KenneyCityKit_StreetLife"
+	parent.add_child(life)
+	var car_specs := [
+		[-18.0, -143.0, 180.0, 0], [-8.0, -116.0, 180.0, 1], [9.0, -134.0, 0.0, 2],
+		[27.0, -96.0, 0.0, 1], [-27.0, -72.0, 180.0, 2], [8.0, -42.0, 0.0, 0],
+		[54.0, -16.0, 90.0, 1], [-56.0, 8.0, -90.0, 2],
+	]
+	for i in range(car_specs.size()):
+		var s: Array = car_specs[i]
+		_add_car(life, "AssetTrafficCar_%d" % i, Vector3(float(s[0]), 0.0, float(s[1])), float(s[2]), int(s[3]) % CAR_VARIANTS.size())
+	for i in range(7):
+		var z := -146.0 + float(i) * 23.0
+		_add_streetlight(life, Vector3(-40.0, 0.0, z), 0.0)
+		_add_streetlight(life, Vector3(40.0, 0.0, z), PI)
+		if i % 2 == 0:
+			_add_tree(life, "AssetStreetTreeL_%d" % i, Vector3(-48.0, 0.0, z + 6.0), i % TREE_VARIANTS.size())
+			_add_tree(life, "AssetStreetTreeR_%d" % i, Vector3(48.0, 0.0, z - 6.0), (i + 1) % TREE_VARIANTS.size())
 
 func _add_reference_foreground_freeway(parent: Node3D) -> void:
 	# A wide, multilane surface freeway running north up the centre of the frame,

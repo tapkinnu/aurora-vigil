@@ -1,0 +1,802 @@
+{
+  "pack": "kenney-city-asset-replacement",
+  "created_for": "Aurora Vigil non-procedural city pass",
+  "source_urls": [
+    "https://kenney.nl/assets/city-kit-commercial",
+    "https://kenney.nl/assets/city-kit-roads"
+  ],
+  "license": "CC0 1.0 Universal",
+  "assets": [
+    {
+      "id": "building-a",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-a.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "building-b",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-b.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "building-c",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-c.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "building-d",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-d.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "building-e",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-e.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "building-f",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-f.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "building-g",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-g.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "building-h",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-h.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "building-i",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-i.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "building-j",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-j.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "building-k",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-k.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "building-l",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-l.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "building-m",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-m.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "building-n",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-n.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "building-skyscraper-a",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-skyscraper-a.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "building-skyscraper-b",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-skyscraper-b.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "building-skyscraper-c",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-skyscraper-c.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "building-skyscraper-d",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-skyscraper-d.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "building-skyscraper-e",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/building-skyscraper-e.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "detail-awning-wide",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/detail-awning-wide.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "detail-awning",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/detail-awning.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "detail-overhang-wide",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/detail-overhang-wide.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "detail-overhang",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/detail-overhang.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "detail-parasol-a",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/detail-parasol-a.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "detail-parasol-b",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/detail-parasol-b.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "low-detail-building-a",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/low-detail-building-a.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "low-detail-building-b",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/low-detail-building-b.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "low-detail-building-c",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/low-detail-building-c.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "low-detail-building-d",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/low-detail-building-d.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "low-detail-building-e",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/low-detail-building-e.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "low-detail-building-f",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/low-detail-building-f.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "low-detail-building-g",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/low-detail-building-g.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "low-detail-building-h",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/low-detail-building-h.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "low-detail-building-i",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/low-detail-building-i.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "low-detail-building-j",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/low-detail-building-j.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "low-detail-building-k",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/low-detail-building-k.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "low-detail-building-l",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/low-detail-building-l.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "low-detail-building-m",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/low-detail-building-m.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "low-detail-building-n",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/low-detail-building-n.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "low-detail-building-wide-a",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/low-detail-building-wide-a.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "low-detail-building-wide-b",
+      "type": "building",
+      "path": "res://assets/3d/kenney_city/commercial/low-detail-building-wide-b.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "bridge-pillar-wide",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/bridge-pillar-wide.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "bridge-pillar",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/bridge-pillar.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "construction-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/construction-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "construction-cone",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/construction-cone.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "construction-light",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/construction-light.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "light-curved-cross",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/light-curved-cross.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "light-curved-double",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/light-curved-double.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "light-curved",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/light-curved.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "light-square-cross",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/light-square-cross.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "light-square-double",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/light-square-double.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "light-square",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/light-square.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-bend-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-bend-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-bend-sidewalk",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-bend-sidewalk.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-bend-square-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-bend-square-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-bend-square",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-bend-square.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-bend",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-bend.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-bridge",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-bridge.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-crossing",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-crossing.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-crossroad-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-crossroad-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-crossroad-line",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-crossroad-line.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-crossroad-path",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-crossroad-path.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-crossroad",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-crossroad.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-curve-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-curve-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-curve-intersection-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-curve-intersection-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-curve-intersection",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-curve-intersection.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-curve-pavement",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-curve-pavement.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-curve",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-curve.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-driveway-double-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-driveway-double-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-driveway-double",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-driveway-double.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-driveway-single-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-driveway-single-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-driveway-single",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-driveway-single.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-end-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-end-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-end-round-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-end-round-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-end-round",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-end-round.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-end",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-end.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-intersection-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-intersection-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-intersection-line",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-intersection-line.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-intersection-path",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-intersection-path.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-intersection",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-intersection.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-roundabout-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-roundabout-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-roundabout",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-roundabout.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-side-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-side-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-side-entry-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-side-entry-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-side-entry",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-side-entry.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-side-exit-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-side-exit-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-side-exit",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-side-exit.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-side",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-side.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-slant-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-slant-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-slant-curve-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-slant-curve-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-slant-curve",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-slant-curve.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-slant-flat-curve",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-slant-flat-curve.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-slant-flat-high",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-slant-flat-high.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-slant-flat",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-slant-flat.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-slant-high-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-slant-high-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-slant-high",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-slant-high.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-slant",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-slant.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-split-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-split-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-split",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-split.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-square-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-square-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-square",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-square.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-straight-barrier-end",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-straight-barrier-end.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-straight-barrier-half",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-straight-barrier-half.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-straight-barrier",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-straight-barrier.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-straight-half",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-straight-half.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "road-straight",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/road-straight.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "sign-highway-detailed",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/sign-highway-detailed.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "sign-highway-wide",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/sign-highway-wide.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "sign-highway",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/sign-highway.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "tile-high",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/tile-high.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "tile-low",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/tile-low.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "tile-slant",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/tile-slant.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    },
+    {
+      "id": "tile-slantHigh",
+      "type": "road",
+      "path": "res://assets/3d/kenney_city/roads/tile-slantHigh.glb",
+      "source": "Kenney City Kit",
+      "license": "CC0"
+    }
+  ]
+}
