@@ -86,7 +86,7 @@ func start_loop(id: String) -> bool:
 	var player: AudioStreamPlayer = AudioStreamPlayer.new()
 	player.stream = loaded as AudioStream
 	player.volume_db = volume_db
-	player.bus = "Master"
+	player.bus = _safe_bus("Music")
 	add_child(player)
 	player.play()
 	_loops[id] = player
@@ -140,7 +140,13 @@ func _play_once(path: String, volume_db: float) -> void:
 	var player: AudioStreamPlayer = AudioStreamPlayer.new()
 	player.stream = loaded as AudioStream
 	player.volume_db = volume_db
-	player.bus = "Master"
+	player.bus = _safe_bus("SFX")
 	add_child(player)
 	player.play()
 	player.finished.connect(Callable(player, "queue_free"))
+
+# Returns `bus_name` if that bus exists (SettingsManager creates SFX/Music at
+# startup), otherwise falls back to the always-present Master bus so audio never
+# routes to a missing bus (e.g. in headless test contexts without SettingsManager).
+func _safe_bus(bus_name: String) -> String:
+	return bus_name if AudioServer.get_bus_index(bus_name) != -1 else "Master"
