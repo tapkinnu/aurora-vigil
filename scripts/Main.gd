@@ -1663,7 +1663,15 @@ func _apply_difficulty() -> void:
 	if health_system != null:
 		health_system.regen_mult = sm.health_regen_mult()
 	if events != null:
-		events.spawn_mult = sm.event_spawn_mult()
+		var event_spawn_mult: float = sm.event_spawn_mult()
+		var previous_spawn_mult: float = max(0.01, events.spawn_mult)
+		var next_spawn_mult: float = max(0.01, event_spawn_mult)
+		if absf(previous_spawn_mult - next_spawn_mult) > 0.001:
+			# Keep the currently scheduled threshold in the same unscaled time domain
+			# so difficulty applies immediately at game start and after settings changes
+			# without compounding on repeated apply_difficulty() calls.
+			events.next_event_seconds = max(0.25, events.next_event_seconds * previous_spawn_mult / next_spawn_mult)
+		events.spawn_mult = event_spawn_mult
 
 # Public hook the settings UI calls when it closes.
 func apply_difficulty() -> void:
