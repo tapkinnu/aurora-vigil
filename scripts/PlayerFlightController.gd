@@ -124,10 +124,12 @@ func update_camera(delta: float, nearest: Node3D) -> void:
 	# positive-Z offset could spawn the camera inside the first skyline ring.
 	var offset := Vector3(0, 10, -22)
 	if mode == "city":
-		# City capture should show a readable skyline overview, not a wall the
-		# camera starts inside. Use an open high-angle position over the central
-		# avenue and pull the camera above the skyline ring.
-		offset = Vector3(-24, 46, -58)
+		# City capture frames the cinematic golden-hour vista: the camera sits south
+		# of and above the staged flying hero, looking north so the elevated highway
+		# interchange sweeps across the foreground and the skyline cluster rises into
+		# the warm sky behind. A shallow downward pitch keeps the deep-blue sky and
+		# the tower silhouettes in frame instead of a near top-down street plan.
+		offset = Vector3(-10, 34, -48)
 	elif mode == "closeup":
 		camera.fov = 62
 		offset = Vector3(6, 1.2, -14)
@@ -138,7 +140,7 @@ func update_camera(delta: float, nearest: Node3D) -> void:
 		offset.y += _cam_pitch
 	var target := hero.position + Vector3(0, 1.2, 0)
 	if mode == "city":
-		target = Vector3(0, 24, 0)
+		target = Vector3(2, 30, 10)
 	elif mode == "closeup":
 		target = hero.position + Vector3(0, 1.55, 0)
 	var desired := hero.position + offset

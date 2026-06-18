@@ -155,11 +155,13 @@ func stage_for_capture(mode: String) -> void:
 	var target := _volume_for_kind(_active_target_kind())
 	if target == null:
 		return
-	# Park the active objective on the city camera's center ray (camera ~(-24,74,-22)
-	# looking at (0,24,0)) so the marker lands mid-frame instead of clipping an edge.
-	target.position = Vector3(-8, 28, -8)
+	# The city capture is an environment/style proof shot, not a gameplay marker
+	# proof. Keep the mission volume deterministic for systems, but hide the marker
+	# so the skyline/highway composition is not blocked by a large OBJECTIVE label.
+	target.position = Vector3(-18, 30, -60)
 	if marker != null:
 		marker.global_position = target.global_position + ObjectiveMarker.HOVER_OFFSET
+		marker.visible = false
 
 func update(_delta: float) -> void:
 	if hero == null or not is_instance_valid(hero):

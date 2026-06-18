@@ -321,57 +321,66 @@ func _dispatch_civilian_audio(id: String) -> void:
 			push_error("Main: unknown civilian audio trigger id '%s'" % id)
 
 func _build_world() -> void:
-	# Daytime sky via ProceduralSkyMaterial — a hazy blue dome fading to a pale
-	# grey-blue horizon, the way Manhattan reads on a clear, slightly humid
-	# afternoon. No magenta band, no night plate; the sun is the dominant light.
+	# Golden-hour sky via ProceduralSkyMaterial — a deep saturated blue zenith
+	# rolling down to a warm amber horizon, the way a metropolis reads when the
+	# sun is low and raking the glass towers. No magenta band, no night plate;
+	# the warm low sun is the dominant light, the cool blue sky fills the shadows.
 	var env := WorldEnvironment.new()
 	var e := Environment.new()
 	e.background_mode = Environment.BG_SKY
 	var sky_resource := Sky.new()
 	var sky_mat := ProceduralSkyMaterial.new()
-	sky_mat.sky_top_color = Color(0.34, 0.48, 0.70, 1.0)
-	sky_mat.sky_horizon_color = Color(0.74, 0.78, 0.83, 1.0)
-	sky_mat.ground_horizon_color = Color(0.74, 0.78, 0.83, 1.0)
-	sky_mat.ground_bottom_color = Color(0.50, 0.52, 0.55, 1.0)
-	# Soft, fairly tight sun disk so the upper tower faces catch a clear highlight.
-	sky_mat.sun_angle_max = 9.0
-	sky_mat.sun_curve = 0.12
+	sky_mat.sky_top_color = Color(0.055, 0.18, 0.48, 1.0)
+	sky_mat.sky_horizon_color = Color(0.62, 0.70, 0.84, 1.0)
+	sky_mat.sky_curve = 0.32
+	sky_mat.sky_energy_multiplier = 1.1
+	sky_mat.ground_horizon_color = Color(0.78, 0.60, 0.43, 1.0)
+	sky_mat.ground_bottom_color = Color(0.30, 0.28, 0.30, 1.0)
+	sky_mat.ground_curve = 0.08
+	# A larger, warmer sun disk sitting low over the skyline. The wide glow blends
+	# into the amber horizon and, with the subtle bloom below, gives the sun-disc /
+	# soft-flare read the reference frames at golden hour.
+	sky_mat.sun_angle_max = 18.0
+	sky_mat.sun_curve = 0.06
 	sky_resource.sky_material = sky_mat
 	e.sky = sky_resource
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	e.ambient_light_energy = 1.0
-	# Neutral daytime haze for aerial depth: distant towers desaturate into the
-	# pale sky rather than a coloured cyber-murk. Low density keeps the streets
-	# crisp and readable; aerial perspective fades only the far skyline.
+	# Slightly lower sky ambient so the cool fill stays subordinate to the warm key
+	# and shadows keep their blue cast instead of washing flat.
+	e.ambient_light_energy = 0.68
+	# Warm aerial haze: distant towers fade into a golden horizon murk rather than a
+	# neutral grey. Low density keeps the streets crisp; aerial perspective fades
+	# only the far skyline into the warm sky.
 	e.fog_enabled = true
 	e.fog_mode = Environment.FOG_MODE_EXPONENTIAL
-	e.fog_density = 0.0014
-	e.fog_light_color = Color(0.77, 0.80, 0.84, 1.0)
+	e.fog_density = 0.00085
+	e.fog_light_color = Color(0.74, 0.58, 0.44, 1.0)
 	e.fog_light_energy = 1.0
-	e.fog_sky_affect = 0.25
-	e.fog_aerial_perspective = 0.7
-	# A gentle ground-level haze; nothing pools thickly enough to read as murk.
-	e.fog_height = 18.0
-	e.fog_height_density = 0.015
-	# No coloured volumetric fog in daylight — the flat distance fog carries depth.
+	e.fog_sky_affect = 0.18
+	e.fog_aerial_perspective = 0.42
+	# A gentle warm ground-level haze; nothing pools thickly enough to read as murk.
+	e.fog_height = 22.0
+	e.fog_height_density = 0.009
+	# No coloured volumetric fog — the flat distance fog carries the golden depth.
 	e.volumetric_fog_enabled = false
-	# No global bloom: the user asked for grounded NYC realism, so materials should
-	# read by sun/sky lighting instead of haloing like a cyberpunk scene.
-	e.glow_enabled = false
-	e.glow_intensity = 0.0
-	e.glow_strength = 0.0
-	e.glow_bloom = 0.0
-	e.glow_hdr_threshold = 1.1
+	# Subtle bloom for the sun disc and the bright warm highlights skating off glass
+	# towers only — the HDR threshold sits above 1.0 so lit windows and road paint do
+	# not halo. This is grounded golden-hour glint, not a cyberpunk neon bloom.
+	e.glow_enabled = true
+	e.glow_intensity = 0.45
+	e.glow_strength = 1.0
+	e.glow_bloom = 0.05
+	e.glow_hdr_threshold = 1.25
 	e.glow_hdr_scale = 2.0
 	e.glow_blend_mode = Environment.GLOW_BLEND_MODE_SCREEN
 	# glow_levels/1..7 are individual properties, not an array/dict.
 	e.set("glow_levels/1", 0.0)
 	e.set("glow_levels/2", 0.0)
-	e.set("glow_levels/3", 0.5)
+	e.set("glow_levels/3", 0.4)
 	e.set("glow_levels/4", 0.8)
-	e.set("glow_levels/5", 0.6)
-	e.set("glow_levels/6", 0.4)
-	e.set("glow_levels/7", 0.2)
+	e.set("glow_levels/5", 0.8)
+	e.set("glow_levels/6", 0.5)
+	e.set("glow_levels/7", 0.3)
 	# Dry daytime streets: disable SSR so asphalt/concrete do not look like a wet
 	# reflective sci-fi floor.
 	e.ssr_enabled = false
@@ -384,10 +393,18 @@ func _build_world() -> void:
 	e.ssao_radius = 1.2
 	e.ssao_intensity = 1.4
 	e.ssao_power = 1.4
-	# ACES tonemap — rolls the bright daytime highlights off smoothly.
+	# ACES tonemap — rolls the bright golden highlights off smoothly and keeps the
+	# warm sun glint from clipping to white. Slightly lower exposure deepens the blue
+	# sky and the long shadows for the cinematic golden-hour contrast.
 	e.tonemap_mode = Environment.TONE_MAPPER_ACES
-	e.tonemap_exposure = 0.95
+	e.tonemap_exposure = 0.9
 	e.tonemap_white = 12.0
+	# A gentle warm grade: lift the warm channels a touch and let the cool shadows
+	# read blue, the teal/orange split the reference leans on.
+	e.adjustment_enabled = true
+	e.adjustment_brightness = 1.0
+	e.adjustment_contrast = 1.06
+	e.adjustment_saturation = 1.12
 	env.environment = e
 	# Camera attributes drive exposure under Forward+ (auto-exposure moved off
 	# Environment to CameraAttributesPractical in Godot 4). Auto-exposure is left
@@ -404,14 +421,20 @@ func _build_world() -> void:
 	env.camera_attributes = cam_attrs
 	add_child(env)
 
-	# Primary daylight key — a high, near-white afternoon sun that rakes the
-	# avenues and casts crisp building shadows. This is the dominant light now.
+	# Primary golden-hour key — a low, warm orange sun that rakes the avenues from
+	# just above the horizon, throwing long dramatic shadows and lighting the
+	# west-facing tower glass with a warm glint. This is the dominant light.
 	var sun := DirectionalLight3D.new()
-	sun.name = "DaylightSun"
-	sun.rotation_degrees = Vector3(-52, 48, 0)
-	sun.light_color = Color(1.0, 0.97, 0.91, 1.0)
-	sun.light_energy = 1.5
-	# Forward+ directional shadows — cast crisp tower shadows down the avenues.
+	sun.name = "GoldenHourSun"
+	# Low elevation (~16° above horizon) and a wide azimuth so shadows stretch long
+	# across the avenues and the highway deck. The azimuth places the sun off toward
+	# the skyline so towers in the city shot are warm-faced, not flat-lit.
+	sun.rotation_degrees = Vector3(-16, 62, 0)
+	sun.light_color = Color(1.0, 0.74, 0.46, 1.0)
+	sun.light_energy = 2.05
+	# A warm-tinted indirect specular keeps the cool sky reflection from going grey.
+	sun.light_specular = 0.9
+	# Forward+ directional shadows — cast long warm-hour tower shadows down the avenues.
 	sun.shadow_enabled = true
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 	sun.directional_shadow_max_distance = 350.0
@@ -539,6 +562,13 @@ func _build_city() -> void:
 	_add_parking_lots(district)
 	_add_distant_skyline(district)
 	_add_haze_layers(district)
+	_add_highway_interchange(district)
+	_add_hero_tower(district)
+	_add_landmark_grid_tower(district)
+	_add_construction_crane(district, Vector3(92.0, 0.0, 36.0), -28.0, 86.0)
+	_add_construction_crane(district, Vector3(-58.0, 0.0, 104.0), 140.0, 70.0)
+	_add_construction_crane(district, Vector3(-86.0, 0.0, -118.0), 24.0, 58.0)
+	_add_boulevard_palms(district)
 	_add_street_props(district)
 
 # ── Composite building-silhouette builders ──
@@ -1206,6 +1236,18 @@ func _stage_capture_scene() -> void:
 		# Stage gameplay captures in the open central avenue so the chase camera
 		# reads as city flight instead of starting with a tower face behind the hero.
 		hero.position = Vector3(-8, 34, 10)
+	elif mode == "city":
+		# Cinematic city vista: park the hero as a small flying silhouette south of
+		# the elevated interchange, facing north toward the skyline cluster. The
+		# camera (PlayerFlightController) sits behind/above it so the highway sweeps
+		# across the foreground as leading lines and the hero/grid towers rise into
+		# the golden-hour sky behind — the reference wide-angle metropolitan frame.
+		hero.position = Vector3(20, 32, -178)
+		hero.rotation_degrees = Vector3(0, 0, 0)
+		hero.visible = false
+		for event_node in events.event_nodes:
+			if is_instance_valid(event_node):
+				event_node.visible = false
 	elif mode == "drone":
 		# Put the hero and seeded rogue drone in the same air corridor; the drone
 		# camera frames the pair and the actual Meshy drone actor, not just the
@@ -1398,6 +1440,22 @@ func _build_hud() -> void:
 	# does not fire a spurious unlock toast / mission banner for restored progress.
 	_last_unlocked_count = progression.unlocked.size()
 	_last_banner_step = missions.mission_step
+	_apply_capture_showcase_hud()
+
+func _apply_capture_showcase_hud() -> void:
+	# The city capture is the environment/style proof shot. Hide gameplay HUD and
+	# objective overlays only for that deterministic capture mode so the skyline,
+	# deep-blue sky, and interchange can fill the frame like a cinematic postcard.
+	if OS.get_environment("AURORA_CAPTURE_MODE") != "city":
+		return
+	var showcase_nodes: Array = [
+		hud_panel, mission_panel, hud_label, mission_label, event_cue_label,
+		health_bar_bg, health_bar_fill, health_label, minimap, controls_hint_label,
+		unlock_toast, mission_banner, game_over_label,
+	]
+	for node in showcase_nodes:
+		if node != null and is_instance_valid(node):
+			node.visible = false
 
 func _update_hud() -> void:
 	if hud_label == null: return
@@ -2650,3 +2708,298 @@ func _add_parked_cars(parent: Node3D) -> void:
 					continue
 				_add_car(parent, "ParkedCar_EW_%d" % idx, Vector3(x, 0.0, kerb), 90.0, idx % CAR_VARIANTS.size())
 				idx += 1
+
+# ── Golden-hour cinematic landmarks: glass towers, highway interchange, crane, palms ──
+
+func _glass_tower_material(albedo: Color) -> StandardMaterial3D:
+	# Curtain-wall glass/steel for the hero landmarks. High metallic + low roughness
+	# so the warm low sun throws a hot specular glint across one face while the cool
+	# blue sky reflects in the rest — the teal/orange split the reference leans on.
+	# No emission: the warmth comes from the directional key, not a neon glow.
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = albedo
+	mat.metallic = 0.85
+	mat.metallic_specular = 0.9
+	mat.roughness = 0.12
+	mat.rim_enabled = true
+	mat.rim = 0.4
+	mat.rim_tint = 0.7
+	return mat
+
+func _add_hero_tower(parent: Node3D) -> void:
+	# Distinctive fictional landmark: a dark rounded-glass corporate spire that
+	# catches the golden sun on one face. Cylindrical shaft, tapered crown, a thin
+	# metallic crown ring and a small warm-lit "Vigil" mark plate near the top.
+	var body := StaticBody3D.new()
+	body.name = "VigilSpire_HeroTower"
+	body.position = Vector3(28.0, 0.0, 96.0)
+	parent.add_child(body)
+	var h := 114.0
+	var rad := 9.6
+	var glass := _glass_tower_material(Color(0.10, 0.15, 0.22, 1.0))
+	var shaft := MeshInstance3D.new()
+	shaft.name = "VigilSpireShaft"
+	var cm := CylinderMesh.new()
+	cm.top_radius = rad * 0.80
+	cm.bottom_radius = rad
+	cm.height = h
+	cm.radial_segments = 40
+	shaft.mesh = cm
+	shaft.position = Vector3(0, h * 0.5, 0)
+	shaft.material_override = glass
+	body.add_child(shaft)
+	# Collision: a single cylinder so flight + camera collision treat it as solid.
+	var col := CollisionShape3D.new()
+	col.name = "VigilSpireCol"
+	var cyl := CylinderShape3D.new()
+	cyl.radius = rad
+	cyl.height = h
+	col.shape = cyl
+	col.position = Vector3(0, h * 0.5, 0)
+	body.add_child(col)
+	# Horizontal floor bands — thin darker mullion rings that give the cylinder the
+	# stacked-glass-floor read instead of a smooth tube.
+	var band_mat := _matte(Color(0.05, 0.06, 0.08, 1.0), 0.5, 0.4)
+	var bands := int(h / 4.4)
+	for i in range(1, bands):
+		var ring := MeshInstance3D.new()
+		ring.name = "VigilBand_%d" % i
+		var rm := CylinderMesh.new()
+		var ry := float(i) * 4.4
+		var taper := 1.0 - 0.20 * (ry / h)
+		rm.top_radius = rad * taper + 0.06
+		rm.bottom_radius = rad * taper + 0.06
+		rm.height = 0.4
+		rm.radial_segments = 40
+		ring.mesh = rm
+		ring.position = Vector3(0, ry, 0)
+		ring.material_override = band_mat
+		body.add_child(ring)
+	# Metallic crown ring + a slim mast at the very top.
+	var crown_mat := _matte(Color(0.30, 0.30, 0.33, 1.0), 0.35, 0.7)
+	var crown := MeshInstance3D.new()
+	crown.name = "VigilCrown"
+	var crm := CylinderMesh.new()
+	crm.top_radius = rad * 0.86
+	crm.bottom_radius = rad * 0.82
+	crm.height = 4.0
+	crm.radial_segments = 40
+	crown.mesh = crm
+	crown.position = Vector3(0, h + 1.6, 0)
+	crown.material_override = crown_mat
+	body.add_child(crown)
+	var mast := _add_box(body, "VigilMast", Vector3(0.5, 12.0, 0.5), Vector3(0, h + 9.0, 0), crown_mat)
+	mast.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	_add_rooftop_beacon(body, Vector3(0, h + 15.5, 0), true)
+	# Fictional corporate mark — a small chevron sign plate on the sunlit face, lit
+	# at very low warm energy so it reads as building signage, not neon.
+	var sign_mat := _mat(Color(0.85, 0.86, 0.9, 1.0), Color(1.0, 0.86, 0.6, 1.0), 0.5)
+	var sign := _add_box(body, "VigilMarkPlate", Vector3(0.4, 5.0, 5.0), Vector3(rad * 0.86, h - 12.0, 0), sign_mat)
+	sign.rotation_degrees = Vector3(0, 0, 0)
+	var chevron := _add_box(body, "VigilMarkChevron", Vector3(0.5, 0.7, 3.4), Vector3(rad * 0.92, h - 12.0, 0), _mat(Color(0.1, 0.13, 0.2, 1.0), Color(0, 0, 0, 1), 0.0))
+	chevron.rotation_degrees = Vector3(0, 0, 32.0)
+
+func _add_landmark_grid_tower(parent: Node3D) -> void:
+	# Central rectangular grid-facade tower: strong alternating window panels via the
+	# facade shader, plus a muted vertical accent stripe up one corner and a flat
+	# parapet crown. The procedural facade carries the window grid; the stripe and
+	# spandrel bands give it the bold blocky read of the reference's centre tower.
+	var body := StaticBody3D.new()
+	body.name = "MeridianOne_GridTower"
+	body.position = Vector3(-26.0, 0.0, 112.0)
+	parent.add_child(body)
+	var w := 17.0
+	var d := 15.0
+	var h := 100.0
+	var facade := _city_facade_material(h, 9, 11, w, d, true)
+	facade.set_shader_parameter("floors", 20)
+	facade.set_shader_parameter("windows_per_floor", 6)
+	facade.set_shader_parameter("uv_scale", 6.0)
+	facade.set_shader_parameter("lit_probability", 0.07)
+	facade.set_shader_parameter("albedo_tint", Color(0.80, 0.84, 0.92, 1.0))
+	_add_building_segment(body, "GridMain", Vector3(w, h, d), Vector3(0, h * 0.5, 0), facade)
+	# Muted vertical accent stripe up the front-left corner (brushed metal mullion).
+	var stripe_mat := _matte(Color(0.40, 0.42, 0.46, 1.0), 0.45, 0.6)
+	_add_box(body, "GridStripe", Vector3(1.4, h, 0.5), Vector3(-w * 0.5 + 0.7, h * 0.5, d * 0.5 + 0.26), stripe_mat)
+	_add_box(body, "GridStripeSide", Vector3(0.5, h, 1.4), Vector3(-w * 0.5 - 0.26, h * 0.5, d * 0.5 - 0.7), stripe_mat)
+	# Spandrel bands every few floors break the glass into bold horizontal panels.
+	var spandrel_mat := _matte(Color(0.18, 0.19, 0.22, 1.0), 0.6, 0.3)
+	var floor_h := h / 20.0
+	for fi in range(1, 20):
+		var sy := float(fi) * floor_h
+		_add_box(body, "GridSpandrelF_%d" % fi, Vector3(w + 0.12, 0.7, 0.18), Vector3(0, sy, d * 0.5 + 0.1), spandrel_mat)
+		_add_box(body, "GridSpandrelB_%d" % fi, Vector3(w + 0.12, 0.7, 0.18), Vector3(0, sy, -d * 0.5 - 0.1), spandrel_mat)
+		_add_box(body, "GridSpandrelL_%d" % fi, Vector3(0.18, 0.7, d + 0.12), Vector3(-w * 0.5 - 0.1, sy, 0), spandrel_mat)
+		_add_box(body, "GridSpandrelR_%d" % fi, Vector3(0.18, 0.7, d + 0.12), Vector3(w * 0.5 + 0.1, sy, 0), spandrel_mat)
+	# Flat parapet crown + rooftop mechanical block.
+	var crown_mat := _matte(Color(0.22, 0.23, 0.26, 1.0), 0.7)
+	_add_box(body, "GridParapet", Vector3(w + 0.6, 1.6, d + 0.6), Vector3(0, h + 0.8, 0), crown_mat)
+	_add_box(body, "GridMech", Vector3(w * 0.5, 4.0, d * 0.5), Vector3(0, h + 3.6, 0), crown_mat)
+	_add_rooftop_beacon(body, Vector3(0, h + 6.5, 0), true)
+
+func _highway_concrete_material() -> StandardMaterial3D:
+	return _matte(Color(0.50, 0.48, 0.45, 1.0), 0.88)
+
+func _add_highway_interchange(parent: Node3D) -> void:
+	# A sweeping multi-level elevated interchange across the city foreground: two
+	# concentric curved viaducts at different heights, supported on concrete piers,
+	# edged with metal guardrails, and dashed with worn white lane paint. Sparse
+	# vehicles on the upper deck give it scale. Non-emissive concrete + painted
+	# metal only — it reads as poured highway in the low sun, not a sci-fi ribbon.
+	var hw := Node3D.new()
+	hw.name = "GoldenInterchange"
+	# Push the whole interchange south of the southern building cluster (the city grid
+	# ends near z=-110) so the viaducts sweep across open ground as a clean foreground
+	# leading line in the city vista instead of being buried among the skyline towers.
+	hw.position = Vector3(0, 0, -88)
+	parent.add_child(hw)
+	var deck_mat := _highway_concrete_material()
+	var rail_mat := _matte(Color(0.62, 0.60, 0.56, 1.0), 0.5, 0.4)
+	var paint_mat := _matte(Color(0.82, 0.80, 0.74, 1.0), 0.7)
+	var pier_mat := _matte(Color(0.44, 0.42, 0.40, 1.0), 0.9)
+	# Upper viaduct sweeps wide across the near foreground; lower viaduct nests
+	# inside it at a shallower radius and height for the stacked interchange read.
+	_add_highway_arc(hw, deck_mat, rail_mat, paint_mat, pier_mat, "Upper", 0.0, -250.0, 196.0, 56.0, 124.0, 13.0, 16.0, 26, 3)
+	_add_highway_arc(hw, deck_mat, rail_mat, paint_mat, pier_mat, "Lower", 0.0, -252.0, 150.0, 64.0, 116.0, 7.0, 12.0, 22, 4)
+	# A straight off-ramp peeling off the upper deck down toward the surface streets.
+	var ramp_y0 := 13.0
+	for ri in range(8):
+		var t := float(ri) / 7.0
+		var rx := 70.0 - t * 26.0
+		var rz := -70.0 + t * 30.0
+		var ry := ramp_y0 - t * (ramp_y0 - 0.4)
+		var ramp := _add_box(hw, "RampSeg_%d" % ri, Vector3(7.0, 0.6, 9.0), Vector3(rx, ry, rz), deck_mat)
+		ramp.rotation_degrees = Vector3(0, 42.0, 0)
+		if ry > 1.5:
+			_add_box(hw, "RampPier_%d" % ri, Vector3(1.8, ry, 1.8), Vector3(rx, ry * 0.5, rz), pier_mat)
+	# Sparse vehicles along the upper deck, aligned to the arc tangent.
+	var ox := 0.0
+	var oz := -250.0
+	var radius := 196.0
+	var ci := 0
+	for frac in [0.12, 0.22, 0.33, 0.46, 0.58, 0.70, 0.82]:
+		var ang := deg_to_rad(56.0 + (124.0 - 56.0) * frac)
+		var px := ox + radius * cos(ang)
+		var pz := oz + radius * sin(ang)
+		var tangent_deg := rad_to_deg(ang) + 90.0
+		var b := Basis(Vector3.UP, deg_to_rad(-tangent_deg))
+		var perp: Vector3 = b.z
+		var lane_off := -4.0 if ci % 2 == 0 else 4.0
+		var cpos: Vector3 = Vector3(px, 13.8, pz) + perp * lane_off
+		_add_car(hw, "HighwayCar_%d" % ci, cpos, -tangent_deg + (180.0 if ci % 2 == 0 else 0.0), ci % CAR_VARIANTS.size())
+		ci += 1
+
+func _add_highway_arc(parent: Node3D, deck_mat: Material, rail_mat: Material, paint_mat: Material, pier_mat: Material, prefix: String, ox: float, oz: float, radius: float, a0_deg: float, a1_deg: float, deck_y: float, deck_w: float, seg_count: int, pier_every: int) -> void:
+	var arc_span := deg_to_rad(absf(a1_deg - a0_deg))
+	var seg_len := (arc_span * radius) / float(seg_count) + 1.4
+	for si in range(seg_count):
+		var fmid := (float(si) + 0.5) / float(seg_count)
+		var ang := deg_to_rad(a0_deg + (a1_deg - a0_deg) * fmid)
+		var px := ox + radius * cos(ang)
+		var pz := oz + radius * sin(ang)
+		var tangent_deg := rad_to_deg(ang) + 90.0
+		var pos := Vector3(px, deck_y, pz)
+		var deck := _add_box(parent, "%sDeck_%d" % [prefix, si], Vector3(seg_len, 0.7, deck_w), pos, deck_mat)
+		deck.rotation_degrees = Vector3(0, -tangent_deg, 0)
+		var b := Basis(Vector3.UP, deg_to_rad(-tangent_deg))
+		var perp: Vector3 = b.z
+		for s in [-1.0, 1.0]:
+			var rpos: Vector3 = pos + Vector3(0, 0.6, 0) + perp * (s * deck_w * 0.5)
+			var rail := _add_box(parent, "%sRail_%d_%d" % [prefix, si, int(s)], Vector3(seg_len, 0.65, 0.22), rpos, rail_mat)
+			rail.rotation_degrees = Vector3(0, -tangent_deg, 0)
+		if si % 2 == 0:
+			var paint := _add_box(parent, "%sLane_%d" % [prefix, si], Vector3(seg_len * 0.5, 0.05, 0.18), pos + Vector3(0, 0.38, 0), paint_mat)
+			paint.rotation_degrees = Vector3(0, -tangent_deg, 0)
+		if si % pier_every == 0:
+			_add_box(parent, "%sPier_%d" % [prefix, si], Vector3(2.6, deck_y, 2.6), Vector3(px, deck_y * 0.5, pz), pier_mat)
+			var cap := _add_box(parent, "%sPierCap_%d" % [prefix, si], Vector3(deck_w * 0.66, 0.7, 3.2), Vector3(px, deck_y - 0.2, pz), pier_mat)
+			cap.rotation_degrees = Vector3(0, -tangent_deg, 0)
+
+func _add_construction_crane(parent: Node3D, base: Vector3, rot_deg: float, mast_h: float) -> void:
+	# A tower crane beside the under-construction lots: a slim lattice mast, a long
+	# horizontal jib with a counter-jib + counterweight, and a hook block on a cable.
+	# Painted-steel matte yellow so it catches the warm sun without glowing.
+	var crane := Node3D.new()
+	crane.name = "TowerCrane_%d_%d" % [int(base.x), int(base.z)]
+	crane.position = base
+	crane.rotation_degrees = Vector3(0, rot_deg, 0)
+	parent.add_child(crane)
+	var steel := _matte(Color(0.78, 0.62, 0.16, 1.0), 0.6, 0.4)
+	var dark_steel := _matte(Color(0.20, 0.20, 0.22, 1.0), 0.6, 0.5)
+	# Mast: a thin square column with a few cross-brace rings for the lattice read.
+	_add_box(crane, "CraneMast", Vector3(1.6, mast_h, 1.6), Vector3(0, mast_h * 0.5, 0), steel)
+	var rings := int(mast_h / 8.0)
+	for i in range(1, rings):
+		_add_box(crane, "CraneBrace_%d" % i, Vector3(2.0, 0.3, 2.0), Vector3(0, float(i) * 8.0, 0), dark_steel)
+	# Operator cab + slewing unit at the top.
+	_add_box(crane, "CraneCab", Vector3(2.4, 2.2, 2.4), Vector3(0, mast_h + 1.2, 0), dark_steel)
+	var jib_y := mast_h + 2.6
+	# Main jib reaches out one way; counter-jib + counterweight the other.
+	var jib_len := mast_h * 0.62
+	_add_box(crane, "CraneJib", Vector3(jib_len, 0.7, 1.0), Vector3(jib_len * 0.5, jib_y, 0), steel)
+	_add_box(crane, "CraneCounterJib", Vector3(jib_len * 0.36, 0.7, 1.0), Vector3(-jib_len * 0.20, jib_y, 0), steel)
+	_add_box(crane, "CraneCounterweight", Vector3(2.4, 2.0, 2.4), Vector3(-jib_len * 0.34, jib_y - 0.4, 0), dark_steel)
+	# A-frame apex tie above the cab.
+	_add_box(crane, "CraneApex", Vector3(0.5, mast_h * 0.18, 0.5), Vector3(0, jib_y + mast_h * 0.09, 0), steel)
+	# Hook cable + block hanging part-way along the jib.
+	var hook_x := jib_len * 0.7
+	var cable := _add_box(crane, "CraneCable", Vector3(0.12, jib_y * 0.45, 0.12), Vector3(hook_x, jib_y - jib_y * 0.225, 0), dark_steel)
+	cable.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_add_box(crane, "CraneHook", Vector3(0.8, 1.0, 0.8), Vector3(hook_x, jib_y - jib_y * 0.45, 0), dark_steel)
+
+func _add_boulevard_palms(parent: Node3D) -> void:
+	# Sparse decorative palms lining the central boulevard + the irregular plazas,
+	# the way a sunbelt metropolis dresses its avenues. Grounded and shadowed.
+	var spots := [
+		Vector3(13.0, 0.0, 30.0), Vector3(-13.0, 0.0, 46.0), Vector3(13.0, 0.0, 62.0),
+		Vector3(-13.0, 0.0, 78.0), Vector3(13.0, 0.0, -30.0), Vector3(-13.0, 0.0, -46.0),
+		Vector3(40.0, 0.0, 18.0), Vector3(-40.0, 0.0, 18.0), Vector3(150.0, 0.0, 40.0),
+		Vector3(58.0, 0.0, -150.0), Vector3(-122.0, 0.0, -120.0),
+		Vector3(-54.0, 0.0, -154.0), Vector3(-22.0, 0.0, -162.0), Vector3(42.0, 0.0, -154.0), Vector3(82.0, 0.0, -132.0),
+	]
+	var i := 0
+	for s in spots:
+		_add_palm_tree(parent, s, i)
+		i += 1
+
+func _add_palm_tree(parent: Node3D, pos: Vector3, variant: int) -> void:
+	# Procedural palm: a slim tapered curved trunk + a crown of drooping frond
+	# planes. Matte foliage/bark — no emission, casts a long golden-hour shadow.
+	var palm := Node3D.new()
+	palm.name = "Palm_%d" % variant
+	palm.position = pos
+	palm.rotation_degrees = Vector3(0, float((variant * 47) % 360), 0)
+	parent.add_child(palm)
+	var bark := _matte(Color(0.34, 0.27, 0.18, 1.0), 0.9)
+	var frond := _matte(Color(0.18, 0.34, 0.14, 1.0), 0.85)
+	_add_box(palm, "PalmGroundCollar", Vector3(1.35, 0.08, 1.35), Vector3(0, 0.04, 0), _matte(Color(0.16, 0.11, 0.07, 1.0), 0.92))
+	var trunk_h := 8.0 + float(variant % 3) * 1.4
+	var segs := 6
+	for ti in range(segs):
+		var t := float(ti) / float(segs)
+		var ty := t * trunk_h + trunk_h / float(segs) * 0.5
+		var lean := sin(t * 1.2) * 0.7
+		var seg := MeshInstance3D.new()
+		seg.name = "PalmTrunk_%d" % ti
+		var cm := CylinderMesh.new()
+		cm.top_radius = 0.34 * (1.0 - 0.4 * t)
+		cm.bottom_radius = 0.40 * (1.0 - 0.4 * t)
+		cm.height = trunk_h / float(segs) + 0.06
+		cm.radial_segments = 8
+		seg.mesh = cm
+		seg.position = Vector3(lean, ty, 0)
+		seg.material_override = bark
+		palm.add_child(seg)
+	var crown_y := trunk_h + 0.2
+	var crown_x := sin(1.2) * 0.7
+	for fi in range(7):
+		var ang := float(fi) / 7.0 * TAU
+		var frond_mi := MeshInstance3D.new()
+		frond_mi.name = "PalmFrond_%d" % fi
+		var bm := BoxMesh.new()
+		bm.size = Vector3(3.6, 0.08, 0.7)
+		frond_mi.mesh = bm
+		frond_mi.position = Vector3(crown_x + cos(ang) * 1.6, crown_y - 0.2, sin(ang) * 1.6)
+		frond_mi.rotation = Vector3(0, -ang, deg_to_rad(-22.0))
+		frond_mi.material_override = frond
+		palm.add_child(frond_mi)
