@@ -497,37 +497,27 @@ func _build_city() -> void:
 	add_child(district)
 	_add_ground_plate(district)
 	var capture_city := OS.get_environment("AURORA_CAPTURE_MODE") == "city"
-	for x in range(-5, 6):
-		for z in range(-5, 6):
+	for x in range(-5, 5):
+		for z in range(-5, 5):
 			# The city postcard now uses a curated Los-Santos-style skyline cluster and
-			# freeway foreground. Do not spawn the old modular grid towers in this one
-			# capture mode: their brick facades repeatedly landed in the center of the
-			# highway view and made the road appear to drive into a wall. Gameplay and
-			# the other screenshot modes still use the full dense city grid.
+			# freeway foreground. Do not spawn the normal gameplay towers in this one
+			# capture mode: the extra towers compete with the staged freeway/skyline and
+			# can read as blockers in the road view. Gameplay and the other screenshot
+			# modes still use the full dense city grid.
 			if capture_city:
-				continue
-			# The cinematic city postcard needs a clear highway/boulevard view corridor.
-			# In normal gameplay keep the denser grid, but in city-capture mode remove
-			# the nearest centre-row towers that were turning into huge brick walls in
-			# front of the freeway and skyline.
-			if capture_city and z <= 3 and abs(x) <= 2:
-				continue
-			if capture_city and z <= -3 and abs(x) <= 4:
-				continue
-			if capture_city and z == -2 and abs(x) <= 3:
 				continue
 			if abs(x) <= 1 and abs(z) <= 1:
 				continue
 			if (x + z) % 3 == 0:
 				continue
-			var is_collector: bool = abs(x) == 5 and abs(z) == 5
+			var is_collector: bool = (x == -5 or x == 4) and (z == -5 or z == 4)
 			# Vary footprints far more than the old 8.5-11.5 band so the lot sizes
 			# read as irregular rather than a uniform stamp.
-			var width: float = 7.0 + float((abs(x * 7 + z * 11) % 9))
-			var depth: float = 7.0 + float((abs(x * 13 + z * 5) % 9))
+			var width: float = 6.6 + float((abs(x * 7 + z * 11) % 4))
+			var depth: float = 6.6 + float((abs(x * 13 + z * 5) % 4))
 			if is_collector:
-				width = 11.0
-				depth = 11.0
+				width = 10.0
+				depth = 10.0
 			var h: float = 18.0 + float((abs(x * 17 + z * 31) % 38))
 			if is_collector:
 				h += 18.0
@@ -548,15 +538,20 @@ func _build_city() -> void:
 			# else simple box (form_type stays 4)
 			var tower_body := StaticBody3D.new()
 			tower_body.name = "SkylineTower_%d_%d" % [x, z]
-			# Break the rigid 22-unit lattice: deterministic per-lot jitter so the
-			# spacing and street setback vary (~14-30 units) instead of a perfect
-			# grid. Collectors stay anchored as landmark corners.
+			# Road centers are at multiples of 22. Tower centers must live in the lots
+			# halfway between those roads; the previous x*22/z*22 placement put tower
+			# footprints directly on avenue centerlines. Keep only small bounded jitter so
+			# large footprints never drift back into the asphalt/curb/sidewalk strips.
+			var lot_x := float(x) * 22.0 + 11.0
+			var lot_z := float(z) * 22.0 + 11.0
 			var jx: float = 0.0
 			var jz: float = 0.0
 			if not is_collector:
-				jx = float((abs(x * 19 + z * 7) % 7) - 3) * 1.4
-				jz = float((abs(x * 11 + z * 23) % 7) - 3) * 1.4
-			tower_body.position = Vector3(x * 22.0 + jx, 0.0, z * 22.0 + jz)
+				var max_jx: float = maxf(0.0, 11.0 - 5.9 - width * 0.5)
+				var max_jz: float = maxf(0.0, 11.0 - 5.9 - depth * 0.5)
+				jx = clampf(float((abs(x * 19 + z * 7) % 7) - 3) * 0.8, -max_jx, max_jx)
+				jz = clampf(float((abs(x * 11 + z * 23) % 7) - 3) * 0.8, -max_jz, max_jz)
+			tower_body.position = Vector3(lot_x + jx, 0.0, lot_z + jz)
 			district.add_child(tower_body)
 			var facade_mat := _city_facade_material(h, x, z, width, depth, is_collector)
 			var top_info: Dictionary = _build_composite_tower(tower_body, form_type, width, depth, h, facade_mat)
@@ -570,24 +565,26 @@ func _build_city() -> void:
 			# high-rises — not a glowing beacon on every other roof.
 			if is_collector or h > 54.0:
 				_add_rooftop_beacon(tower_body, Vector3(0, top_y + 3.8, 0), is_collector)
-	_add_city_avenues(district)
-	_add_park_zones(district)
-	_add_plaza_paving(district)
-	_add_sidewalks(district)
-	_add_diagonal_streets(district)
-	_add_curved_avenues(district)
-	_add_irregular_plazas(district)
-	_add_parking_lots(district)
+	if not capture_city:
+		_add_city_avenues(district)
+		_add_park_zones(district)
+		_add_plaza_paving(district)
+		_add_sidewalks(district)
+		_add_diagonal_streets(district)
+		_add_curved_avenues(district)
+		_add_irregular_plazas(district)
+		_add_parking_lots(district)
 	_add_distant_skyline(district)
 	_add_haze_layers(district)
-	_add_highway_interchange(district)
-	_add_hero_tower(district)
-	_add_landmark_grid_tower(district)
-	_add_construction_crane(district, Vector3(92.0, 0.0, 36.0), -28.0, 86.0)
-	_add_construction_crane(district, Vector3(-58.0, 0.0, 104.0), 140.0, 70.0)
-	_add_construction_crane(district, Vector3(-86.0, 0.0, -118.0), 24.0, 58.0)
-	_add_boulevard_palms(district)
-	_add_street_props(district)
+	if not capture_city:
+		_add_highway_interchange(district)
+		_add_hero_tower(district)
+		_add_landmark_grid_tower(district)
+		_add_construction_crane(district, Vector3(92.0, 0.0, 36.0), -28.0, 86.0)
+		_add_construction_crane(district, Vector3(-58.0, 0.0, 104.0), 140.0, 70.0)
+		_add_construction_crane(district, Vector3(-86.0, 0.0, -118.0), 24.0, 58.0)
+		_add_boulevard_palms(district)
+		_add_street_props(district)
 	# Cinematic city-capture dressing: a dominant foreground freeway, a cluster of
 	# distinctive downtown landmark towers, and a subtle sun flare — staged only for
 	# the deterministic "city" postcard capture so gameplay/flight stays unchanged.
@@ -1884,8 +1881,8 @@ func _add_park_zones(parent: Node3D) -> void:
 		[-2, -4],  # NW outer
 	]
 	for coord in park_coords:
-		var px: float = float(coord[0]) * 22.0
-		var pz: float = float(coord[1]) * 22.0
+		var px: float = float(coord[0]) * 22.0 + 11.0
+		var pz: float = float(coord[1]) * 22.0 + 11.0
 		var park := MeshInstance3D.new()
 		park.name = "ParkZone_%d_%d" % [coord[0], coord[1]]
 		var park_mesh := PlaneMesh.new()
@@ -1971,16 +1968,20 @@ func _add_park_shrub(parent: Node3D, pos: Vector3, variant: int) -> void:
 	shrub.add_child(mesh_inst)
 
 func _add_plaza_paving(parent: Node3D) -> void:
-	# Polished plaza-textured quads around the 4 collector towers at (±5, ±5).
+	# Polished plaza-textured quads around the 4 collector towers. Collector lots
+	# now sit halfway between avenue centerlines, so the paving uses the same lot
+	# centers and no longer paints plaza slabs over the roads.
 	var plaza_mat := _ground_plaza_material()
-	for x in [-5, 5]:
-		for z in [-5, 5]:
+	for x in [-5, 4]:
+		for z in [-5, 4]:
+			var lot_x := float(x) * 22.0 + 11.0
+			var lot_z := float(z) * 22.0 + 11.0
 			var plaza := MeshInstance3D.new()
 			plaza.name = "PlazaPaving_%d_%d" % [x, z]
 			var p_mesh := PlaneMesh.new()
-			p_mesh.size = Vector2(24.0, 24.0)
+			p_mesh.size = Vector2(18.0, 18.0)
 			plaza.mesh = p_mesh
-			plaza.position = Vector3(float(x) * 22.0, 0.15, float(z) * 22.0)
+			plaza.position = Vector3(lot_x, 0.15, lot_z)
 			plaza.material_override = plaza_mat
 			parent.add_child(plaza)
 			# Raised concrete/stone edging around the paved plaza — no emissive inlay.
@@ -1988,17 +1989,17 @@ func _add_plaza_paving(parent: Node3D) -> void:
 				var strip_x := MeshInstance3D.new()
 				strip_x.name = "PlazaStripX_%d_%d_%d" % [x, z, int(side)]
 				var sx_mesh := BoxMesh.new()
-				sx_mesh.size = Vector3(24.0, 0.04, 0.3)
+				sx_mesh.size = Vector3(18.0, 0.04, 0.3)
 				strip_x.mesh = sx_mesh
-				strip_x.position = Vector3(float(x) * 22.0, 0.17, float(z) * 22.0 + side * 11.5)
+				strip_x.position = Vector3(lot_x, 0.17, lot_z + side * 9.0)
 				strip_x.material_override = _matte(Color(0.38, 0.37, 0.35, 1.0), 0.82)
 				parent.add_child(strip_x)
 				var strip_z := MeshInstance3D.new()
 				strip_z.name = "PlazaStripZ_%d_%d_%d" % [x, z, int(side)]
 				var sz_mesh := BoxMesh.new()
-				sz_mesh.size = Vector3(0.3, 0.04, 24.0)
+				sz_mesh.size = Vector3(0.3, 0.04, 18.0)
 				strip_z.mesh = sz_mesh
-				strip_z.position = Vector3(float(x) * 22.0 + side * 11.5, 0.17, float(z) * 22.0)
+				strip_z.position = Vector3(lot_x + side * 9.0, 0.17, lot_z)
 				strip_z.material_override = _matte(Color(0.38, 0.37, 0.35, 1.0), 0.82)
 				parent.add_child(strip_z)
 
@@ -2175,11 +2176,13 @@ func _add_irregular_plazas(parent: Node3D) -> void:
 		pidx += 1
 
 func _add_sidewalks(parent: Node3D) -> void:
-	# Raised sidewalks with a 0.15 m curb along the open mid-block corridors — the
-	# real pedestrian streets that run between building rows at the half-gridlines.
+	# Raised sidewalks with a 0.15 m curb along the road edges. These used to be
+	# drawn through the half-grid lot centers, which made the sidewalk/grid texture
+	# appear to continue underneath tower footprints. Keep them tied to avenue
+	# centerlines so roads and pedestrian strips stay outside building lots.
 	var walk_mat := _ground_plaza_material()
 	var curb_mat := _matte(Color(0.30, 0.295, 0.28, 1.0), 0.86)  # weathered concrete curb
-	var corridors := [-55.0, -33.0, -11.0, 11.0, 33.0, 55.0]
+	var corridors := [-88.0, -66.0, -44.0, -22.0, 0.0, 22.0, 44.0, 66.0, 88.0]
 	for c in corridors:
 		for s in [-1.0, 1.0]:
 			_add_box(parent, "SidewalkNS_%d_%d" % [int(c), int(s)], Vector3(2.6, 0.15, 220.0), Vector3(c + s * 4.6, 0.075, 0.0), walk_mat)
@@ -2188,7 +2191,7 @@ func _add_sidewalks(parent: Node3D) -> void:
 			_add_box(parent, "SidewalkCurbEW_%d_%d" % [int(c), int(s)], Vector3(220.0, 0.17, 0.25), Vector3(0.0, 0.085, c + s * 3.3), curb_mat)
 	# A few muted crosswalks at key mid-block corridor intersections. Too many
 	# repeated bright stripes read like a prototype grid from high cameras.
-	for c in [-11.0, 11.0]:
+	for c in [-22.0, 0.0, 22.0]:
 		_add_crosswalk(parent, c, true)
 		_add_crosswalk(parent, c, false)
 		for s in [-1.0, 1.0]:
@@ -2202,8 +2205,8 @@ func _add_parking_lots(parent: Node3D) -> void:
 	var line_mat := _matte(Color(0.34, 0.33, 0.30, 1.0), 0.84)   # faded painted stall lines
 	# [cx, cz, cols, rows, rot]
 	var lots := [
-		[66.0, 0.0, 4, 3, 0.0],
-		[0.0, -66.0, 4, 3, 0.0],
+		[77.0, 11.0, 4, 3, 0.0],
+		[11.0, -55.0, 4, 3, 0.0],
 		[168.0, -40.0, 5, 3, 22.0],
 	]
 	var li := 0
@@ -2755,10 +2758,10 @@ func _add_hero_tower(parent: Node3D) -> void:
 	# metallic crown ring and a small warm-lit "Vigil" mark plate near the top.
 	var body := StaticBody3D.new()
 	body.name = "VigilSpire_HeroTower"
-	body.position = Vector3(28.0, 0.0, 96.0)
+	body.position = Vector3(33.0, 0.0, 99.0)
 	parent.add_child(body)
 	var h := 114.0
-	var rad := 9.6
+	var rad := 7.4
 	var glass := _glass_tower_material(Color(0.10, 0.15, 0.22, 1.0))
 	var shaft := MeshInstance3D.new()
 	shaft.name = "VigilSpireShaft"
@@ -2829,10 +2832,10 @@ func _add_landmark_grid_tower(parent: Node3D) -> void:
 	# spandrel bands give it the bold blocky read of the reference's centre tower.
 	var body := StaticBody3D.new()
 	body.name = "MeridianOne_GridTower"
-	body.position = Vector3(-26.0, 0.0, 112.0)
+	body.position = Vector3(-33.0, 0.0, 99.0)
 	parent.add_child(body)
-	var w := 17.0
-	var d := 15.0
+	var w := 14.0
+	var d := 13.0
 	var h := 100.0
 	var facade := _city_facade_material(h, 9, 11, w, d, true)
 	facade.set_shader_parameter("floors", 20)
