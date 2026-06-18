@@ -124,14 +124,13 @@ func update_camera(delta: float, nearest: Node3D) -> void:
 	# positive-Z offset could spawn the camera inside the first skyline ring.
 	var offset := Vector3(0, 10, -22)
 	if mode == "city":
-		# City capture frames the cinematic golden-hour vista in the style of the
-		# Los Santos reference: a low, near-eye-level camera so the wide multilane
-		# freeway dominates the lower third as converging leading lines, the
-		# distinctive downtown landmark cluster looms large across the mid/upper
-		# frame, and the deep-blue sky fills the top. The camera sits just behind and
-		# above the (hidden) staged hero looking north up the boulevard.
-		camera.fov = 78
-		offset = Vector3(0, 28, -66)
+		# City capture now favors a slightly elevated oblique road-network read: the
+		# camera is still south of the hidden staged hero looking toward downtown, but
+		# offset left and aimed lower so the foreground split, side arterials,
+		# destination signs, and routed traffic are visible instead of collapsing into
+		# one straight corridor.
+		camera.fov = 76
+		offset = Vector3(-38, 38, -74)
 	elif mode == "closeup":
 		camera.fov = 62
 		offset = Vector3(6, 1.2, -14)
@@ -142,9 +141,9 @@ func update_camera(delta: float, nearest: Node3D) -> void:
 		offset.y += _cam_pitch
 	var target := hero.position + Vector3(0, 1.2, 0)
 	if mode == "city":
-		# Aim up the boulevard toward the landmark cluster, biased slightly upward so
-		# the towers rise and the blue sky tops the frame rather than a top-down plan.
-		target = Vector3(0, 42, 48)
+		# Bias the proof shot down toward the traffic split while still carrying the
+		# road toward downtown in the background.
+		target = Vector3(18, 18, -62)
 	elif mode == "closeup":
 		target = hero.position + Vector3(0, 1.55, 0)
 	var desired := hero.position + offset

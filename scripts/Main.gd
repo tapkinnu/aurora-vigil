@@ -62,6 +62,7 @@ var progression: ProgressionModel
 # across systems and is rendered by _update_hud.
 var last_event_text: String = "Awaiting first city emergency."
 var _cleanup_tweens: Array[Tween] = []
+var _routed_traffic: Array[Dictionary] = []
 
 # Real CC0/CC-BY low-poly street/vegetation/vehicle models live under PROP_DIR
 # (see assets/3d/props/SOURCES.md for sources + licenses). _load_prop loads and
@@ -313,6 +314,7 @@ func _physics_process(delta: float) -> void:
 	civilians.update(delta)
 	health_system.update(delta)
 	flight.update_contact_shadows()
+	_update_routed_traffic(delta)
 	_update_transients(delta)
 	_update_hud()
 	# Surface the game-over screen in interactive play (it pauses the tree, so the
@@ -2642,13 +2644,14 @@ func _add_barrier_primitive(parent: Node3D, pos: Vector3, rot: float) -> void:
 
 # ── New real-model city props (no prior primitive; fall back to a tinted box) ──
 
-func _add_prop_fallback_box(parent: Node3D, prop_name: String, pos: Vector3, rot: float, size: Vector3, emission: Color) -> void:
+func _add_prop_fallback_box(parent: Node3D, prop_name: String, pos: Vector3, rot: float, size: Vector3, emission: Color) -> Node3D:
 	var holder := Node3D.new()
 	holder.name = prop_name
 	holder.position = pos
 	holder.rotation_degrees = Vector3(0, rot, 0)
 	parent.add_child(holder)
 	_add_box(holder, "Body", size, Vector3(0, size.y * 0.5, 0), _matte(emission, 0.78, 0.05))
+	return holder
 
 func _add_fire_hydrant(parent: Node3D, pos: Vector3, rot: float) -> void:
 	var holder := _instance_prop(PROP_DIR + "street/fire_hydrant.glb", "y", 1.0, true)
@@ -2737,16 +2740,109 @@ const CAR_VARIANTS := [
 	"vehicles/car_hatchback.glb",
 ]
 
-func _add_car(parent: Node3D, car_name: String, pos: Vector3, rot: float, variant: int) -> void:
+func _add_car(parent: Node3D, car_name: String, pos: Vector3, rot: float, variant: int) -> Node3D:
 	# Fit by length (Z) so the chunky low-poly cars read at a believable street scale.
 	var holder := _instance_prop(PROP_DIR + CAR_VARIANTS[variant], "z", 4.4, true)
 	if holder == null:
-		_add_prop_fallback_box(parent, car_name, pos, rot, Vector3(1.6, 1.2, 4.0), Color(0.3, 0.4, 0.6))
-		return
+		return _add_prop_fallback_box(parent, car_name, pos, rot, Vector3(1.6, 1.2, 4.0), Color(0.3, 0.4, 0.6))
 	holder.name = car_name
 	holder.position = pos
 	holder.rotation_degrees = Vector3(0, rot, 0)
 	parent.add_child(holder)
+	return holder
+
+func _route_length(points: Array) -> float:
+	if points.size() < 2:
+		return 0.0
+	var total := 0.0
+	for i in range(points.size()):
+		var a: Vector3 = points[i]
+		var b: Vector3 = points[(i + 1) % points.size()]
+		total += a.distance_to(b)
+	return total
+
+func _route_point_at_distance(points: Array, distance: float) -> Vector3:
+	if points.is_empty():
+		return Vector3.ZERO
+	if points.size() == 1:
+		return points[0]
+	var total := _route_length(points)
+	if total <= 0.001:
+		return points[0]
+	var remaining := fposmod(distance, total)
+	for i in range(points.size()):
+		var a: Vector3 = points[i]
+		var b: Vector3 = points[(i + 1) % points.size()]
+		var seg_len := a.distance_to(b)
+		if seg_len <= 0.001:
+			continue
+		if remaining <= seg_len:
+			return a.lerp(b, remaining / seg_len)
+		remaining -= seg_len
+	return points[points.size() - 1]
+
+func _route_heading_degrees(points: Array, distance: float) -> float:
+	if points.size() < 2:
+		return 0.0
+	var total := _route_length(points)
+	if total <= 0.001:
+		return 0.0
+	var p := _route_point_at_distance(points, distance)
+	var q := _route_point_at_distance(points, distance + 1.5)
+	var dir := q - p
+	if dir.length() <= 0.001:
+		return 0.0
+	return rad_to_deg(atan2(dir.x, dir.z))
+
+func _add_routed_traffic_car(parent: Node3D, car_name: String, route_points: Array, destination_name: String, variant: int, speed: float, route_fraction: float) -> Node3D:
+	if route_points.size() < 2:
+		return null
+	var route_len := _route_length(route_points)
+	if route_len <= 0.001:
+		return null
+	var progress := fposmod(route_len * route_fraction, route_len)
+	var start := _route_point_at_distance(route_points, progress)
+	var heading := _route_heading_degrees(route_points, progress)
+	var car := _add_car(parent, car_name, start, heading, variant % CAR_VARIANTS.size())
+	if car == null:
+		return null
+	var stored_points := route_points.duplicate(true)
+	car.name = car_name
+	car.set_meta("destination_name", destination_name)
+	car.set_meta("route_points", stored_points)
+	car.set_meta("route_speed", speed)
+	car.set_meta("route_length", route_len)
+	_routed_traffic.append({
+		"node": car,
+		"route_points": stored_points,
+		"destination_name": destination_name,
+		"speed": speed,
+		"route_length": route_len,
+		"progress": progress,
+	})
+	return car
+
+func _update_routed_traffic(delta: float) -> void:
+	if _routed_traffic.is_empty():
+		return
+	for i in range(_routed_traffic.size()):
+		var actor: Dictionary = _routed_traffic[i]
+		var car: Node3D = actor.get("node", null) as Node3D
+		if car == null or not is_instance_valid(car):
+			continue
+		var points: Array = actor.get("route_points", []) as Array
+		var route_len := float(actor.get("route_length", _route_length(points)))
+		if points.size() < 2 or route_len <= 0.001:
+			continue
+		var progress := fposmod(float(actor.get("progress", 0.0)) + float(actor.get("speed", 10.0)) * delta, route_len)
+		actor["progress"] = progress
+		_routed_traffic[i] = actor
+		var p := _route_point_at_distance(points, progress)
+		var q := _route_point_at_distance(points, progress + 1.5)
+		var dir := q - p
+		car.position = p
+		if dir.length() > 0.001:
+			car.rotation.y = atan2(dir.x, dir.z)
 
 # Parked cars line the open mid-block corridors (the genuinely clear lanes at the
 # ±11 half-gridlines, where the streetlights and trees already sit). Cars alternate
@@ -3089,6 +3185,7 @@ func _add_reference_capture_scene(parent: Node3D) -> void:
 	# side thirds of the frame.
 	_add_city_kit_ground_cover(ref)
 	_add_city_kit_freeway_foreground(ref)
+	_add_capture_connected_road_network(ref)
 	_add_city_kit_skyline_blocks(ref)
 	_add_city_kit_dense_sides(ref)
 	_add_city_kit_horizon_fill(ref)
@@ -3343,6 +3440,209 @@ func _add_city_builder_foreground_blocks(parent: Node3D) -> void:
 			else:
 				var grass := str(CITY_BUILDER_GRASS_VARIANTS[(ci + (1 if side < 0 else 0)) % CITY_BUILDER_GRASS_VARIANTS.size()])
 				_add_city_builder_prop(blocks, grass, "FgPark_%d_%d" % [side, ci], Vector3(sx, y, -184.0), float(ci) * 25.0, tile)
+
+func _add_capture_traffic_destination(parent: Node3D, key: String, display_name: String, pos: Vector3, color: Color) -> Node3D:
+	var dest := Node3D.new()
+	dest.name = "TrafficDestination_" + key
+	dest.position = pos
+	dest.set_meta("destination_name", display_name)
+	parent.add_child(dest)
+	_add_box(dest, "DestinationPad", Vector3(8.0, 0.18, 8.0), Vector3(0.0, 0.09, 0.0), _matte(Color(color.r * 0.45, color.g * 0.45, color.b * 0.45, 1.0), 0.86, 0.0))
+	_add_box(dest, "DestinationSignPost", Vector3(0.35, 3.4, 0.35), Vector3(0.0, 1.7, -3.2), _matte(Color(0.22, 0.22, 0.24, 1.0), 0.55, 0.5))
+	_add_box(dest, "DestinationSignPanel", Vector3(7.4, 2.0, 0.35), Vector3(0.0, 3.55, -3.2), _matte(color, 0.62, 0.08))
+	var label := Label3D.new()
+	label.name = "DestinationLabel"
+	label.text = display_name
+	label.position = Vector3(0.0, 3.65, -3.42)
+	label.font_size = 42
+	label.pixel_size = 0.034
+	label.modulate = Color(0.96, 0.96, 0.88, 1.0)
+	label.outline_size = 10
+	label.outline_modulate = Color(0.0, 0.0, 0.0, 0.86)
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	dest.add_child(label)
+	return dest
+
+func _add_capture_connected_road_network(parent: Node3D) -> void:
+	# The original postcard freeway stopped at the skyline plaza, so the road read as a
+	# movie-set stub. This node extends that imported Road Kit freeway into a small but
+	# legible city road graph: a downtown continuation, a crosstown arterial, foreground
+	# side streets, signed destinations, and traffic cars assigned to routes.
+	var network := Node3D.new()
+	network.name = "ReferenceCaptureRoadNetwork"
+	parent.add_child(network)
+	var tile := 18.0
+	var freeway_y := 0.58
+	var city_y := 0.44
+	var lane_xs := [-27.0, -9.0, 9.0, 27.0]
+	# Continue the four freeway lanes past the old z=-10 visual end so they visibly
+	# feed downtown rather than terminating at the plaza.
+	for z_val in [8.0, 26.0, 44.0, 62.0]:
+		var zf := float(z_val)
+		for x_val in lane_xs:
+			var xf := float(x_val)
+			var asset := "road-straight.glb"
+			if zf == 8.0 or zf == 62.0:
+				asset = "road-crossroad-line.glb"
+			_add_city_kit_road(network, asset, "RoadRoute_Downtown_%d_%d" % [int(xf), int(zf)], Vector3(xf, freeway_y, zf), 0.0, tile)
+	# A signed east-west arterial at the freeway head connects to district destinations.
+	for ix in range(-7, 8):
+		var x := float(ix) * tile
+		var asset := "road-straight.glb"
+		if ix >= -2 and ix <= 2:
+			asset = "road-intersection.glb"
+		_add_city_kit_road(network, asset, "RoadRoute_Crosstown_%d" % ix, Vector3(x, freeway_y, 8.0), 90.0, tile)
+	# Outer collector spines connect the foreground side streets to the crosstown road.
+	for side in [-1, 1]:
+		var sf := float(side)
+		var prefix := "Hillview" if side < 0 else "Airport"
+		for zi in range(10):
+			var z := -154.0 + float(zi) * tile
+			var asset := "road-straight.glb"
+			if zi == 0 or zi == 9:
+				asset = "road-intersection.glb"
+			_add_city_kit_road(network, asset, "RoadRoute_%sSpine_%d" % [prefix, zi], Vector3(sf * 126.0, city_y, z), 0.0, tile)
+		# Foreground arterial branching away from the freeway into the side districts.
+		for xi in range(3, 9):
+			var x := sf * float(xi) * tile
+			var road := "road-straight.glb"
+			if xi == 3 or xi == 8:
+				road = "road-intersection.glb"
+			elif xi == 5:
+				road = "road-straight-lightposts.glb"
+			_add_city_builder_prop(network, road, "RoadRoute_%sForeground_%d" % [prefix, xi], Vector3(x, city_y, -171.0), 90.0, 13.5)
+		# A visible corner/ramp pair at the freeway shoulder makes the side street read as
+		# physically joined to the central carriageway, not a detached decorative strip.
+		_add_city_builder_prop(network, "road-corner.glb", "RoadRoute_%sRampCorner" % prefix, Vector3(sf * 39.0, city_y, -154.0), 0.0 if side < 0 else 90.0, 13.5)
+		_add_city_builder_prop(network, "road-split.glb", "RoadRoute_%sRampSplit" % prefix, Vector3(sf * 45.0, city_y, -171.0), 90.0, 13.5)
+	# Destination anchors with labels/metadata for both visual readability and tests.
+	_add_capture_traffic_destination(network, "DowntownCore", "Downtown Core", Vector3(0.0, freeway_y, 78.0), Color(0.18, 0.34, 0.78, 1.0))
+	_add_capture_traffic_destination(network, "HarborFreight", "Harbor Freight", Vector3(144.0, city_y, 8.0), Color(0.12, 0.44, 0.34, 1.0))
+	_add_capture_traffic_destination(network, "AirportConnector", "Airport Connector", Vector3(144.0, city_y, -171.0), Color(0.50, 0.34, 0.12, 1.0))
+	_add_capture_traffic_destination(network, "HillviewResidential", "Hillview Residential", Vector3(-144.0, city_y, 8.0), Color(0.42, 0.26, 0.58, 1.0))
+	_add_city_kit_road_prop(network, "sign-highway-wide.glb", "DestinationSign_DowntownHarbor", Vector3(-22.0, 0.55, -6.0), -4.0, "y", 8.0)
+	_add_city_kit_road_prop(network, "sign-highway-detailed.glb", "DestinationSign_AirportHillview", Vector3(24.0, 0.55, -28.0), 8.0, "y", 7.3)
+	_add_capture_visible_foreground_junction(network)
+	_add_capture_destination_traffic(network)
+
+func _add_capture_wayfinding_sign(parent: Node3D, sign_name: String, text: String, pos: Vector3, color: Color) -> Node3D:
+	var sign := Node3D.new()
+	sign.name = sign_name
+	sign.position = pos
+	parent.add_child(sign)
+	_add_box(sign, "PostLeft", Vector3(0.24, 3.0, 0.24), Vector3(-3.2, 1.5, 0.0), _matte(Color(0.18, 0.18, 0.20, 1.0), 0.55, 0.4))
+	_add_box(sign, "PostRight", Vector3(0.24, 3.0, 0.24), Vector3(3.2, 1.5, 0.0), _matte(Color(0.18, 0.18, 0.20, 1.0), 0.55, 0.4))
+	_add_box(sign, "Panel", Vector3(8.8, 2.0, 0.32), Vector3(0.0, 3.1, 0.0), _matte(color, 0.62, 0.08))
+	var label := Label3D.new()
+	label.name = "WayfindingLabel"
+	label.text = text
+	label.position = Vector3(0.0, 3.16, -0.23)
+	label.font_size = 36
+	label.pixel_size = 0.032
+	label.modulate = Color(0.98, 0.96, 0.84, 1.0)
+	label.outline_size = 8
+	label.outline_modulate = Color(0.0, 0.0, 0.0, 0.88)
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	sign.add_child(label)
+	return sign
+
+func _add_capture_visible_foreground_junction(parent: Node3D) -> void:
+	# Put the destination split in the part of the city postcard the camera clearly sees.
+	# This keeps the road from reading as a single dead-end canyon: cars can visibly peel
+	# left/right toward Hillview, Airport and Harbor while through-traffic continues north.
+	var tile := 18.0
+	var y := 0.70
+	var z := -118.0
+	for ix in range(-7, 8):
+		var asset := "road-straight.glb"
+		if ix >= -2 and ix <= 2:
+			asset = "road-crossroad-line.glb"
+		elif ix == -7 or ix == 7:
+			asset = "road-end-round.glb"
+		_add_city_kit_road(parent, asset, "RoadRoute_VisibleJunction_%d" % ix, Vector3(float(ix) * tile, y, z), 90.0, tile)
+	# Dark asphalt underlay and lane-paint arrows make the cross-street visible even when
+	# the imported road tiles are partially hidden by the wide freeway lanes.
+	var asphalt := _matte(Color(0.045, 0.046, 0.050, 1.0), 0.94, 0.0)
+	var white := _matte(Color(0.55, 0.54, 0.50, 1.0), 0.88, 0.0)
+	var yellow := _matte(Color(0.50, 0.38, 0.10, 1.0), 0.86, 0.0)
+	_add_box(parent, "RoadRoute_VisibleJunction_Asphalt", Vector3(260.0, 0.035, 9.5), Vector3(0.0, y + 0.08, z), asphalt)
+	for x_val in [-96.0, -72.0, -48.0, 48.0, 72.0, 96.0]:
+		_add_box(parent, "RoadRoute_VisibleJunction_LaneDash_%d" % int(x_val), Vector3(8.5, 0.04, 0.42), Vector3(x_val, y + 0.13, z), white)
+	_add_box(parent, "RoadRoute_VisibleJunction_CenterYellow", Vector3(248.0, 0.04, 0.32), Vector3(0.0, y + 0.14, z - 2.3), yellow)
+	_add_box(parent, "RoadRoute_VisibleAirportArrowShaft", Vector3(16.0, 0.04, 0.55), Vector3(62.0, y + 0.16, z + 2.2), white)
+	_add_box(parent, "RoadRoute_VisibleAirportArrowHeadA", Vector3(5.5, 0.04, 0.55), Vector3(72.0, y + 0.17, z + 3.4), white)
+	_add_box(parent, "RoadRoute_VisibleAirportArrowHeadB", Vector3(5.5, 0.04, 0.55), Vector3(72.0, y + 0.17, z + 1.0), white)
+	_add_box(parent, "RoadRoute_VisibleHillviewArrowShaft", Vector3(16.0, 0.04, 0.55), Vector3(-62.0, y + 0.16, z + 2.2), white)
+	_add_box(parent, "RoadRoute_VisibleHillviewArrowHeadA", Vector3(5.5, 0.04, 0.55), Vector3(-72.0, y + 0.17, z + 3.4), white)
+	_add_box(parent, "RoadRoute_VisibleHillviewArrowHeadB", Vector3(5.5, 0.04, 0.55), Vector3(-72.0, y + 0.17, z + 1.0), white)
+	_add_capture_wayfinding_sign(parent, "TrafficDestinationSign_AirportHarbor", "AIRPORT / HARBOR  →", Vector3(54.0, y + 0.02, z - 7.0), Color(0.10, 0.28, 0.36, 1.0))
+	_add_capture_wayfinding_sign(parent, "TrafficDestinationSign_Hillview", "←  HILLVIEW", Vector3(-54.0, y + 0.02, z - 7.0), Color(0.32, 0.20, 0.44, 1.0))
+	var right_route := [Vector3(9.0, y + 0.05, -154.0), Vector3(9.0, y + 0.05, z), Vector3(54.0, y + 0.05, z), Vector3(126.0, y + 0.05, z), Vector3(126.0, y + 0.05, -171.0), Vector3(54.0, y + 0.05, -171.0), Vector3(9.0, y + 0.05, -154.0)]
+	var left_route := [Vector3(-9.0, y + 0.05, -154.0), Vector3(-9.0, y + 0.05, z), Vector3(-54.0, y + 0.05, z), Vector3(-126.0, y + 0.05, z), Vector3(-126.0, y + 0.05, -171.0), Vector3(-54.0, y + 0.05, -171.0), Vector3(-9.0, y + 0.05, -154.0)]
+	for i in range(4):
+		_add_routed_traffic_car(parent, "RoutedTrafficCar_VisibleAirport_%d" % i, right_route, "Airport Connector", (i + 1) % CAR_VARIANTS.size(), 9.5, 0.17 + float(i) * 0.16)
+		_add_routed_traffic_car(parent, "RoutedTrafficCar_VisibleHillview_%d" % i, left_route, "Hillview Residential", (i + 2) % CAR_VARIANTS.size(), 8.8, 0.17 + float(i) * 0.16)
+	_add_capture_overhead_destination_gantry(parent)
+
+func _add_capture_overhead_destination_gantry(parent: Node3D) -> void:
+	# Large near-camera gantry: unlike the imported highway-sign props, this text is
+	# intentionally oversized for screenshot readability at 1152px wide.
+	var gantry := Node3D.new()
+	gantry.name = "TrafficDestinationSign_MainGantry"
+	gantry.position = Vector3(0.0, 0.0, -142.0)
+	parent.add_child(gantry)
+	var metal := _matte(Color(0.18, 0.18, 0.20, 1.0), 0.55, 0.4)
+	var panel_mat := _matte(Color(0.05, 0.22, 0.30, 1.0), 0.62, 0.08)
+	_add_box(gantry, "GantryPostL", Vector3(0.42, 8.2, 0.42), Vector3(-39.0, 4.1, 0.0), metal)
+	_add_box(gantry, "GantryPostR", Vector3(0.42, 8.2, 0.42), Vector3(39.0, 4.1, 0.0), metal)
+	_add_box(gantry, "GantryBeam", Vector3(82.0, 0.55, 0.55), Vector3(0.0, 8.2, 0.0), metal)
+	_add_box(gantry, "GantryPanel", Vector3(72.0, 4.4, 0.36), Vector3(0.0, 7.0, -0.36), panel_mat)
+	var label := Label3D.new()
+	label.name = "MainGantryLabel"
+	label.text = "← HILLVIEW    DOWNTOWN ↑    AIRPORT / HARBOR →"
+	label.position = Vector3(0.0, 7.1, -0.70)
+	label.font_size = 86
+	label.pixel_size = 0.058
+	label.modulate = Color(0.98, 0.96, 0.82, 1.0)
+	label.outline_size = 12
+	label.outline_modulate = Color(0.0, 0.0, 0.0, 0.90)
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	gantry.add_child(label)
+
+func _add_capture_destination_traffic(parent: Node3D) -> void:
+	var y := 0.64
+	var routes := [
+		{
+			"destination": "Downtown Core",
+			"speed": 12.0,
+			"points": [Vector3(-9.0, y, -190.0), Vector3(-9.0, y, -154.0), Vector3(-9.0, y, -82.0), Vector3(-9.0, y, 8.0), Vector3(-9.0, y, 70.0), Vector3(9.0, y, 70.0), Vector3(9.0, y, 8.0), Vector3(9.0, y, -82.0), Vector3(9.0, y, -154.0), Vector3(9.0, y, -190.0)],
+		},
+		{
+			"destination": "Harbor Freight",
+			"speed": 10.5,
+			"points": [Vector3(27.0, y, -188.0), Vector3(27.0, y, -154.0), Vector3(45.0, y, -171.0), Vector3(126.0, y, -171.0), Vector3(126.0, y, -82.0), Vector3(126.0, y, 8.0), Vector3(144.0, y, 8.0), Vector3(72.0, y, 8.0), Vector3(27.0, y, 8.0), Vector3(27.0, y, -154.0)],
+		},
+		{
+			"destination": "Airport Connector",
+			"speed": 11.0,
+			"points": [Vector3(9.0, y, 60.0), Vector3(9.0, y, 8.0), Vector3(45.0, y, 8.0), Vector3(126.0, y, 8.0), Vector3(126.0, y, -82.0), Vector3(126.0, y, -171.0), Vector3(144.0, y, -171.0), Vector3(90.0, y, -171.0), Vector3(45.0, y, -171.0), Vector3(9.0, y, -154.0), Vector3(9.0, y, 8.0)],
+		},
+		{
+			"destination": "Hillview Residential",
+			"speed": 9.5,
+			"points": [Vector3(-27.0, y, -186.0), Vector3(-27.0, y, -154.0), Vector3(-45.0, y, -171.0), Vector3(-126.0, y, -171.0), Vector3(-126.0, y, -82.0), Vector3(-126.0, y, 8.0), Vector3(-144.0, y, 8.0), Vector3(-72.0, y, 8.0), Vector3(-27.0, y, 8.0), Vector3(-27.0, y, -154.0)],
+		},
+	]
+	var car_i := 0
+	for ri in range(routes.size()):
+		var route: Dictionary = routes[ri]
+		var points: Array = route.get("points", []) as Array
+		var destination := str(route.get("destination", "Downtown Core"))
+		var speed := float(route.get("speed", 10.0))
+		for slot in range(3):
+			var frac := (float(slot) / 3.0) + float(ri) * 0.07
+			_add_routed_traffic_car(parent, "RoutedTrafficCar_%02d_%s" % [car_i, destination.replace(" ", "")], points, destination, (ri + slot) % CAR_VARIANTS.size(), speed, frac)
+			car_i += 1
 
 func _add_city_kit_freeway_foreground(parent: Node3D) -> void:
 	# City Kit Roads replaces the old handmade freeway boxes: four parallel tiled

@@ -10,6 +10,7 @@ SMOKE_LOG=.godot_validation/smoke.log
 DATA_LOG=.godot_validation/data.log
 VOLUMES_LOG=.godot_validation/volumes.log
 VOLUME_TEST_LOG=.godot_validation/volume_tests.log
+CITY_ROADS_TEST_LOG=.godot_validation/city_roads_tests.log
 "$GODOT" --headless --path . --import --quit-after 120 >"$IMPORT_LOG" 2>&1 || { tail -120 "$IMPORT_LOG"; exit 1; }
 if grep -E "SCRIPT ERROR|Parse Error|ERROR:" "$IMPORT_LOG" | grep -v "USER ERROR"; then
   echo "AURORA_IMPORT: FAIL"; exit 1
@@ -27,6 +28,9 @@ echo "AURORA_LOGIC: PASS"
 "$GODOT" --headless --path . -s tests/test_interaction_volumes.gd >"$VOLUME_TEST_LOG" 2>&1 || { cat "$VOLUME_TEST_LOG"; exit 1; }
 grep -q "AURORA_VOLUME_TESTS: PASS" "$VOLUME_TEST_LOG" || { cat "$VOLUME_TEST_LOG"; exit 1; }
 echo "AURORA_VOLUME_TESTS: PASS"
+AURORA_CAPTURE_MODE=city "$GODOT" --headless --path . -s tests/test_city_capture_roads.gd >"$CITY_ROADS_TEST_LOG" 2>&1 || { cat "$CITY_ROADS_TEST_LOG"; exit 1; }
+grep -q "AURORA_CITY_ROADS_TESTS: PASS" "$CITY_ROADS_TEST_LOG" || { cat "$CITY_ROADS_TEST_LOG"; exit 1; }
+echo "AURORA_CITY_ROADS_TESTS: PASS"
 SAVE_LOAD_LOG=.godot_validation/save_load_gd.log
 "$GODOT" --headless --path . -s tests/test_save_load.gd >"$SAVE_LOAD_LOG" 2>&1 || { cat "$SAVE_LOAD_LOG"; exit 1; }
 grep -q "AURORA_SAVE_LOAD_GD: PASS" "$SAVE_LOAD_LOG" || { cat "$SAVE_LOAD_LOG"; exit 1; }
