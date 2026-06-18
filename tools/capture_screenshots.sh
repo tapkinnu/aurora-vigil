@@ -8,7 +8,11 @@ cd "$ROOT"
 for mode in gameplay city drone closeup; do
   LOG="$OUT/${mode}.log"
   PNG="$OUT/${mode}.png"
-  AURORA_CAPTURE_PATH="$PNG" AURORA_CAPTURE_MODE="$mode" timeout 25 xvfb-run -a -s "-screen 0 1280x720x24" "$GODOT" --path . --rendering-driver opengl3 >"$LOG" 2>&1 || { cat "$LOG"; exit 1; }
+  # Forward+ renderer requires Vulkan. lavapipe (llvmpipe) provides software
+  # Vulkan on this WSL/xvfb setup, so capture with --rendering-driver vulkan.
+  # First launch compiles all Forward+ shaders on the llvmpipe software driver,
+  # which is slow; later modes reuse the cached shaders. Allow generous headroom.
+  AURORA_CAPTURE_PATH="$PNG" AURORA_CAPTURE_MODE="$mode" timeout 120 xvfb-run -a -s "-screen 0 1280x720x24" "$GODOT" --path . --rendering-driver vulkan >"$LOG" 2>&1 || { cat "$LOG"; exit 1; }
   test -s "$PNG" || { echo "missing screenshot $PNG"; cat "$LOG"; exit 1; }
   python3 - "$PNG" <<'PY'
 from PIL import Image, ImageStat

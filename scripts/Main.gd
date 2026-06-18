@@ -386,6 +386,19 @@ func _build_world() -> void:
 	e.tonemap_exposure = 1.0
 	e.tonemap_white = 6.0
 	env.environment = e
+	# Camera attributes drive exposure under Forward+ (auto-exposure moved off
+	# Environment to CameraAttributesPractical in Godot 4). Auto-exposure is left
+	# OFF deliberately: this is a fixed-time-of-day night city, so metering only
+	# normalises the carefully tuned dark/neon contrast away and blows the scene
+	# out to a flat white wash. The node is kept (with a sane sensitivity band)
+	# so a future day/night cycle can flip auto_exposure_enabled on and tune it.
+	var cam_attrs := CameraAttributesPractical.new()
+	cam_attrs.auto_exposure_enabled = false
+	cam_attrs.auto_exposure_scale = 0.4
+	cam_attrs.auto_exposure_speed = 0.5
+	cam_attrs.auto_exposure_min_sensitivity = 40.0
+	cam_attrs.auto_exposure_max_sensitivity = 90.0
+	env.camera_attributes = cam_attrs
 	add_child(env)
 
 	# Faint warm sun direction — adds directional shading on the upper
@@ -395,7 +408,42 @@ func _build_world() -> void:
 	sun.rotation_degrees = Vector3(-55, 35, 0)
 	sun.light_color = Color(0.9, 0.7, 0.55, 1.0)
 	sun.light_energy = 0.6
+	# Forward+ directional shadows — cast crisp tower shadows down the avenues.
+	sun.shadow_enabled = true
+	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
+	sun.directional_shadow_max_distance = 350.0
+	sun.directional_shadow_blend_splits = true
+	sun.shadow_normal_bias = 1.5
+	sun.shadow_bias = 0.08
+	# Contact shadows close the gap between an object and its cast shadow so
+	# props sitting on the pavement read as grounded (Forward+ only).
+	sun.set("shadow/contact_shadows", true)
+	sun.set("shadow/contact_shadows_size", 0.05)
+	# 4096px directional shadow atlas for sharp building-edge shadows.
+	get_viewport().set("positional_shadow_atlas_size", 4096)
 	add_child(sun)
+	# DirectionalLight3D shadow resolution is a project/render setting rather
+	# than a per-light property; raise it for the sharp split shadows.
+	RenderingServer.directional_shadow_atlas_set_size(4096, true)
+
+	# VoxelGI — real-time indirect bounce in the street canyons and under
+	# overhangs. Forward+ only; no bake needed when used dynamically.
+	var gi := VoxelGI.new()
+	gi.name = "CityVoxelGI"
+	gi.subdiv = VoxelGI.SUBDIV_128
+	gi.size = Vector3(400, 100, 400)
+	gi.position = Vector3(0, 40, 0)
+	add_child(gi)
+
+	# ReflectionProbe — window/wet-pavement reflections across the core city.
+	var ref_probe := ReflectionProbe.new()
+	ref_probe.name = "CityReflectionProbe"
+	ref_probe.size = Vector3(400, 100, 400)
+	ref_probe.position = Vector3(0, 20, 0)
+	ref_probe.intensity = 1.0
+	ref_probe.max_distance = 500.0
+	ref_probe.update_mode = ReflectionProbe.UPDATE_ONCE
+	add_child(ref_probe)
 
 	# Textured ground plane. Asphalt PBR from assets/textures/ground/asphalt_*.
 	# Subdivided to 320×320 cells with uv2_scale = (1, 1) so the texture
