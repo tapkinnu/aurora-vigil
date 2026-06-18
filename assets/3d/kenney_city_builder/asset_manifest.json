@@ -1,0 +1,28 @@
+{
+  "pack": "kenney-starter-kit-city-builder",
+  "created_for": "Aurora Vigil capture-only city tile-grid districts (AURORA_CAPTURE_MODE=city)",
+  "source_urls": [
+    "https://github.com/KenneyNL/Starter-Kit-City-Builder",
+    "https://kenney.nl"
+  ],
+  "notes": "Compact 1x1-unit city-builder tile GLBs (CC0 assets) used to lay grid-based plazas, parks, side streets and low-rise blocks around the freeway and skyline base. Code from the upstream Godot 4.6 starter project was NOT imported; only the CC0 model/texture assets were copied. Each GLB references Textures/colormap.png (a shared palette texture).",
+  "license_code": "MIT (upstream project code, not used here)",
+  "license_assets": "CC0 1.0 Universal",
+  "assets": [
+    { "id": "road-straight", "type": "road", "path": "res://assets/3d/kenney_city_builder/road-straight.glb" },
+    { "id": "road-straight-lightposts", "type": "road", "path": "res://assets/3d/kenney_city_builder/road-straight-lightposts.glb" },
+    { "id": "road-corner", "type": "road", "path": "res://assets/3d/kenney_city_builder/road-corner.glb" },
+    { "id": "road-intersection", "type": "road", "path": "res://assets/3d/kenney_city_builder/road-intersection.glb" },
+    { "id": "road-split", "type": "road", "path": "res://assets/3d/kenney_city_builder/road-split.glb" },
+    { "id": "pavement", "type": "pavement", "path": "res://assets/3d/kenney_city_builder/pavement.glb" },
+    { "id": "pavement-fountain", "type": "pavement", "path": "res://assets/3d/kenney_city_builder/pavement-fountain.glb" },
+    { "id": "grass", "type": "ground", "path": "res://assets/3d/kenney_city_builder/grass.glb" },
+    { "id": "grass-trees", "type": "ground", "path": "res://assets/3d/kenney_city_builder/grass-trees.glb" },
+    { "id": "grass-trees-tall", "type": "ground", "path": "res://assets/3d/kenney_city_builder/grass-trees-tall.glb" },
+    { "id": "building-small-a", "type": "building", "path": "res://assets/3d/kenney_city_builder/building-small-a.glb" },
+    { "id": "building-small-b", "type": "building", "path": "res://assets/3d/kenney_city_builder/building-small-b.glb" },
+    { "id": "building-small-c", "type": "building", "path": "res://assets/3d/kenney_city_builder/building-small-c.glb" },
+    { "id": "building-small-d", "type": "building", "path": "res://assets/3d/kenney_city_builder/building-small-d.glb" },
+    { "id": "building-garage", "type": "building", "path": "res://assets/3d/kenney_city_builder/building-garage.glb" }
+  ]
+}

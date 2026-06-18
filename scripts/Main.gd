@@ -91,6 +91,17 @@ const CITY_KIT_LOW_DETAIL_VARIANTS := [
 	"low-detail-building-m.glb", "low-detail-building-n.glb", "low-detail-building-wide-a.glb",
 	"low-detail-building-wide-b.glb",
 ]
+# Kenney Starter Kit City Builder — compact 1x1-unit tile GLBs (CC0). Capture-only;
+# used to lay grid-based plazas/parks/side streets and low-rise blocks so the city
+# postcard reads like an actual city-builder layout instead of flat hand-placed slabs.
+const CITY_BUILDER_DIR := "res://assets/3d/kenney_city_builder/"
+const CITY_BUILDER_GRASS_VARIANTS := [
+	"grass.glb", "grass-trees.glb", "grass-trees-tall.glb",
+]
+const CITY_BUILDER_LOWRISE_VARIANTS := [
+	"building-small-a.glb", "building-small-b.glb", "building-small-c.glb",
+	"building-small-d.glb", "building-garage.glb",
+]
 var _prop_scene_cache: Dictionary = {}
 
 # Focused gameplay systems, wired in _ready.
@@ -3081,6 +3092,11 @@ func _add_reference_capture_scene(parent: Node3D) -> void:
 	_add_city_kit_skyline_blocks(ref)
 	_add_city_kit_dense_sides(ref)
 	_add_city_kit_horizon_fill(ref)
+	# City Builder tile districts complement (do not replace) the Commercial/Road kit
+	# skyline & freeway: grid plazas/parks/side streets + low-rise blocks that break up
+	# the flat foreground/plaza slabs QA flagged. Placed before street life so furniture
+	# and traffic sit on top of the tiles.
+	_add_city_builder_districts(ref)
 	_add_city_kit_street_life(ref)
 	_add_city_kit_street_detailing(ref)
 	_add_sun_flare_capture_only()
@@ -3226,6 +3242,107 @@ func _add_city_kit_detail(parent: Node3D, asset_name: String, node_name: String,
 	holder.rotation_degrees = Vector3(0.0, rot_y, 0.0)
 	parent.add_child(holder)
 	return holder
+
+# ── Kenney Starter Kit City Builder tile districts (AURORA_CAPTURE_MODE=city only) ──
+# These reuse the compact 1x1-unit CC0 tile GLBs to stamp grid-based plazas, parks,
+# side streets and low-rise blocks around the freeway and skyline base. The tiles are
+# real imported geometry auto-fitted by _instance_prop, so the foreground/plaza no
+# longer reads as flat hand-placed slabs. Everything stays clear of the central freeway
+# travel lanes (|x| < ~38) and is gated behind the capture-only reference scene.
+
+func _add_city_builder_prop(parent: Node3D, asset_name: String, node_name: String, pos: Vector3, rot_y: float, target_size: float) -> Node3D:
+	# All City Builder tiles/blocks are ~1 unit on X, so a single uniform x-fit keeps the
+	# native proportions (no Y stretch) — pavement stays flat, buildings stay buildings.
+	var holder := _instance_prop(CITY_BUILDER_DIR + asset_name, "x", target_size, true)
+	if holder == null:
+		push_warning("City builder asset failed: " + CITY_BUILDER_DIR + asset_name)
+		return null
+	holder.name = node_name
+	holder.position = pos
+	holder.rotation_degrees = Vector3(0.0, rot_y, 0.0)
+	parent.add_child(holder)
+	return holder
+
+func _add_city_builder_districts(parent: Node3D) -> void:
+	var district := Node3D.new()
+	district.name = "KenneyCityBuilder_TileDistricts"
+	parent.add_child(district)
+	_add_city_builder_skyline_plaza(district)
+	_add_city_builder_foreground_blocks(district)
+
+func _add_city_builder_skyline_plaza(parent: Node3D) -> void:
+	# A tiled downtown plaza/park at the foot of the skyline (north of where the freeway
+	# ends at z=-10), joining the freeway head to the tower cluster. Pavement grid with a
+	# central fountain, flanking tree parks, and a few low-rise blocks facing the freeway.
+	var plaza := Node3D.new()
+	plaza.name = "CityBuilderSkylinePlaza"
+	parent.add_child(plaza)
+	var tile := 14.0
+	var y := 0.57  # just above the CapturePlaza slab top (~0.55)
+	# Central paved plaza grid. z stays >= 2 so it never reaches the freeway travel lanes.
+	var cols := [-42.0, -28.0, -14.0, 0.0, 14.0, 28.0, 42.0]
+	var rows := [4.0, 18.0]
+	for ri in range(rows.size()):
+		for ci in range(cols.size()):
+			var cx: float = cols[ci]
+			# Central fountain anchors the plaza; everything else is plain pavement.
+			if ci == 3 and ri == 0:
+				_add_city_builder_prop(plaza, "pavement-fountain.glb", "PlazaFountain", Vector3(cx, y, rows[ri]), 0.0, tile)
+			else:
+				_add_city_builder_prop(plaza, "pavement.glb", "PlazaPave_%d_%d" % [ri, ci], Vector3(cx, y, rows[ri]), 0.0, tile)
+	# Flanking tree parks just outside the paved core (well clear of the freeway lanes).
+	for side in [-1, 1]:
+		var sf := float(side)
+		for pi in range(3):
+			var px := sf * (60.0 + float(pi % 2) * 14.0)
+			var pz := 2.0 + float(pi) * 14.0
+			var grass := str(CITY_BUILDER_GRASS_VARIANTS[(pi + (0 if side < 0 else 1)) % CITY_BUILDER_GRASS_VARIANTS.size()])
+			_add_city_builder_prop(plaza, grass, "PlazaPark_%d_%d" % [side, pi], Vector3(px, y, pz), float(pi) * 30.0, tile)
+		# Low-rise blocks lining the plaza edge, facing the freeway/camera (south).
+		for bi in range(2):
+			var asset := str(CITY_BUILDER_LOWRISE_VARIANTS[(bi + (1 if side < 0 else 3)) % CITY_BUILDER_LOWRISE_VARIANTS.size()])
+			var bx := sf * (34.0 + float(bi) * 12.0)
+			var bz := 16.0
+			_add_city_builder_prop(plaza, asset, "PlazaLowrise_%d_%d" % [side, bi], Vector3(bx, y, bz), 180.0 + sf * 6.0, 13.0)
+
+func _add_city_builder_foreground_blocks(parent: Node3D) -> void:
+	# The near foreground flank thirds (beyond the freeway shoulders) were the flat
+	# asphalt slabs QA flagged. Each side gets a small city-builder block: a paved/park
+	# grid, an east-west side street leading off the freeway, and low-rise buildings — so
+	# the lower frame reads as real city blocks. All x >= 50, clear of the freeway lanes.
+	var blocks := Node3D.new()
+	blocks.name = "CityBuilderForegroundBlocks"
+	parent.add_child(blocks)
+	var tile := 13.0
+	var y := 0.42  # just above the CaptureStreetFloor asphalt top (~0.40)
+	var cols := [52.0, 65.0, 78.0, 91.0]
+	for side in [-1, 1]:
+		var sf := float(side)
+		# Side street (east-west) leading away from the freeway shoulder.
+		for ci in range(cols.size()):
+			var sx: float = sf * cols[ci]
+			var road := "road-straight.glb"
+			if ci == 0:
+				road = "road-intersection.glb"
+			elif ci == cols.size() - 1:
+				road = "road-corner.glb"
+			elif ci == 2:
+				road = "road-straight-lightposts.glb"
+			_add_city_builder_prop(blocks, road, "FgStreet_%d_%d" % [side, ci], Vector3(sx, y, -171.0), 90.0, tile)
+		# North strip (toward the skyline): paved plaza apron.
+		for ci in range(cols.size()):
+			var sx: float = sf * cols[ci]
+			_add_city_builder_prop(blocks, "pavement.glb", "FgPaveN_%d_%d" % [side, ci], Vector3(sx, y, -158.0), 0.0, tile)
+		# South strip (nearest camera): parks + low-rise blocks on a paved base.
+		for ci in range(cols.size()):
+			var sx: float = sf * cols[ci]
+			_add_city_builder_prop(blocks, "pavement.glb", "FgPaveS_%d_%d" % [side, ci], Vector3(sx, y, -184.0), 0.0, tile)
+			if ci % 2 == 0:
+				var asset := str(CITY_BUILDER_LOWRISE_VARIANTS[(ci + (0 if side < 0 else 2)) % CITY_BUILDER_LOWRISE_VARIANTS.size()])
+				_add_city_builder_prop(blocks, asset, "FgLowrise_%d_%d" % [side, ci], Vector3(sx, y, -184.0), float(side) * -6.0, 11.5)
+			else:
+				var grass := str(CITY_BUILDER_GRASS_VARIANTS[(ci + (1 if side < 0 else 0)) % CITY_BUILDER_GRASS_VARIANTS.size()])
+				_add_city_builder_prop(blocks, grass, "FgPark_%d_%d" % [side, ci], Vector3(sx, y, -184.0), float(ci) * 25.0, tile)
 
 func _add_city_kit_freeway_foreground(parent: Node3D) -> void:
 	# City Kit Roads replaces the old handmade freeway boxes: four parallel tiled
