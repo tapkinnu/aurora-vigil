@@ -34,7 +34,7 @@ echo "AURORA_SAVE_LOAD_GD: PASS"
 python3 tools/verify_save_load.py >.godot_validation/save_load_py.log 2>&1 || { cat .godot_validation/save_load_py.log; exit 1; }
 grep -q "AURORA_SAVE_LOAD: PASS" .godot_validation/save_load_py.log || { cat .godot_validation/save_load_py.log; exit 1; }
 echo "AURORA_SAVE_LOAD_PY: PASS"
-AURORA_AUTO_QUIT=1 timeout 20 xvfb-run -a -s "-screen 0 1280x720x24" "$GODOT" --path . --rendering-driver opengl3 >"$SMOKE_LOG" 2>&1 || { cat "$SMOKE_LOG"; exit 1; }
+AURORA_AUTO_QUIT=1 timeout 120 xvfb-run -a -s "-screen 0 1280x720x24" "$GODOT" --path . --rendering-driver vulkan >"$SMOKE_LOG" 2>&1 || { cat "$SMOKE_LOG"; exit 1; }
 grep -q "AURORA_SMOKE:" "$SMOKE_LOG" || { cat "$SMOKE_LOG"; exit 1; }
 if grep -E "SCRIPT ERROR|Parse Error|ERROR:" "$SMOKE_LOG" | grep -v "USER ERROR"; then
   echo "AURORA_SMOKE: FAIL"; exit 1

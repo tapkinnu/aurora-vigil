@@ -10,7 +10,7 @@ config/features=PackedStringArray("4.4")
 config/icon="res://icon.svg"
 
 [rendering]
-renderer/rendering_method="gl_compatibility"
+renderer/rendering_method="forward_plus"
 renderer/rendering_method.mobile="gl_compatibility"
 environment/defaults/default_clear_color=Color(0.02, 0.035, 0.07, 1)
 
