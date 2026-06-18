@@ -70,6 +70,11 @@ func trigger(power_id: String) -> void:
 		host.last_event_text = "%s fired, but no matching city event is within %.0fm." % [power_id.replace("_", " ").capitalize(), events.EVENT_RESOLVE_RADIUS]
 
 func _spawn_power_flash(power_id: String) -> void:
+	var c: Color = DEFAULT_FLASH_COLOR
+	if power_data.has(power_id):
+		c = power_data[power_id]["flash_color"]
+	# Base burst: a quick emissive bloom at the hero, kept from the original VFX so
+	# every power (including training surges with no data entry) reads on screen.
 	var flash := MeshInstance3D.new()
 	flash.name = "PowerFlash_%s" % power_id
 	var mesh := SphereMesh.new()
@@ -77,15 +82,159 @@ func _spawn_power_flash(power_id: String) -> void:
 	mesh.height = 2.0
 	flash.mesh = mesh
 	flash.position = hero.position
-	var c: Color = DEFAULT_FLASH_COLOR
-	if power_data.has(power_id):
-		c = power_data[power_id]["flash_color"]
 	flash.material_override = host._mat(c, c, 1.8)
 	host.add_child(flash)
 	var tween: Tween = host._remember_tween(host.create_tween())
 	tween.tween_property(flash, "scale", Vector3(7, 7, 7), 0.35)
 	tween.parallel().tween_property(flash, "transparency", 1.0, 0.35)
 	tween.tween_callback(flash.queue_free)
+	# Per-power signature VFX layered on top of the base burst.
+	_spawn_power_vfx(power_id, c)
+
+# Dispatches the distinctive, performant, gl_compatibility-safe VFX for each power.
+# All effects are short (≤2 s) and self-free via a remembered tween so they are torn
+# down cleanly at quit. Unknown/training-surge ids fall through to the base burst.
+func _spawn_power_vfx(power_id: String, c: Color) -> void:
+	match power_id:
+		"radiant_beam":
+			_vfx_radiant_beam(c)
+		"sonic_burst":
+			_vfx_sonic_burst(c)
+		"aegis_field":
+			_vfx_aegis_field(c)
+		"rescue_lift":
+			_vfx_rescue_lift(c)
+
+# Bright beam from the hero to the nearest event (or straight ahead), with a particle
+# burst where it lands.
+func _vfx_radiant_beam(c: Color) -> void:
+	var origin: Vector3 = hero.position
+	var target: Vector3 = origin + (-hero.global_transform.basis.z) * 42.0
+	var ne: Node3D = events.nearest_event()
+	if ne != null and is_instance_valid(ne) and origin.distance_to(ne.position) < 90.0:
+		target = ne.position
+	var dir := (target - origin)
+	var dist := dir.length()
+	if dist < 0.5:
+		return
+	var beam := MeshInstance3D.new()
+	beam.name = "RadiantBeam"
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = 0.22
+	cyl.bottom_radius = 0.22
+	cyl.height = dist
+	beam.mesh = cyl
+	beam.material_override = host._mat(c, c, 3.2)
+	host.add_child(beam)
+	beam.global_position = (origin + target) * 0.5
+	beam.look_at(target, Vector3.UP)
+	beam.rotate_object_local(Vector3(1, 0, 0), PI / 2.0)  # align cylinder Y axis to the beam line
+	var tween: Tween = host._remember_tween(host.create_tween())
+	tween.tween_interval(0.12)
+	tween.tween_property(beam, "transparency", 1.0, 0.28)
+	tween.tween_callback(beam.queue_free)
+	_burst(target, c, 26, 9.0, 0.55)
+
+# Expanding shockwave ring around the hero plus a brief screen flash.
+func _vfx_sonic_burst(c: Color) -> void:
+	var ring := MeshInstance3D.new()
+	ring.name = "SonicRing"
+	var torus := TorusMesh.new()
+	torus.inner_radius = 1.2
+	torus.outer_radius = 1.8
+	ring.mesh = torus
+	ring.material_override = host._mat(c, c, 2.6)
+	ring.position = hero.position
+	host.add_child(ring)
+	var tween: Tween = host._remember_tween(host.create_tween())
+	tween.tween_property(ring, "scale", Vector3(16, 4, 16), 0.5)
+	tween.parallel().tween_property(ring, "transparency", 1.0, 0.5)
+	tween.tween_callback(ring.queue_free)
+	if host.has_method("flash_screen"):
+		host.flash_screen(Color(c.r, c.g, c.b, 0.32))
+
+# Translucent protective bubble around the hero, parented so it tracks the hero, with
+# a shimmer pulse before it fades.
+func _vfx_aegis_field(c: Color) -> void:
+	var bubble := MeshInstance3D.new()
+	bubble.name = "AegisBubble"
+	var sphere := SphereMesh.new()
+	sphere.radius = 3.0
+	sphere.height = 6.0
+	bubble.mesh = sphere
+	var mat = host._transparent_mat(Color(c.r, c.g, c.b, 0.22), c, 1.6)
+	bubble.material_override = mat
+	hero.add_child(bubble)
+	bubble.scale = Vector3(0.4, 0.4, 0.4)
+	var tween: Tween = host._remember_tween(host.create_tween())
+	tween.tween_property(bubble, "scale", Vector3(1.0, 1.0, 1.0), 0.25)
+	tween.tween_property(bubble, "scale", Vector3(1.1, 1.1, 1.1), 0.6)
+	tween.tween_property(bubble, "scale", Vector3(1.0, 1.0, 1.0), 0.6)
+	tween.tween_property(bubble, "transparency", 1.0, 0.55)
+	tween.tween_callback(bubble.queue_free)
+
+# Green glow pillar rising from the nearest civilian/event toward the sky with a
+# sparkle burst, evoking a rescue lift.
+func _vfx_rescue_lift(c: Color) -> void:
+	var base: Vector3 = hero.position
+	var ne: Node3D = events.nearest_event()
+	if ne != null and is_instance_valid(ne) and hero.position.distance_to(ne.position) < 90.0:
+		base = Vector3(ne.position.x, 1.0, ne.position.z)
+	var pillar := MeshInstance3D.new()
+	pillar.name = "RescuePillar"
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = 1.4
+	cyl.bottom_radius = 1.4
+	cyl.height = 26.0
+	pillar.mesh = cyl
+	pillar.material_override = host._transparent_mat(Color(c.r, c.g, c.b, 0.28), c, 2.4)
+	pillar.position = base + Vector3(0, 13.0, 0)
+	pillar.scale = Vector3(1, 0.05, 1)
+	host.add_child(pillar)
+	var tween: Tween = host._remember_tween(host.create_tween())
+	tween.tween_property(pillar, "scale", Vector3(1, 1, 1), 0.4)
+	tween.tween_interval(0.4)
+	tween.tween_property(pillar, "transparency", 1.0, 0.5)
+	tween.tween_callback(pillar.queue_free)
+	_burst(base + Vector3(0, 2.0, 0), c, 30, 7.0, 0.7)
+
+# One-shot CPUParticles3D burst (gl_compatibility safe). Self-frees after its
+# lifetime via a remembered tween so quit cleanup stays leak-free.
+func _burst(pos: Vector3, c: Color, count: int, vel: float, life: float) -> void:
+	var p := CPUParticles3D.new()
+	p.name = "PowerBurst"
+	p.one_shot = true
+	p.explosiveness = 1.0
+	p.amount = count
+	p.lifetime = life
+	p.position = pos
+	p.direction = Vector3(0, 1, 0)
+	p.spread = 180.0
+	p.initial_velocity_min = vel * 0.5
+	p.initial_velocity_max = vel
+	p.gravity = Vector3(0, -6.0, 0)
+	p.scale_amount_min = 0.25
+	p.scale_amount_max = 0.55
+	var dot := SphereMesh.new()
+	dot.radius = 0.18
+	dot.height = 0.36
+	dot.radial_segments = 6
+	dot.rings = 4
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = c
+	mat.emission_enabled = true
+	mat.emission = c
+	mat.emission_energy_multiplier = 2.4
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	dot.material = mat
+	p.mesh = dot
+	host.add_child(p)
+	p.emitting = true
+	var tween: Tween = host._remember_tween(host.create_tween())
+	tween.tween_interval(life + 0.3)
+	tween.tween_callback(p.queue_free)
 
 # The set of audio ids that fire for a power now comes from data (power_data),
 # but each id is dispatched through a literal `AuroraAudio.trigger("...")` so the

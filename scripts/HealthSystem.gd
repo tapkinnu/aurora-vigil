@@ -21,6 +21,10 @@ var hero: Node3D
 var enemy_system
 var events
 
+# Difficulty scaling: passive regen rate is multiplied by this (Easy 2.0 .. Hard
+# 0.5). Defaults to 1.0 so headless/unit contexts keep Normal regen.
+var regen_mult: float = 1.0
+
 var health: float = MAX_HEALTH
 var aegis_timer: float = 0.0
 var game_over: bool = false
@@ -65,7 +69,7 @@ func update(delta: float) -> void:
 	if incoming > 0.0:
 		health -= incoming
 	elif _streets_clear():
-		health = min(MAX_HEALTH, health + REGEN_RATE * delta)
+		health = min(MAX_HEALTH, health + REGEN_RATE * regen_mult * delta)
 
 	health = clamp(health, 0.0, MAX_HEALTH)
 	if health <= 0.0:
