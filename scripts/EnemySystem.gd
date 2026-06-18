@@ -25,6 +25,11 @@ var hero: Node3D
 var events
 var progression: ProgressionModel
 
+# Difficulty scaling: contact melee damage is multiplied by this (Easy 0.5 .. Hard
+# 1.5). Defaults to 1.0 so any code path that runs without SettingsManager wiring
+# keeps the original Normal-difficulty behaviour.
+var damage_mult: float = 1.0
+
 # Per-unit record: { node, speed, contact_cd, dying }.
 var units: Array = []
 # Instance ids of power_surge markers already converted into a wave, so a standing
@@ -116,7 +121,7 @@ func _step_unit(u: Dictionary, delta: float) -> void:
 	u["contact_cd"] = max(0.0, u["contact_cd"] - delta)
 	if dist <= CONTACT_RANGE and u["contact_cd"] <= 0.0:
 		u["contact_cd"] = CONTACT_COOLDOWN
-		_pending_damage += CONTACT_DAMAGE
+		_pending_damage += CONTACT_DAMAGE * damage_mult
 
 # HealthSystem pulls (and clears) the melee damage accumulated since the last frame.
 func take_pending_damage() -> float:

@@ -34,6 +34,9 @@ var rogue_drone_actor: Node3D
 var resolved_events: int = 0
 var event_timer: float = 0.0
 var next_event_seconds: float = 6.0
+# Difficulty scaling: timed-spawn intervals are divided by this (Easy 0.7 → rarer,
+# Hard 1.3 → more frequent). Defaults to 1.0 so headless/unit contexts are unchanged.
+var spawn_mult: float = 1.0
 var rng := RandomNumberGenerator.new()
 
 var event_waypoint_layer: CanvasLayer
@@ -113,7 +116,7 @@ func update(delta: float) -> void:
 		event_timer = 0.0
 		var min_s := float(timed_spawn_data.get("min_seconds", 8.0)) if not timed_spawn_data.is_empty() else 8.0
 		var max_s := float(timed_spawn_data.get("max_seconds", 14.0)) if not timed_spawn_data.is_empty() else 14.0
-		next_event_seconds = min_s + rng.randf_range(0, max(0.0, max_s - min_s))
+		next_event_seconds = (min_s + rng.randf_range(0, max(0.0, max_s - min_s))) / max(0.01, spawn_mult)
 		var positions := _timed_spawn_positions()
 		var types := _timed_spawn_types()
 		spawn_event(types[rng.randi_range(0, types.size() - 1)], positions[rng.randi_range(0, positions.size() - 1)])

@@ -10,3 +10,6 @@ artifacts/screenshots/*.log
 /tmp/
 .studio/*.log
 __pycache__/
+
+# Desktop export build outputs
+build/

@@ -88,10 +88,22 @@ var minimap: Minimap
 var unlock_toast: Label
 var mission_banner: Label
 var game_over_label: Label
+var controls_hint_label: Label
+var screen_flash: ColorRect
 var _toast_timer: float = 0.0
 var _banner_timer: float = 0.0
 var _last_unlocked_count: int = 2
 var _last_banner_step: int = 0
+
+# Release-polish menu overlays (built only in interactive play; never during the
+# headless capture/auto-quit harness runs so screenshots and the smoke test are
+# unaffected). main_menu pauses the tree as a cinematic title backdrop.
+const MAIN_MENU_SCENE := preload("res://scenes/main_menu.tscn")
+const PauseMenuScript := preload("res://scripts/PauseMenu.gd")
+const GameOverScreenScript := preload("res://scripts/GameOverScreen.gd")
+var main_menu: CanvasLayer
+var pause_menu
+var game_over_screen
 
 # The four key-bound powers shown in the HUD with their lock state, in unlock order.
 const HUD_POWERS: Array[Dictionary] = [
@@ -120,6 +132,11 @@ func _ready() -> void:
 		call_deferred("_capture_after_delay")
 	elif OS.get_environment("AURORA_AUTO_QUIT") == "1":
 		call_deferred("_quit_after_delay")
+	elif _persistence_enabled():
+		# Interactive launch: build the pause / game-over overlays and open the
+		# title menu over the live skyline. Capture/auto-quit runs skip all of this.
+		_build_menus()
+		_show_main_menu()
 
 func _wire_systems() -> void:
 	missions = MissionDirector.new()
@@ -139,6 +156,7 @@ func _wire_systems() -> void:
 	civilians.setup(self, hero, events, Callable(self, "_dispatch_civilian_audio"))
 	health_system = HealthSystem.new()
 	health_system.setup(self, hero, enemy_system, events)
+	_apply_difficulty()
 
 # Persistence is disabled during headless capture/smoke runs so screenshots and the
 # smoke print stay deterministic regardless of any save file on disk.
@@ -273,28 +291,33 @@ func _physics_process(delta: float) -> void:
 	flight.update_contact_shadows()
 	_update_transients(delta)
 	_update_hud()
+	# Surface the game-over screen in interactive play (it pauses the tree, so the
+	# auto-respawn loop in HealthSystem stays frozen until the player chooses Retry).
+	if game_over_screen != null and health_system.game_over and not game_over_screen.is_shown():
+		game_over_screen.show_screen()
 
+# Power activation is action-based so keyboard (F/Q/E/R) and controller face buttons
+# (A=rescue, B=sonic, X=radiant, Y=aegis, mapped in project.godot) both fire. While a
+# menu/game-over overlay holds the tree paused, Main is pausable so this never runs.
 func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo:
-		match event.keycode:
-			KEY_F:
-				powers.trigger("radiant_beam")
-			KEY_Q:
-				powers.trigger("sonic_burst")
-				if progression.has_power("sonic_burst"):
-					var disabled := enemy_system.disable_in_range(hero.position)
-					if disabled > 0:
-						last_event_text = "Sonic burst silenced %d Null Choir unit(s)." % disabled
-			KEY_E:
-				powers.trigger("aegis_field")
-				if progression.has_power("aegis_field"):
-					health_system.activate_aegis()
-			KEY_R:
-				powers.trigger("rescue_lift")
-				if progression.has_power("rescue_lift"):
-					var calmed := civilians.rescue_nearby()
-					if calmed > 0:
-						last_event_text = "Rescue lift reassured %d civilian(s)." % calmed
+	if event.is_action_pressed("aurora_power_radiant"):
+		powers.trigger("radiant_beam")
+	elif event.is_action_pressed("aurora_power_sonic"):
+		powers.trigger("sonic_burst")
+		if progression.has_power("sonic_burst"):
+			var disabled := enemy_system.disable_in_range(hero.position)
+			if disabled > 0:
+				last_event_text = "Sonic burst silenced %d Null Choir unit(s)." % disabled
+	elif event.is_action_pressed("aurora_power_aegis"):
+		powers.trigger("aegis_field")
+		if progression.has_power("aegis_field"):
+			health_system.activate_aegis()
+	elif event.is_action_pressed("aurora_power_rescue"):
+		powers.trigger("rescue_lift")
+		if progression.has_power("rescue_lift"):
+			var calmed := civilians.rescue_nearby()
+			if calmed > 0:
+				last_event_text = "Rescue lift reassured %d civilian(s)." % calmed
 
 # Routes CivilianSystem audio cues through literal AuroraAudio.trigger(...) calls so
 # the audio-wiring contract (check_audio_wiring.py) stays satisfied in one place.
@@ -1346,6 +1369,30 @@ func _build_hud() -> void:
 	game_over_label.z_index = 4
 	layer.add_child(game_over_label)
 
+	# Controls hint (bottom-left); text swaps between keyboard and gamepad in _update_hud.
+	controls_hint_label = Label.new()
+	controls_hint_label.name = "ControlsHint"
+	controls_hint_label.position = Vector2(24, 678)
+	controls_hint_label.size = Vector2(1000, 28)
+	controls_hint_label.add_theme_font_size_override("font_size", 15)
+	controls_hint_label.add_theme_color_override("font_color", Color(0.75, 0.88, 1.0, 0.85))
+	controls_hint_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	controls_hint_label.add_theme_constant_override("shadow_offset_x", 1)
+	controls_hint_label.add_theme_constant_override("shadow_offset_y", 1)
+	controls_hint_label.z_index = 1
+	layer.add_child(controls_hint_label)
+
+	# Full-screen tint used by power VFX (e.g. sonic-burst screen flash). Starts clear
+	# and is pulsed by flash_screen(). Ignores mouse so it never blocks the UI.
+	screen_flash = ColorRect.new()
+	screen_flash.name = "ScreenFlash"
+	screen_flash.position = Vector2(0, 0)
+	screen_flash.size = Vector2(1280, 720)
+	screen_flash.color = Color(1, 1, 1, 0)
+	screen_flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	screen_flash.z_index = 5
+	layer.add_child(screen_flash)
+
 	# Sync transient-notification baselines after any save-load so the first frame
 	# does not fire a spurious unlock toast / mission banner for restored progress.
 	_last_unlocked_count = progression.unlocked.size()
@@ -1366,6 +1413,15 @@ func _update_hud() -> void:
 		event_cue_label.text = "Nearest: %s — %.0fm (%s). %s. Last: %s" % [events.format_event_name(kind), dist, proximity, events.required_action_for_event(kind), last_event_text]
 	_update_health_hud()
 	_update_minimap()
+	_update_controls_hint()
+
+func _update_controls_hint() -> void:
+	if controls_hint_label == null:
+		return
+	if Input.get_connected_joypads().size() > 0:
+		controls_hint_label.text = "Gamepad: Left stick fly · Triggers climb/dive · Bumpers boost · A rescue · B sonic · X radiant · Y aegis · Right stick look · Select pause"
+	else:
+		controls_hint_label.text = "Keyboard: WASD fly · Space/Ctrl climb/dive · Shift boost · R rescue · Q sonic · F radiant · E aegis · Esc pause"
 
 # Lists the four key-bound powers, marking any the hero has not yet unlocked.
 func _power_hud_text() -> String:
@@ -1396,8 +1452,10 @@ func _update_health_hud() -> void:
 	var suffix := "  [AEGIS]" if health_system.is_aegis_active() else ""
 	health_label.text = "HP %d/%d%s" % [int(round(hp)), int(HealthSystem.MAX_HEALTH), suffix]
 	if game_over_label != null:
-		game_over_label.visible = health_system.game_over
-		if health_system.game_over:
+		# In interactive play the dedicated GameOverScreen overlay handles this; the
+		# simple centre label only shows when no screen exists (capture/headless).
+		game_over_label.visible = health_system.game_over and game_over_screen == null
+		if game_over_label.visible:
 			game_over_label.text = "GAME OVER"
 
 func _update_minimap() -> void:
@@ -1449,16 +1507,26 @@ func _update_transients(delta: float) -> void:
 	if missions.mission_step > _last_banner_step:
 		var done_idx: int = clamp(missions.mission_step - 1, 0, missions.missions.size() - 1)
 		_last_banner_step = missions.mission_step
-		if mission_banner != null:
-			mission_banner.text = "MISSION COMPLETE: %s" % str(missions.missions[done_idx]["title"])
-			mission_banner.modulate = Color(1, 1, 1, 1)
-			_banner_timer = 3.0
+		var done: Dictionary = missions.missions[done_idx]
+		_show_mission_banner(str(done["title"]), int(done.get("reward_xp", 0)))
 	if _toast_timer > 0.0 and unlock_toast != null:
 		_toast_timer = max(0.0, _toast_timer - delta)
 		unlock_toast.modulate = Color(1, 1, 1, clamp(_toast_timer, 0.0, 1.0))
-	if _banner_timer > 0.0 and mission_banner != null:
-		_banner_timer = max(0.0, _banner_timer - delta)
-		mission_banner.modulate = Color(1, 1, 1, clamp(_banner_timer, 0.0, 1.0))
+
+# Gold mission-complete banner that slides in from the top, holds ~2 s with the XP
+# reward, then slides back out — driven by a single remembered tween.
+func _show_mission_banner(title: String, reward_xp: int) -> void:
+	if mission_banner == null:
+		return
+	mission_banner.text = "MISSION COMPLETE: %s   +%d XP" % [title, reward_xp]
+	mission_banner.position = Vector2(340, -48)
+	mission_banner.modulate = Color(1, 1, 1, 0)
+	var tween: Tween = _remember_tween(create_tween())
+	tween.tween_property(mission_banner, "position:y", 96.0, 0.4)
+	tween.parallel().tween_property(mission_banner, "modulate:a", 1.0, 0.4)
+	tween.tween_interval(2.0)
+	tween.tween_property(mission_banner, "position:y", -48.0, 0.4)
+	tween.parallel().tween_property(mission_banner, "modulate:a", 0.0, 0.4)
 
 func _city_facade_material(h: float, x: int, z: int, width: float, depth: float, collector: bool) -> ShaderMaterial:
 	# Per-building deterministic seed from grid position
@@ -1543,6 +1611,101 @@ func _city_texture(kind: String, base: Color, accent: Color, grid: Color) -> Ima
 	var tex := ImageTexture.new()
 	tex.create_from_image(img)
 	return tex
+
+# ── Release-polish: screen flash, difficulty, and menu flow ──
+
+# Pulse a full-screen tint to 0 alpha over ~0.4 s. `c.a` is the peak intensity.
+# Called by PowerSystem for the sonic-burst flash; safe if the HUD is not built.
+func flash_screen(c: Color) -> void:
+	if screen_flash == null or not is_instance_valid(screen_flash):
+		return
+	screen_flash.color = c
+	var tween: Tween = _remember_tween(create_tween())
+	tween.tween_property(screen_flash, "color:a", 0.0, 0.4)
+
+# Reads the current difficulty multipliers from SettingsManager and pushes them into
+# the live gameplay systems. Re-callable after a settings change. Guarded so it is a
+# no-op if the autoload is unavailable (defaults already resolve to Normal).
+func _apply_difficulty() -> void:
+	var sm = get_node_or_null("/root/SettingsManager")
+	if sm == null:
+		return
+	if enemy_system != null:
+		enemy_system.damage_mult = sm.enemy_damage_mult()
+	if health_system != null:
+		health_system.regen_mult = sm.health_regen_mult()
+	if events != null:
+		events.spawn_mult = sm.event_spawn_mult()
+
+# Public hook the settings UI calls when it closes.
+func apply_difficulty() -> void:
+	_apply_difficulty()
+
+func is_game_over() -> bool:
+	if game_over_screen != null:
+		return game_over_screen.is_shown()
+	return health_system != null and health_system.game_over
+
+func _build_menus() -> void:
+	pause_menu = PauseMenuScript.new()
+	pause_menu.name = "PauseMenu"
+	add_child(pause_menu)
+	pause_menu.setup(self)
+	game_over_screen = GameOverScreenScript.new()
+	game_over_screen.name = "GameOverScreen"
+	add_child(game_over_screen)
+	game_over_screen.setup(self)
+
+func _show_main_menu() -> void:
+	if main_menu != null and is_instance_valid(main_menu):
+		main_menu.queue_free()
+	main_menu = MAIN_MENU_SCENE.instantiate()
+	add_child(main_menu)
+	main_menu.setup(self)
+	get_tree().paused = true
+
+# New Game (fresh=true) resets run progress in place; Continue (fresh=false) keeps the
+# loaded save. Either way the title backdrop is dismissed and play resumes.
+func start_game(fresh: bool) -> void:
+	if fresh:
+		progression.level = 1
+		progression.xp = 0
+		var base_powers: Array[String] = ["flight", "boost"]
+		progression.unlocked = base_powers
+		missions.mission_step = 0
+		events.resolved_events = 0
+		health_system.health = HealthSystem.MAX_HEALTH
+		health_system.game_over = false
+		if hero != null:
+			hero.position = health_system.checkpoint
+		_last_unlocked_count = progression.unlocked.size()
+		_last_banner_step = 0
+	get_tree().paused = false
+	if main_menu != null and is_instance_valid(main_menu):
+		main_menu.queue_free()
+		main_menu = null
+	_update_hud()
+
+func retry_from_checkpoint() -> void:
+	health_system.game_over = false
+	health_system.health = HealthSystem.RESPAWN_HEALTH
+	health_system.aegis_timer = 0.0
+	if hero != null:
+		hero.position = health_system.checkpoint
+	get_tree().paused = false
+	_update_hud()
+
+func return_to_main_menu() -> void:
+	if pause_menu != null and pause_menu.is_open():
+		pause_menu.close()
+	_show_main_menu()
+
+func request_quit() -> void:
+	if _persistence_enabled():
+		SaveGame.save(progression, missions, events)
+	get_tree().paused = false
+	await _cleanup_for_quit()
+	get_tree().quit(0)
 
 func _mat(albedo: Color, emission: Color, energy: float) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
