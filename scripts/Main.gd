@@ -3327,7 +3327,91 @@ func _add_city_kit_building(parent: Node3D, asset_name: String, node_name: Strin
 	# blocks. The source model is still the visible city asset; no BoxMesh skyline.
 	holder.scale.y *= vertical_scale
 	parent.add_child(holder)
+	_apply_facade_texture_overlay(holder, abs(node_name.hash()), _facade_texture_index_for(node_name))
 	return holder
+
+# Apply textured PBR facade overlay panels to an imported Kenney GLB building holder so
+# the toy-like kit pieces read as real glass/brick/concrete towers in the city postcard.
+# Adds thin BoxMesh panels on the four vertical faces, each with a ShaderMaterial using
+# the building_facade shader and one of the 5 preloaded PBR texture sets. Capture-mode only.
+func _apply_facade_texture_overlay(holder: Node3D, building_seed: int, texture_index: int) -> void:
+	if holder == null or _facade_albedo_textures.is_empty():
+		return
+	# Bounding box in holder-local space (identity start, descending through the model's
+	# own transform) — the holder's Y stretch is applied on top, so panels placed here are
+	# stretched consistently with the imported geometry.
+	var acc: Array = [null, null]
+	_accumulate_mesh_aabb(holder, Transform3D.IDENTITY, acc)
+	if acc[0] == null:
+		return
+	var bmin: Vector3 = acc[0]
+	var bmax: Vector3 = acc[1]
+	var size: Vector3 = bmax - bmin
+	if size.x <= 0.01 or size.y <= 0.01 or size.z <= 0.01:
+		return
+	var center := (bmin + bmax) * 0.5
+	var tex_idx: int = clamp(texture_index, 0, _facade_albedo_textures.size() - 1)
+	# Window grid derived from the building's footprint/height (deterministic per holder).
+	var floors_val: int = int(clamp(size.y / 4.0, 4.0, 12.0))
+	var windows_val: int = 3 + (abs(building_seed) % 4)
+	var uv_s: float = 3.5 + float(abs(building_seed) % 4) * 0.5
+	var pbr: Dictionary = FACADE_PBR_PROPS[tex_idx]
+	var tint_r: float = 0.88 + float(abs(building_seed) % 5) * 0.02
+	var tint_g: float = 0.87 + float(abs(building_seed / 7) % 4) * 0.015
+	var tint_b: float = 0.82 + float(abs(building_seed / 13) % 3) * 0.02
+	var albedo_tint := Color(tint_r, tint_g, tint_b, 1.0)
+	# Panels are slightly shorter than the full height and dropped a touch so they cover the
+	# facade glass without overlapping the roof cap, doors or awnings at the very edges.
+	var thickness := 0.04
+	var offset := 0.05
+	var panel_h: float = size.y * 0.86
+	var panel_cy: float = center.y - size.y * 0.04
+	# Four vertical faces: +Z (front), -Z (back), +X, -X sides. Each gets its own panel so
+	# every visible side reads as a textured facade, never a roof or floor.
+	var faces := [
+		{"size": Vector3(size.x * 0.94, panel_h, thickness), "pos": Vector3(center.x, panel_cy, bmax.z + offset)},
+		{"size": Vector3(size.x * 0.94, panel_h, thickness), "pos": Vector3(center.x, panel_cy, bmin.z - offset)},
+		{"size": Vector3(thickness, panel_h, size.z * 0.94), "pos": Vector3(bmax.x + offset, panel_cy, center.z)},
+		{"size": Vector3(thickness, panel_h, size.z * 0.94), "pos": Vector3(bmin.x - offset, panel_cy, center.z)},
+	]
+	for i in range(faces.size()):
+		var f: Dictionary = faces[i]
+		var box := BoxMesh.new()
+		box.size = f["size"]
+		var panel := MeshInstance3D.new()
+		panel.name = "FacadeTexturePanel_%d" % i
+		panel.mesh = box
+		panel.position = f["pos"]
+		panel.set_meta("facade_texture_panel", true)
+		panel.set_meta("facade_texture_index", tex_idx)
+		var mat := ShaderMaterial.new()
+		mat.shader = FACADE_SHADER
+		mat.set_shader_parameter("building_seed", building_seed)
+		mat.set_shader_parameter("floors", floors_val)
+		mat.set_shader_parameter("windows_per_floor", windows_val)
+		mat.set_shader_parameter("uv_scale", uv_s)
+		mat.set_shader_parameter("albedo_tint", albedo_tint)
+		mat.set_shader_parameter("lit_probability", 0.08)
+		mat.set_shader_parameter("emission_energy", 0.4)
+		mat.set_shader_parameter("albedo_tex", _facade_albedo_textures[tex_idx])
+		mat.set_shader_parameter("normal_tex", _facade_normal_textures[tex_idx])
+		mat.set_shader_parameter("roughness_tex", _facade_roughness_textures[tex_idx])
+		mat.set_shader_parameter("emission_tex", _facade_emission_textures[tex_idx])
+		mat.set_shader_parameter("roughness_base", float(pbr.get("roughness", 0.5)))
+		mat.set_shader_parameter("metallic_val", float(pbr.get("metallic", 0.14)))
+		mat.set_shader_parameter("use_normal_map", true)
+		mat.set_shader_parameter("roughness_tex_weight", 0.8)
+		mat.set_shader_parameter("normal_map_scale", 0.8)
+		panel.material_override = mat
+		holder.add_child(panel)
+	holder.set_meta("facade_texture_pass", true)
+
+# Deterministic facade texture set index for a building, derived from its node name so
+# different buildings get different PBR sets (glass/concrete/brick/metal/commercial).
+func _facade_texture_index_for(node_name: String) -> int:
+	if _facade_albedo_textures.is_empty():
+		return 0
+	return abs(node_name.hash()) % _facade_albedo_textures.size()
 
 func _add_city_kit_detail(parent: Node3D, asset_name: String, node_name: String, pos: Vector3, rot_y: float, fit_axis: String, target_size: float) -> Node3D:
 	var holder := _instance_prop(CITY_KIT_BUILDING_DIR + asset_name, fit_axis, target_size, true)
@@ -3358,6 +3442,10 @@ func _add_city_builder_prop(parent: Node3D, asset_name: String, node_name: Strin
 	holder.position = pos
 	holder.rotation_degrees = Vector3(0.0, rot_y, 0.0)
 	parent.add_child(holder)
+	# Only buildings get facade overlays — pavement, grass, road and other flat tiles stay
+	# untouched (their names never contain "building"/"lowrise").
+	if asset_name.contains("building") or node_name.to_lower().contains("lowrise"):
+		_apply_facade_texture_overlay(holder, abs(node_name.hash()), _facade_texture_index_for(node_name))
 	return holder
 
 func _add_city_builder_districts(parent: Node3D) -> void:
