@@ -3357,7 +3357,7 @@ func _apply_facade_texture_overlay(holder: Node3D, building_seed: int, texture_i
 	# Bigger footprints need more tiling to keep window/material density readable, so scale
 	# the base UV with the building footprint (2.0-6.0) instead of a flat 3.5-5.0.
 	var footprint: float = max(size.x, size.z)
-	var uv_s: float = clamp(2.0 + footprint * 0.18, 2.0, 6.0) + float(abs(building_seed) % 3) * 0.4
+	var uv_s: float = clamp(2.0 + footprint * 0.18 + float(abs(building_seed) % 3) * 0.4, 2.0, 6.0)
 	var uv_s2: float = uv_s * 2.7
 	# Per-building UV offset breaks the visible grid repeat across neighbouring towers.
 	var off_x: float = float(building_seed % 100) / 100.0
