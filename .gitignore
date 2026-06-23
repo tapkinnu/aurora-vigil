@@ -1,7 +1,6 @@
 .godot/
 .godot_validation/
 .import/
-*.import
 *.uid
 export_presets.cfg
 artifacts/screenshots/*.png
