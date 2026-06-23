@@ -9,8 +9,8 @@ var unlocked: Array[String] = ["flight", "boost"]
 
 # Cumulative XP required to *reach* each level. Index = level - 1, so reaching
 # level L needs XP_THRESHOLDS[L - 1] total XP:
-#   level 2 → 100, level 3 → 250, level 4 → 450, level 5 → 700.
-const XP_THRESHOLDS: Array[int] = [0, 100, 250, 450, 700]
+#   level 2 → 100, level 3 → 250, level 4 → 450, level 5 → 700, level 6 → 900.
+const XP_THRESHOLDS: Array[int] = [0, 100, 250, 450, 700, 900]
 
 # Power granted on first reaching each level. Level 1 starts with flight + boost.
 static var POWER_UNLOCKS := {
@@ -18,6 +18,7 @@ static var POWER_UNLOCKS := {
 	3: "radiant_beam",
 	4: "sonic_burst",
 	5: "aegis_field",
+	6: "orbit_sprint",
 }
 
 # Cumulative total XP required to reach the next level (caps at the final tier so

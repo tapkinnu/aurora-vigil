@@ -182,7 +182,7 @@ func _wire_systems() -> void:
 	powers = PowerSystem.new()
 	powers.setup(self, hero, progression, events)
 	flight = PlayerFlightController.new()
-	flight.setup(self, hero, camera)
+	flight.setup(self, hero, camera, progression)
 	objectives = ObjectiveDirector.new()
 	objectives.setup(self, hero, camera, events, missions)
 	enemy_system = EnemySystem.new()
@@ -1537,9 +1537,9 @@ func _update_controls_hint() -> void:
 	if controls_hint_label == null:
 		return
 	if Input.get_connected_joypads().size() > 0:
-		controls_hint_label.text = "Gamepad: Left stick fly · Triggers climb/dive · Bumpers boost · A rescue · B sonic · X radiant · Y aegis · Right stick look · Select pause"
+		controls_hint_label.text = "Gamepad: Left stick fly · Triggers climb/dive · Bumpers orbit sprint (unlockable) · A rescue · B sonic · X radiant · Y aegis · Right stick look · Select pause"
 	else:
-		controls_hint_label.text = "Keyboard: WASD fly · Space/Ctrl climb/dive · Shift boost · R rescue · Q sonic · F radiant · E aegis · Esc pause"
+		controls_hint_label.text = "Keyboard: WASD fly · Space/Ctrl climb/dive · Shift orbit sprint (unlockable) · R rescue · Q sonic · F radiant · E aegis · Esc pause"
 
 # Lists the four key-bound powers, marking any the hero has not yet unlocked.
 func _power_hud_text() -> String:

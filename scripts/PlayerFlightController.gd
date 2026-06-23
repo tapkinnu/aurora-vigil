@@ -16,6 +16,7 @@ const DEADZONE := 0.2
 var host
 var hero: Node3D
 var camera: Camera3D
+var progression: ProgressionModel
 var velocity: Vector3 = Vector3.ZERO
 
 var _trail: CPUParticles3D
@@ -24,10 +25,11 @@ var _trail: CPUParticles3D
 var _cam_yaw: float = 0.0
 var _cam_pitch: float = 0.0
 
-func setup(host_ref, hero_ref: Node3D, camera_ref: Camera3D) -> void:
+func setup(host_ref, hero_ref: Node3D, camera_ref: Camera3D, progression_ref: ProgressionModel) -> void:
 	host = host_ref
 	hero = hero_ref
 	camera = camera_ref
+	progression = progression_ref
 	_build_trail()
 
 func _build_trail() -> void:
@@ -90,7 +92,8 @@ func handle_flight(delta: float) -> void:
 		input_vec.y += clampf(rt, 0.0, 1.0) - clampf(lt, 0.0, 1.0)
 	if input_vec.length() > 1.0:
 		input_vec = input_vec.normalized()
-	var boosting := Input.is_action_pressed("aurora_boost")
+	var boost_input := Input.is_action_pressed("aurora_boost")
+	var boosting := boost_input and progression != null and progression.has_power("orbit_sprint")
 	var speed := 62.0 if boosting else 34.0
 	velocity = velocity.lerp(input_vec * speed, 4.0 * delta)
 	if boosting and velocity.length() > 1.0:
