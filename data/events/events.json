@@ -49,6 +49,16 @@
       "required_action": "Use R rescue lift near civilians",
       "spawn_audio": ["event_alert_rescue_needed", "civilian_panicked_help"],
       "resolve_audio": ["civilian_grateful_thanks"]
+    },
+    {
+      "id": "transit_derailment",
+      "display_name": "Transit derailment",
+      "color": [0.95, 0.15, 0.35, 1.0],
+      "reward_xp": 150,
+      "required_power": "aegis_field",
+      "required_action": "Use E aegis field to brace/guide the derailed transit car",
+      "spawn_audio": ["event_alert_rescue_needed", "civic_grid_alert"],
+      "resolve_audio": ["civilian_grateful_thanks"]
     }
   ],
   "seed_events": [
@@ -57,7 +67,7 @@
     { "kind": "bridge_collapse", "position": [0.0, 8.0, 64.0] }
   ],
   "timed_spawn": {
-    "types": ["tower_fire", "rogue_drone", "power_surge", "rescue_signal", "bridge_collapse"],
+    "types": ["tower_fire", "rogue_drone", "power_surge", "rescue_signal", "bridge_collapse", "transit_derailment"],
     "positions": [
       [-92.0, 46.0, 44.0],
       [88.0, 28.0, -44.0],

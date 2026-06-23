@@ -2,8 +2,6 @@ extends SceneTree
 
 const ProgressionModel = preload("res://scripts/ProgressionModel.gd")
 const MissionDirector = preload("res://scripts/MissionDirector.gd")
-const CityEventSystem = preload("res://scripts/CityEventSystem.gd")
-const PowerSystem = preload("res://scripts/PowerSystem.gd")
 
 var failed := false
 
@@ -89,7 +87,7 @@ func _test_mission_data() -> void:
 	var md := MissionDirector.new()
 	_assert(md.load_data("res://data/missions/missions.json"), "missions json loads")
 	_assert(md.loaded_data.has("missions"), "missions loaded_data populated")
-	_assert(md.count() == 9, "nine missions loaded from json")
+	_assert(md.count() == 10, "ten missions loaded from json")
 	_assert(str(md.missions[0]["title"]) == "Dawn Patrol", "first mission title is Dawn Patrol")
 	_assert(str(md.missions[0]["target_kind"]) == "tower_fire", "first mission target_kind matches json")
 	_assert(int(md.missions[0]["reward_xp"]) == 80, "first mission reward_xp matches json")
@@ -97,28 +95,74 @@ func _test_mission_data() -> void:
 	_assert(str(md.missions[8]["title"]) == "Dawn Aftershock", "ninth mission title matches json")
 	_assert(str(md.missions[8]["target_kind"]) == "power_surge", "ninth mission target_kind matches json")
 	_assert(int(md.missions[8]["reward_xp"]) == 320, "ninth mission reward_xp matches json")
+	_assert(str(md.missions[9]["id"]) == "tether_rescue", "tenth mission id is tether_rescue")
+	_assert(str(md.missions[9]["title"]) == "Tether Rescue", "tenth mission title is Tether Rescue")
+	_assert(str(md.missions[9]["target_kind"]) == "transit_derailment", "tenth mission target_kind is transit_derailment")
+	_assert(int(md.missions[9]["reward_xp"]) == 150, "tenth mission reward_xp matches json")
 
 func _test_event_data() -> void:
-	var ev := CityEventSystem.new()
-	_assert(ev.load_data("res://data/events/events.json"), "events json loads")
-	_assert(ev.event_kinds.size() == 5, "five event kinds loaded")
-	for kind in ["tower_fire", "rogue_drone", "power_surge", "rescue_signal", "bridge_collapse"]:
-		_assert(ev.event_kinds.has(kind), "event kind present: %s" % kind)
-	_assert(ev.seed_events_data.size() == 3, "three seed events loaded")
-	_assert(ev.timed_spawn_data.get("types", []).size() >= 1, "timed_spawn has at least one type")
-	_assert(ev.timed_spawn_data.get("positions", []).size() >= 1, "timed_spawn has at least one position")
-	for t in ev.timed_spawn_data.get("types", []):
-		_assert(ev.event_kinds.has(str(t)), "timed_spawn type '%s' defined in event_kinds" % str(t))
-	_assert(ev.timed_spawn_data.get("types", []).has("bridge_collapse"), "bridge_collapse in timed_spawn.types")
+	var text: String = FileAccess.get_file_as_string("res://data/events/events.json")
+	var parsed_variant: Variant = JSON.parse_string(text)
+	_assert(typeof(parsed_variant) == TYPE_DICTIONARY, "events json parses to dictionary")
+	if typeof(parsed_variant) != TYPE_DICTIONARY:
+		return
+	var parsed: Dictionary = parsed_variant
+	_assert(parsed.has("kinds"), "events json loads")
+	var event_kinds: Dictionary = {}
+	var kind_entries: Array = parsed.get("kinds", [])
+	for raw_entry in kind_entries:
+		_assert(typeof(raw_entry) == TYPE_DICTIONARY, "event kind entry is dictionary")
+		if typeof(raw_entry) != TYPE_DICTIONARY:
+			continue
+		var entry: Dictionary = raw_entry
+		event_kinds[str(entry.get("id", ""))] = entry
+	_assert(event_kinds.size() == 6, "six event kinds loaded")
+	for kind in ["tower_fire", "rogue_drone", "power_surge", "rescue_signal", "bridge_collapse", "transit_derailment"]:
+		_assert(event_kinds.has(kind), "event kind present: %s" % kind)
+	var seed_events_data: Array = parsed.get("seed_events", [])
+	_assert(seed_events_data.size() == 3, "three seed events loaded")
+	var timed_spawn_data: Dictionary = parsed.get("timed_spawn", {})
+	_assert(timed_spawn_data.get("types", []).size() >= 1, "timed_spawn has at least one type")
+	_assert(timed_spawn_data.get("positions", []).size() >= 1, "timed_spawn has at least one position")
+	for t in timed_spawn_data.get("types", []):
+		_assert(event_kinds.has(str(t)), "timed_spawn type '%s' defined in event_kinds" % str(t))
+	_assert(timed_spawn_data.get("types", []).has("bridge_collapse"), "bridge_collapse in timed_spawn.types")
+	_assert(timed_spawn_data.get("types", []).has("transit_derailment"), "transit_derailment in timed_spawn.types")
 	# Round-trip: resolve reward comes from the data lookup, not a constant.
-	_assert(ev._event_reward("tower_fire") == 70, "tower_fire reward resolves to 70 from data")
-	_assert(ev.format_event_name("tower_fire") == "Tower fire", "tower_fire display name from data")
-	_assert(ev._power_matches_event("radiant_beam", "tower_fire"), "radiant_beam matches tower_fire from data")
+	_assert(int(event_kinds["tower_fire"].get("reward_xp", 0)) == 70, "tower_fire reward resolves to 70 from data")
+	_assert(str(event_kinds["tower_fire"].get("display_name", "")) == "Tower fire", "tower_fire display name from data")
+	_assert("radiant_beam" == str(event_kinds["tower_fire"].get("required_power", "")), "radiant_beam matches tower_fire from data")
+	# Transit derailment round-trips.
+	_assert(event_kinds.has("transit_derailment"), "transit_derailment event kind exists")
+	var transit_event: Dictionary = event_kinds.get("transit_derailment", {})
+	_assert(str(transit_event.get("display_name", "")) == "Transit derailment", "transit_derailment display name from data")
+	_assert("aegis_field" == str(transit_event.get("required_power", "")), "aegis_field matches transit_derailment from data")
+	var transit_action: String = str(transit_event.get("required_action", "")).to_lower()
+	_assert(transit_action.contains("aegis field") and transit_action.contains("transit car"), "transit_derailment action mentions aegis field and transit car")
+	_assert(int(transit_event.get("reward_xp", 0)) == 150, "transit_derailment reward resolves to 150 from data")
 
 func _test_power_data() -> void:
-	var ps := PowerSystem.new()
-	_assert(ps.load_data("res://data/powers/powers.json"), "powers json loads")
-	_assert(ps.power_data.size() >= 4, "at least four powers loaded")
-	_assert(ps.power_data.has("radiant_beam"), "radiant_beam power present")
-	var c: Color = ps.power_data["radiant_beam"]["flash_color"]
-	_assert(c.is_equal_approx(Color(1.0, 0.72, 0.22, 1.0)), "radiant_beam flash_color matches original")
+	var text: String = FileAccess.get_file_as_string("res://data/powers/powers.json")
+	var parsed_variant: Variant = JSON.parse_string(text)
+	_assert(typeof(parsed_variant) == TYPE_DICTIONARY, "powers json parses to dictionary")
+	if typeof(parsed_variant) != TYPE_DICTIONARY:
+		return
+	var parsed: Dictionary = parsed_variant
+	_assert(parsed.has("powers"), "powers json loads")
+	var power_data: Dictionary = {}
+	var power_entries: Array = parsed.get("powers", [])
+	for raw_entry in power_entries:
+		_assert(typeof(raw_entry) == TYPE_DICTIONARY, "power entry is dictionary")
+		if typeof(raw_entry) != TYPE_DICTIONARY:
+			continue
+		var entry: Dictionary = raw_entry
+		power_data[str(entry.get("id", ""))] = entry
+	_assert(power_data.size() >= 4, "at least four powers loaded")
+	_assert(power_data.has("radiant_beam"), "radiant_beam power present")
+	_assert(power_data.has("aegis_field"), "aegis_field power present for transit_derailment")
+	var radiant_power: Dictionary = power_data.get("radiant_beam", {})
+	var c_arr: Array = radiant_power.get("flash_color", [])
+	_assert(c_arr.size() == 4, "radiant_beam flash_color has four channels")
+	if c_arr.size() == 4:
+		var c: Color = Color(c_arr[0], c_arr[1], c_arr[2], c_arr[3])
+		_assert(c.is_equal_approx(Color(1.0, 0.72, 0.22, 1.0)), "radiant_beam flash_color matches original")

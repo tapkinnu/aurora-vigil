@@ -29,6 +29,12 @@
       "label": "OBJECTIVE: BRIDGE COLLAPSE",
       "icon": "hazard",
       "enter_audio": ["event_alert_rescue_needed", "civilian_panicked_help"]
+    },
+    {
+      "target_kind": "transit_derailment",
+      "label": "OBJECTIVE: TRANSIT DERAILMENT",
+      "icon": "train",
+      "enter_audio": ["civic_grid_alert", "civilian_panicked_help"]
     }
   ],
   "bridge_zone": {

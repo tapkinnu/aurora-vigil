@@ -62,6 +62,13 @@
       "objective": "Stabilize Meridian's grid after the Null Choir retreat before morning traffic returns.",
       "target_kind": "power_surge",
       "reward_xp": 320
+    },
+    {
+      "id": "tether_rescue",
+      "title": "Tether Rescue",
+      "objective": "Brace the drifting sky-rail car with E aegis field before the tether snaps.",
+      "target_kind": "transit_derailment",
+      "reward_xp": 150
     }
   ]
 }
