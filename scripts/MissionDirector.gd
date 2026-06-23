@@ -24,7 +24,8 @@ var missions: Array[Dictionary] = [
 	{"id": "null_choir_rising", "title": "Null Choir Rising", "objective": "Survive a wave of Null Choir ground units as the surge breaks open.", "target_kind": "power_surge", "reward_xp": 200},
 	{"id": "civic_grid_down", "title": "Civic Grid Down", "objective": "Restore power to a blacked-out district and calm the panicking crowds.", "target_kind": "rescue_signal", "reward_xp": 220},
 	{"id": "the_long_night", "title": "The Long Night", "objective": "Hold an extended patrol as the emergencies escalate across Meridian.", "target_kind": "tower_fire", "reward_xp": 280},
-	{"id": "first_contact", "title": "First Contact", "objective": "Confront a Null Choir commander at the heart of the surge.", "target_kind": "power_surge", "reward_xp": 350}
+	{"id": "first_contact", "title": "First Contact", "objective": "Confront a Null Choir commander at the heart of the surge.", "target_kind": "power_surge", "reward_xp": 350},
+	{"id": "dawn_aftershock", "title": "Dawn Aftershock", "objective": "Stabilize Meridian's grid after the Null Choir retreat before morning traffic returns.", "target_kind": "power_surge", "reward_xp": 320}
 ]
 
 func setup(progression_ref: ProgressionModel, data_path: String = DEFAULT_DATA_PATH) -> void:

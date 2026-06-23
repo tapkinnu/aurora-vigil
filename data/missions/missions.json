@@ -55,6 +55,13 @@
       "objective": "Confront a Null Choir commander at the heart of the surge.",
       "target_kind": "power_surge",
       "reward_xp": 350
+    },
+    {
+      "id": "dawn_aftershock",
+      "title": "Dawn Aftershock",
+      "objective": "Stabilize Meridian's grid after the Null Choir retreat before morning traffic returns.",
+      "target_kind": "power_surge",
+      "reward_xp": 320
     }
   ]
 }

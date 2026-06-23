@@ -89,10 +89,14 @@ func _test_mission_data() -> void:
 	var md := MissionDirector.new()
 	_assert(md.load_data("res://data/missions/missions.json"), "missions json loads")
 	_assert(md.loaded_data.has("missions"), "missions loaded_data populated")
-	_assert(md.count() == 8, "eight missions loaded from json")
+	_assert(md.count() == 9, "nine missions loaded from json")
 	_assert(str(md.missions[0]["title"]) == "Dawn Patrol", "first mission title is Dawn Patrol")
 	_assert(str(md.missions[0]["target_kind"]) == "tower_fire", "first mission target_kind matches json")
 	_assert(int(md.missions[0]["reward_xp"]) == 80, "first mission reward_xp matches json")
+	_assert(str(md.missions[8]["id"]) == "dawn_aftershock", "ninth mission id is dawn_aftershock")
+	_assert(str(md.missions[8]["title"]) == "Dawn Aftershock", "ninth mission title matches json")
+	_assert(str(md.missions[8]["target_kind"]) == "power_surge", "ninth mission target_kind matches json")
+	_assert(int(md.missions[8]["reward_xp"]) == 320, "ninth mission reward_xp matches json")
 
 func _test_event_data() -> void:
 	var ev := CityEventSystem.new()
