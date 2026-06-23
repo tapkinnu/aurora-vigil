@@ -1901,6 +1901,15 @@ func _cleanup_for_quit() -> void:
 	# Drop cached PackedScene references before test/screenshot auto-quit so Godot's
 	# resource leak detector does not report imported prop scenes still in use.
 	_prop_scene_cache.clear()
+	# The facade PBR texture sets are loaded at runtime and held in these member
+	# arrays on Main (which outlives its freed children), so they would otherwise
+	# linger as "resources still in use at exit". Release them here too. Any
+	# remaining leak warnings come from const-preloaded shaders/scenes that
+	# intentionally live for the whole process lifetime and are harmless.
+	_facade_albedo_textures.clear()
+	_facade_normal_textures.clear()
+	_facade_roughness_textures.clear()
+	_facade_emission_textures.clear()
 	for child in get_children():
 		child.free()
 	get_tree().paused = was_paused

@@ -203,6 +203,11 @@ func spawn_event(kind: String, pos: Vector3) -> void:
 			beacon_mesh.bottom_radius = 3.5
 			beacon_mesh.height = 8.0
 			beacon_scale = Vector3(1.0, 1.0, 1.0)
+		"transit_derailment":
+			# Elongated transit-car silhouette, tilted as if derailed.
+			beacon_mesh = BoxMesh.new()
+			beacon_mesh.size = Vector3(3.0, 3.0, 9.0)
+			beacon_scale = Vector3(1.0, 1.0, 1.0)
 		_:
 			beacon_mesh = SphereMesh.new()
 			beacon_mesh.radius = 4.0
@@ -341,6 +346,46 @@ func spawn_event(kind: String, pos: Vector3) -> void:
 		warning.position = Vector3(-4.0, -pos.y + 0.5, 1.0)
 		warning.material_override = host._mat(Color(1.0, 0.55, 0.18, 1.0), Color(0.8, 0.3, 0.05, 1.0), 0.8)
 		marker.add_child(warning)
+	elif kind == "transit_derailment":
+		# Tilt the main beacon so the transit car reads as toppled off the rails.
+		beacon.rotation_degrees = Vector3(0.0, 18.0, -22.0)
+		# Broken track segments fanning out at angles along the ground.
+		for i in range(4):
+			var track := MeshInstance3D.new()
+			track.name = "DerailTrack_%d" % i
+			var track_mesh := BoxMesh.new()
+			track_mesh.size = Vector3(0.4, 0.3, 4.0 + rng.randf_range(0.0, 2.0))
+			track.mesh = track_mesh
+			track.position = Vector3(rng.randf_range(-4.0, 4.0), -pos.y + 0.2, rng.randf_range(-5.0, 5.0))
+			track.rotation_degrees = Vector3(rng.randf_range(-12, 12), rng.randf_range(-40, 40), rng.randf_range(-8, 8))
+			track.material_override = host._mat(Color(0.3, 0.29, 0.26, 1.0), Color(0.15, 0.14, 0.12, 1.0), 0.5)
+			marker.add_child(track)
+		# Two bent rail lines.
+		for i in range(2):
+			var rail := MeshInstance3D.new()
+			rail.name = "DerailRail_%d" % i
+			var rail_mesh := BoxMesh.new()
+			rail_mesh.size = Vector3(0.18, 0.18, 10.0)
+			rail.mesh = rail_mesh
+			rail.position = Vector3(-1.0 + float(i) * 2.0, -pos.y + 0.35, 0.0)
+			rail.rotation_degrees = Vector3(0.0, float(i) * 8.0 - 4.0, 0.0)
+			rail.material_override = host._mat(Color(0.5, 0.45, 0.4, 1.0), Color(0.25, 0.22, 0.2, 1.0), 0.4)
+			marker.add_child(rail)
+		# Sparks flying off the derailment point.
+		for i in range(5):
+			var spark := MeshInstance3D.new()
+			spark.name = "DerailSpark_%d" % i
+			var spark_mesh := SphereMesh.new()
+			spark_mesh.radius = 0.25 + rng.randf_range(0.0, 0.2)
+			spark_mesh.height = spark_mesh.radius * 2.0
+			spark.mesh = spark_mesh
+			spark.position = Vector3(rng.randf_range(-2.5, 2.5), rng.randf_range(0.5, 3.5), rng.randf_range(-2.5, 2.5))
+			var spark_color := Color(1.0, 0.75 + rng.randf_range(0.0, 0.2), 0.1, 1.0)
+			spark.material_override = host._mat(spark_color, spark_color, 2.6)
+			marker.add_child(spark)
+			var spark_tween: Tween = host._remember_tween(host.create_tween().set_loops())
+			spark_tween.tween_property(spark, "position:y", spark.position.y + 2.0, 0.25 + float(i) * 0.08)
+			spark_tween.tween_property(spark, "position:y", spark.position.y, 0.25 + float(i) * 0.08)
 
 	# --- Large floating label with outline ---
 	var label := Label3D.new()
