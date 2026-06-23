@@ -107,6 +107,9 @@ func _test_event_data() -> void:
 	_assert(ev.seed_events_data.size() == 3, "three seed events loaded")
 	_assert(ev.timed_spawn_data.get("types", []).size() >= 1, "timed_spawn has at least one type")
 	_assert(ev.timed_spawn_data.get("positions", []).size() >= 1, "timed_spawn has at least one position")
+	for t in ev.timed_spawn_data.get("types", []):
+		_assert(ev.event_kinds.has(str(t)), "timed_spawn type '%s' defined in event_kinds" % str(t))
+	_assert(ev.timed_spawn_data.get("types", []).has("bridge_collapse"), "bridge_collapse in timed_spawn.types")
 	# Round-trip: resolve reward comes from the data lookup, not a constant.
 	_assert(ev._event_reward("tower_fire") == 70, "tower_fire reward resolves to 70 from data")
 	_assert(ev.format_event_name("tower_fire") == "Tower fire", "tower_fire display name from data")

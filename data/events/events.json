@@ -57,7 +57,7 @@
     { "kind": "bridge_collapse", "position": [0.0, 8.0, 64.0] }
   ],
   "timed_spawn": {
-    "types": ["tower_fire", "rogue_drone", "power_surge", "rescue_signal"],
+    "types": ["tower_fire", "rogue_drone", "power_surge", "rescue_signal", "bridge_collapse"],
     "positions": [
       [-92.0, 46.0, 44.0],
       [88.0, 28.0, -44.0],

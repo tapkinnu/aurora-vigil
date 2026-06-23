@@ -296,6 +296,51 @@ func spawn_event(kind: String, pos: Vector3) -> void:
 		cross_v.position = Vector3(0, -pos.y + 1.0, 0)
 		cross_v.material_override = cross_h.material_override
 		marker.add_child(cross_v)
+	elif kind == "bridge_collapse":
+		var slab := MeshInstance3D.new()
+		slab.name = "BridgeSlab"
+		var slab_mesh := BoxMesh.new()
+		slab_mesh.size = Vector3(9.0, 0.4, 5.0)
+		slab.mesh = slab_mesh
+		slab.position = Vector3(0, -pos.y + 0.2, 0)
+		slab.rotation_degrees = Vector3(4.0, 0.0, -2.0)
+		slab.material_override = host._mat(Color(0.25, 0.24, 0.22, 1.0), Color(0.15, 0.14, 0.13, 1.0), 0.6)
+		marker.add_child(slab)
+		var crack := MeshInstance3D.new()
+		crack.name = "BridgeCrack"
+		var crack_mesh := BoxMesh.new()
+		crack_mesh.size = Vector3(7.0, 0.05, 0.6)
+		crack.mesh = crack_mesh
+		crack.position = Vector3(1.0, -pos.y + 0.4, 1.5)
+		crack.rotation_degrees = Vector3(0.0, 25.0, 0.0)
+		crack.material_override = host._mat(Color(0.06, 0.06, 0.07, 1.0), Color(0.02, 0.02, 0.02, 1.0), 0.2)
+		marker.add_child(crack)
+		var crack2 := MeshInstance3D.new()
+		crack2.name = "BridgeCrack2"
+		crack2.mesh = crack_mesh
+		crack2.position = Vector3(-1.5, -pos.y + 0.4, -1.0)
+		crack2.rotation_degrees = Vector3(0.0, -15.0, 0.0)
+		crack2.material_override = crack.material_override
+		marker.add_child(crack2)
+		for i in range(5):
+			var debris := MeshInstance3D.new()
+			debris.name = "BridgeDebris_%d" % i
+			var debris_mesh := BoxMesh.new()
+			var sz: float = 0.3 + rng.randf_range(0.0, 0.4)
+			debris_mesh.size = Vector3(sz, sz * 0.5, sz)
+			debris.mesh = debris_mesh
+			debris.position = Vector3(rng.randf_range(-4.0, 4.0), -pos.y, rng.randf_range(-3.0, 3.0))
+			debris.rotation_degrees = Vector3(rng.randf_range(-30, 30), rng.randf_range(-180, 180), rng.randf_range(-30, 30))
+			debris.material_override = slab.material_override
+			marker.add_child(debris)
+		var warning := MeshInstance3D.new()
+		warning.name = "BridgeWarning"
+		var warning_mesh := BoxMesh.new()
+		warning_mesh.size = Vector3(0.15, 0.8, 1.2)
+		warning.mesh = warning_mesh
+		warning.position = Vector3(-4.0, -pos.y + 0.5, 1.0)
+		warning.material_override = host._mat(Color(1.0, 0.55, 0.18, 1.0), Color(0.8, 0.3, 0.05, 1.0), 0.8)
+		marker.add_child(warning)
 
 	# --- Large floating label with outline ---
 	var label := Label3D.new()
