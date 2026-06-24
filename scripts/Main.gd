@@ -146,6 +146,7 @@ const HUD_POWERS: Array[Dictionary] = [
 	{"id": "radiant_beam", "key": "F"},
 	{"id": "sonic_burst", "key": "Q"},
 	{"id": "aegis_field", "key": "E"},
+	{"id": "orbit_sprint", "key": "Shift"},
 ]
 
 func _ready() -> void:
@@ -1345,22 +1346,25 @@ func _build_hud() -> void:
 	hud_panel = ColorRect.new()
 	hud_panel.name = "TopStatusPanel"
 	hud_panel.position = Vector2(12, 10)
-	hud_panel.size = Vector2(1008, 52)
+	hud_panel.size = Vector2(1008, 80)
 	hud_panel.color = Color(0.005, 0.012, 0.028, 0.82)
 	hud_panel.z_index = 0
 	layer.add_child(hud_panel)
 
 	mission_panel = ColorRect.new()
 	mission_panel.name = "ObjectiveEventPanel"
-	mission_panel.position = Vector2(12, 72)
+	mission_panel.position = Vector2(12, 96)
 	mission_panel.size = Vector2(768, 168)
 	mission_panel.color = Color(0.005, 0.012, 0.028, 0.85)
 	mission_panel.z_index = 0
 	layer.add_child(mission_panel)
 
+	# Level / XP / powers read-out at the top-left, inside the panel.
 	hud_label = Label.new()
 	hud_label.name = "LevelPowerHUD"
 	hud_label.position = Vector2(24, 20)
+	hud_label.size = Vector2(984, 60)
+	hud_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	hud_label.add_theme_font_size_override("font_size", 22)
 	hud_label.add_theme_color_override("font_color", Color(0.9, 1.0, 1.0, 1.0))
 	hud_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
@@ -1371,7 +1375,7 @@ func _build_hud() -> void:
 
 	mission_label = Label.new()
 	mission_label.name = "MissionHUD"
-	mission_label.position = Vector2(24, 78)
+	mission_label.position = Vector2(24, 102)
 	mission_label.add_theme_font_size_override("font_size", 18)
 	mission_label.add_theme_color_override("font_color", Color(0.92, 0.98, 1.0, 1.0))
 	mission_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
@@ -1536,19 +1540,21 @@ func _update_hud() -> void:
 func _update_controls_hint() -> void:
 	if controls_hint_label == null:
 		return
+	var orbit_sprint_unlocked: bool = progression != null and progression.has_power("orbit_sprint")
+	var orbit_sprint_status: String = "" if orbit_sprint_unlocked else " [LOCKED]"
 	if Input.get_connected_joypads().size() > 0:
-		controls_hint_label.text = "Gamepad: Left stick fly · Triggers climb/dive · Bumpers orbit sprint (unlockable) · A rescue · B sonic · X radiant · Y aegis · Right stick look · Select pause"
+		controls_hint_label.text = "Gamepad: Left stick fly · Triggers climb/dive · Bumpers orbit sprint%s · A rescue · B sonic · X radiant · Y aegis · Right stick look · Select pause" % orbit_sprint_status
 	else:
-		controls_hint_label.text = "Keyboard: WASD fly · Space/Ctrl climb/dive · Shift orbit sprint (unlockable) · R rescue · Q sonic · F radiant · E aegis · Esc pause"
+		controls_hint_label.text = "Keyboard: WASD fly · Space/Ctrl climb/dive · Shift orbit sprint%s · R rescue · Q sonic · F radiant · E aegis · Esc pause" % orbit_sprint_status
 
-# Lists the four key-bound powers, marking any the hero has not yet unlocked.
+# Lists the five key-bound powers, marking any the hero has not yet unlocked.
 func _power_hud_text() -> String:
 	var parts: Array[String] = []
 	for p in HUD_POWERS:
 		var id: String = p["id"]
 		var label := "%s %s" % [p["key"], id.replace("_", " ")]
 		if not progression.has_power(id):
-			label += " [LOCKED]"
+			label += " [L]"
 		parts.append(label)
 	return "Powers: " + "  ".join(parts)
 
