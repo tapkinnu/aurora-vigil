@@ -119,6 +119,9 @@ var health_system: HealthSystem
 var health_bar_bg: ColorRect
 var health_bar_fill: ColorRect
 var health_label: Label
+var xp_bar_bg: ColorRect
+var xp_bar_fill: ColorRect
+var xp_bar_label: Label
 var minimap: Minimap
 var unlock_toast: Label
 var mission_banner: Label
@@ -1422,6 +1425,29 @@ func _build_hud() -> void:
 	health_label.z_index = 2
 	layer.add_child(health_label)
 
+	# XP progress bar (below the health bar, top-right).
+	xp_bar_bg = ColorRect.new()
+	xp_bar_bg.name = "XPBarBG"
+	xp_bar_bg.position = Vector2(1040, 46)
+	xp_bar_bg.size = Vector2(224, 22)
+	xp_bar_bg.color = Color(0.02, 0.03, 0.05, 0.85)
+	xp_bar_bg.z_index = 0
+	layer.add_child(xp_bar_bg)
+	xp_bar_fill = ColorRect.new()
+	xp_bar_fill.name = "XPBarFill"
+	xp_bar_fill.position = Vector2(1042, 48)
+	xp_bar_fill.size = Vector2(220, 18)
+	xp_bar_fill.color = Color(0.3, 0.7, 1.0, 1.0)
+	xp_bar_fill.z_index = 1
+	layer.add_child(xp_bar_fill)
+	xp_bar_label = Label.new()
+	xp_bar_label.name = "XPLabel"
+	xp_bar_label.position = Vector2(1048, 46)
+	xp_bar_label.add_theme_font_size_override("font_size", 14)
+	xp_bar_label.add_theme_color_override("font_color", Color(0.02, 0.05, 0.08, 1.0))
+	xp_bar_label.z_index = 2
+	layer.add_child(xp_bar_label)
+
 	# Minimap / radar — bottom-right corner.
 	minimap = Minimap.new()
 	minimap.name = "Minimap"
@@ -1513,7 +1539,8 @@ func _apply_capture_showcase_hud() -> void:
 		return
 	var showcase_nodes: Array = [
 		hud_panel, mission_panel, hud_label, mission_label, event_cue_label,
-		health_bar_bg, health_bar_fill, health_label, minimap, controls_hint_label,
+		health_bar_bg, health_bar_fill, health_label,
+		xp_bar_bg, xp_bar_fill, xp_bar_label, minimap, controls_hint_label,
 		unlock_toast, mission_banner, game_over_label,
 	]
 	for node in showcase_nodes:
@@ -1534,6 +1561,7 @@ func _update_hud() -> void:
 		var proximity := "IN RANGE" if dist <= events.EVENT_RESOLVE_RADIUS else "approach %.0fm" % max(dist - events.EVENT_RESOLVE_RADIUS, 0.0)
 		event_cue_label.text = "Nearest: %s — %.0fm (%s). %s. Last: %s" % [events.format_event_name(kind), dist, proximity, events.required_action_for_event(kind), last_event_text]
 	_update_health_hud()
+	_update_xp_bar()
 	_update_minimap()
 	_update_controls_hint()
 
@@ -1581,6 +1609,26 @@ func _update_health_hud() -> void:
 		game_over_label.visible = health_system.game_over and game_over_screen == null
 		if game_over_label.visible:
 			game_over_label.text = "GAME OVER"
+
+func _update_xp_bar() -> void:
+	if xp_bar_fill == null:
+		return
+	var current_level_xp: int = 0
+	if progression.level > 1 and progression.level <= ProgressionModel.XP_THRESHOLDS.size():
+		current_level_xp = ProgressionModel.XP_THRESHOLDS[progression.level - 1]
+	var next_level_xp: int = progression.xp_for_next()
+	var range: int = next_level_xp - current_level_xp
+	var progress_in_level: int = progression.xp - current_level_xp
+	var frac: float = 0.0
+	if range > 0:
+		frac = clamp(float(progress_in_level) / float(range), 0.0, 1.0)
+	xp_bar_fill.size = Vector2(220.0 * frac, 18.0)
+	if frac >= 0.85:
+		xp_bar_fill.color = Color(1.0, 0.85, 0.3, 1.0)
+	else:
+		xp_bar_fill.color = Color(0.3, 0.7, 1.0, 1.0)
+	if xp_bar_label != null:
+		xp_bar_label.text = "XP %d/%d" % [progress_in_level, range]
 
 func _update_minimap() -> void:
 	if minimap == null:
