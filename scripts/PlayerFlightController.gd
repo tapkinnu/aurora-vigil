@@ -24,6 +24,7 @@ var _trail: CPUParticles3D
 # (capture modes pose the camera explicitly). Yaw wraps; pitch is clamped.
 var _cam_yaw: float = 0.0
 var _cam_pitch: float = 0.0
+var _was_boosting: bool = false
 
 func setup(host_ref, hero_ref: Node3D, camera_ref: Camera3D, progression_ref: ProgressionModel) -> void:
 	host = host_ref
@@ -98,6 +99,10 @@ func handle_flight(delta: float) -> void:
 	velocity = velocity.lerp(input_vec * speed, 4.0 * delta)
 	if boosting and velocity.length() > 1.0:
 		AuroraAudio.trigger("flight_boost_burst")
+	if boosting and not _was_boosting:
+		if host != null and host.powers != null:
+			host.powers.trigger("orbit_sprint")
+	_was_boosting = boosting
 	hero.position += velocity * delta
 	hero.position.y = clamp(hero.position.y, 5.0, 120.0)
 	if velocity.length() > 1.0:
