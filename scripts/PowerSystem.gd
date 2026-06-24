@@ -104,6 +104,8 @@ func _spawn_power_vfx(power_id: String, c: Color) -> void:
 			_vfx_aegis_field(c)
 		"rescue_lift":
 			_vfx_rescue_lift(c)
+		"orbit_sprint":
+			_vfx_orbit_sprint(c)
 
 # Bright beam from the hero to the nearest event (or straight ahead), with a particle
 # burst where it lands.
@@ -198,6 +200,32 @@ func _vfx_rescue_lift(c: Color) -> void:
 	tween.tween_callback(pillar.queue_free)
 	_burst(base + Vector3(0, 2.0, 0), c, 30, 7.0, 0.7)
 
+# Fast horizontal speed-streak effect: a glowing trail cylinder shooting forward
+# from the hero in the facing direction, plus a brief ring burst.
+func _vfx_orbit_sprint(c: Color) -> void:
+	var origin: Vector3 = hero.position
+	var target: Vector3 = origin + (-hero.global_transform.basis.z) * 18.0
+	var dir := (target - origin)
+	var dist := dir.length()
+	if dist < 0.5:
+		return
+	var streak := MeshInstance3D.new()
+	streak.name = "OrbitSprintStreak"
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = 0.35
+	cyl.bottom_radius = 0.55
+	cyl.height = dist
+	streak.mesh = cyl
+	streak.material_override = host._mat(c, c, 2.0)
+	host.add_child(streak)
+	streak.global_position = (origin + target) * 0.5
+	streak.look_at(target, Vector3.UP)
+	streak.rotate_object_local(Vector3(1, 0, 0), PI / 2.0)
+	var tween: Tween = host._remember_tween(host.create_tween())
+	tween.tween_property(streak, "transparency", 1.0, 0.25)
+	tween.tween_callback(streak.queue_free)
+	_burst(origin, c, 14, 5.0, 0.4)
+
 # One-shot CPUParticles3D burst (gl_compatibility safe). Self-frees after its
 # lifetime via a remembered tween so quit cleanup stays leak-free.
 func _burst(pos: Vector3, c: Color, count: int, vel: float, life: float) -> void:
@@ -253,6 +281,8 @@ func _dispatch_audio(id: String) -> void:
 			AuroraAudio.trigger("power_sonic_burst")
 		"power_aegis_activate":
 			AuroraAudio.trigger("power_aegis_activate")
+		"power_orbit_sprint":
+			AuroraAudio.trigger("power_orbit_sprint")
 		"event_alert_rescue_needed":
 			AuroraAudio.trigger("event_alert_rescue_needed")
 		_:
