@@ -69,6 +69,13 @@
       "objective": "Brace the drifting sky-rail car with E aegis field before the tether snaps.",
       "target_kind": "transit_derailment",
       "reward_xp": 150
+    },
+    {
+      "id": "skyway_runaway_response",
+      "title": "Skyway Runaway",
+      "objective": "Use Orbit Sprint / Shift to overtake the runaway skyway capsule and stabilize it before it crashes.",
+      "target_kind": "skyway_runaway",
+      "reward_xp": 200
     }
   ]
 }

@@ -26,7 +26,8 @@ var missions: Array[Dictionary] = [
 	{"id": "the_long_night", "title": "The Long Night", "objective": "Hold an extended patrol as the emergencies escalate across Meridian.", "target_kind": "tower_fire", "reward_xp": 280},
 	{"id": "first_contact", "title": "First Contact", "objective": "Confront a Null Choir commander at the heart of the surge.", "target_kind": "power_surge", "reward_xp": 350},
 	{"id": "dawn_aftershock", "title": "Dawn Aftershock", "objective": "Stabilize Meridian's grid after the Null Choir retreat before morning traffic returns.", "target_kind": "power_surge", "reward_xp": 320},
-	{"id": "tether_rescue", "title": "Tether Rescue", "objective": "Brace the drifting sky-rail car with E aegis field before the tether snaps.", "target_kind": "transit_derailment", "reward_xp": 150}
+	{"id": "tether_rescue", "title": "Tether Rescue", "objective": "Brace the drifting sky-rail car with E aegis field before the tether snaps.", "target_kind": "transit_derailment", "reward_xp": 150},
+	{"id": "skyway_runaway_response", "title": "Skyway Runaway", "objective": "Use Orbit Sprint / Shift to overtake the runaway skyway capsule and stabilize it before it crashes.", "target_kind": "skyway_runaway", "reward_xp": 200}
 ]
 
 func setup(progression_ref: ProgressionModel, data_path: String = DEFAULT_DATA_PATH) -> void:

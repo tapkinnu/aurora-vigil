@@ -87,7 +87,7 @@ func _test_mission_data() -> void:
 	var md := MissionDirector.new()
 	_assert(md.load_data("res://data/missions/missions.json"), "missions json loads")
 	_assert(md.loaded_data.has("missions"), "missions loaded_data populated")
-	_assert(md.count() == 10, "ten missions loaded from json")
+	_assert(md.count() == 11, "eleven missions loaded from json")
 	_assert(str(md.missions[0]["title"]) == "Dawn Patrol", "first mission title is Dawn Patrol")
 	_assert(str(md.missions[0]["target_kind"]) == "tower_fire", "first mission target_kind matches json")
 	_assert(int(md.missions[0]["reward_xp"]) == 80, "first mission reward_xp matches json")
@@ -99,6 +99,10 @@ func _test_mission_data() -> void:
 	_assert(str(md.missions[9]["title"]) == "Tether Rescue", "tenth mission title is Tether Rescue")
 	_assert(str(md.missions[9]["target_kind"]) == "transit_derailment", "tenth mission target_kind is transit_derailment")
 	_assert(int(md.missions[9]["reward_xp"]) == 150, "tenth mission reward_xp matches json")
+	_assert(str(md.missions[10]["id"]) == "skyway_runaway_response", "eleventh mission id is skyway_runaway_response")
+	_assert(str(md.missions[10]["title"]) == "Skyway Runaway", "eleventh mission title is Skyway Runaway")
+	_assert(str(md.missions[10]["target_kind"]) == "skyway_runaway", "eleventh mission target_kind is skyway_runaway")
+	_assert(int(md.missions[10]["reward_xp"]) == 200, "eleventh mission reward_xp matches json")
 
 func _test_event_data() -> void:
 	var text: String = FileAccess.get_file_as_string("res://data/events/events.json")
