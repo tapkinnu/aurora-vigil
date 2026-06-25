@@ -20,6 +20,10 @@ func dispatch(id: String) -> void:
 			AuroraAudio.trigger("civilian_panicked_help")
 		"drone_alert":
 			AuroraAudio.trigger("drone_alert")
+		"drone_death":
+			AuroraAudio.trigger("drone_death")
+		"null_choir_cmdr_threat":
+			AuroraAudio.trigger("null_choir_cmdr_threat")
 		_:
 			push_error("VolumeAudioShim: unknown audio trigger id '%s'" % id)
 

@@ -208,6 +208,11 @@ func spawn_event(kind: String, pos: Vector3) -> void:
 			beacon_mesh = BoxMesh.new()
 			beacon_mesh.size = Vector3(3.0, 3.0, 9.0)
 			beacon_scale = Vector3(1.0, 1.0, 1.0)
+		"skyway_runaway":
+			# Elongated capsule-like vehicle for the runaway skyway capsule.
+			beacon_mesh = BoxMesh.new()
+			beacon_mesh.size = Vector3(3.5, 2.5, 8.0)
+			beacon_scale = Vector3(1.0, 1.0, 1.0)
 		_:
 			beacon_mesh = SphereMesh.new()
 			beacon_mesh.radius = 4.0
@@ -387,6 +392,43 @@ func spawn_event(kind: String, pos: Vector3) -> void:
 			spark_tween.tween_property(spark, "position:y", spark.position.y + 2.0, 0.25 + float(i) * 0.08)
 			spark_tween.tween_property(spark, "position:y", spark.position.y, 0.25 + float(i) * 0.08)
 
+	elif kind == "skyway_runaway":
+		# Tilt the capsule to look like a runaway vehicle pitching forward.
+		beacon.rotation_degrees = Vector3(0.0, 0.0, -6.0)
+
+		# Speed trail streaks behind the capsule.
+		for i in range(2):
+			var trail := MeshInstance3D.new()
+			trail.name = "SkywayTrail_%d" % i
+			var trail_mesh := BoxMesh.new()
+			trail_mesh.size = Vector3(0.4, 0.06, 3.5)
+			trail.mesh = trail_mesh
+			trail.position = Vector3(-1.2 + float(i) * 2.4, 0.0, -5.0)
+			trail.material_override = host._transparent_mat(Color(0.3, 0.8, 1.0, 0.45), Color(0.3, 0.8, 1.0, 1.0), 1.5)
+			marker.add_child(trail)
+
+		# Skyway rails extending forward/back below the capsule.
+		for i in range(2):
+			var rail := MeshInstance3D.new()
+			rail.name = "SkywayRail_%d" % i
+			var rail_mesh := BoxMesh.new()
+			rail_mesh.size = Vector3(0.15, 0.15, 16.0)
+			rail.mesh = rail_mesh
+			rail.position = Vector3(-1.8 + float(i) * 3.6, -2.0, 0.0)
+			rail.material_override = host._mat(Color(0.35, 0.33, 0.3, 1.0), Color(0.1, 0.1, 0.1, 1.0), 0.2)
+			marker.add_child(rail)
+
+		# Nose glow at the front of the capsule.
+		var nose_glow := MeshInstance3D.new()
+		nose_glow.name = "SkywayNoseGlow"
+		var glow_mesh := SphereMesh.new()
+		glow_mesh.radius = 0.9
+		glow_mesh.height = 1.8
+		nose_glow.mesh = glow_mesh
+		nose_glow.position = Vector3(0.0, 0.0, 5.0)
+		nose_glow.material_override = host._mat(Color(0.15, 0.55, 1.0, 1.0), Color(0.15, 0.55, 1.0, 1.0), 3.0)
+		marker.add_child(nose_glow)
+
 	# --- Large floating label with outline ---
 	var label := Label3D.new()
 	label.name = "EventLabel"
@@ -511,9 +553,6 @@ func _resolve_event(marker: Node3D, power_id: String) -> void:
 	if is_instance_valid(marker):
 		marker.queue_free()
 
-# The audio ids that fire for an event now come from data (event_kinds), but each
-# id is dispatched through a literal `AuroraAudio.trigger("...")` so the audio-
-# wiring contract (check_audio_wiring.py) and the call shape stay intact.
 func _play_event_spawn_audio(kind: String) -> void:
 	if not event_kinds.has(kind):
 		return
@@ -527,25 +566,12 @@ func _play_event_resolve_audio(kind: String) -> void:
 		_dispatch_audio(str(id))
 
 func _dispatch_audio(id: String) -> void:
-	match id:
-		"drone_alert":
-			AuroraAudio.trigger("drone_alert")
-		"event_alert_rescue_needed":
-			AuroraAudio.trigger("event_alert_rescue_needed")
-		"civilian_panicked_help":
-			AuroraAudio.trigger("civilian_panicked_help")
-		"null_choir_cmdr_threat":
-			AuroraAudio.trigger("null_choir_cmdr_threat")
-		"drone_death":
-			AuroraAudio.trigger("drone_death")
-		"civilian_grateful_thanks":
-			AuroraAudio.trigger("civilian_grateful_thanks")
-		"emergency_dispatcher_dispatch":
-			AuroraAudio.trigger("emergency_dispatcher_dispatch")
-		"civic_grid_alert":
-			AuroraAudio.trigger("civic_grid_alert")
-		_:
-			push_error("CityEventSystem: unknown audio trigger id '%s'" % id)
+	if not host.is_inside_tree():
+		return
+	var audio_sys = host.get_tree().root.get_node_or_null("AuroraAudio")
+	if audio_sys == null:
+		return
+	audio_sys.trigger(id)
 
 func _update_rogue_drone(marker: Node3D, delta: float) -> void:
 	var center: Vector3 = marker.get_meta("orbit_center", marker.position)

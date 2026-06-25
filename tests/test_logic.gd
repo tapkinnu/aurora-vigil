@@ -5,6 +5,30 @@ const MissionDirector = preload("res://scripts/MissionDirector.gd")
 
 var failed := false
 
+# Minimal host mock for spawn_event visual identity tests.
+class _SkywayTestHost:
+	extends Node3D
+
+	var _tweens: Array[Tween] = []
+
+	func _mat(albedo: Color, emission: Color, energy: float) -> StandardMaterial3D:
+		var m := StandardMaterial3D.new()
+		m.albedo_color = albedo
+		m.emission = emission
+		m.emission_enabled = energy > 0.0
+		m.emission_energy_multiplier = energy
+		m.roughness = 0.55
+		m.metallic = 0.05
+		return m
+
+	func _transparent_mat(albedo: Color, emission: Color, energy: float) -> StandardMaterial3D:
+		var m := _mat(albedo, emission, energy)
+		return m
+
+	func _remember_tween(t: Tween) -> Tween:
+		_tweens.append(t)
+		return t
+
 # Minimal stand-ins for the mission/event systems so SaveGame can be exercised
 # without building the full scene tree.
 class _MissionHolder:
@@ -20,6 +44,7 @@ func _init() -> void:
 	_test_mission_data()
 	_test_event_data()
 	_test_power_data()
+	_test_skyway_runaway_visual_id()
 	if failed:
 		print("AURORA_LOGIC_TESTS: FAIL")
 		quit(1)
@@ -178,3 +203,37 @@ func _test_power_data() -> void:
 	if c_arr.size() == 4:
 		var c: Color = Color(c_arr[0], c_arr[1], c_arr[2], c_arr[3])
 		_assert(c.is_equal_approx(Color(1.0, 0.72, 0.22, 1.0)), "radiant_beam flash_color matches original")
+
+func _test_skyway_runaway_visual_id() -> void:
+	var host := _SkywayTestHost.new()
+	root.add_child(host)
+	var CEScript = load("res://scripts/CityEventSystem.gd")
+	var ces = CEScript.new()
+	var temp_hero := Node3D.new()
+	var temp_camera := Camera3D.new()
+	ces.setup(host, temp_hero, temp_camera, ProgressionModel.new(), MissionDirector.new())
+	ces.spawn_event("skyway_runaway", Vector3(12.0, 10.0, -8.0))
+
+	var marker := host.get_node("DynamicEvent_skyway_runaway") as Node3D
+	_assert(marker != null, "skyway_runaway: marker exists on host")
+	if marker != null:
+		var beacon := marker.get_node("EventBeacon") as MeshInstance3D
+		_assert(beacon != null, "skyway_runaway: EventBeacon exists")
+		if beacon != null:
+			_assert(not (beacon.mesh is SphereMesh), "skyway_runaway: EventBeacon is NOT SphereMesh")
+			_assert(beacon.mesh is BoxMesh, "skyway_runaway: EventBeacon is BoxMesh")
+			if beacon.mesh is BoxMesh:
+				var box: BoxMesh = beacon.mesh
+				_assert(box.size.z > box.size.x, "skyway_runaway: BoxMesh elongated in Z (capsule-like)")
+
+		# Named children for skyway runaway visual identity.
+		_assert(marker.get_node("SkywayTrail_0") != null, "skyway_runaway: SkywayTrail_0 exists")
+		_assert(marker.get_node("SkywayRail_0") != null, "skyway_runaway: SkywayRail_0 exists")
+		_assert(marker.get_node("SkywayNoseGlow") != null, "skyway_runaway: SkywayNoseGlow exists")
+
+	for t in host._tweens:
+		if is_instance_valid(t):
+			t.kill()
+	host.queue_free()
+	temp_hero.queue_free()
+	temp_camera.queue_free()
