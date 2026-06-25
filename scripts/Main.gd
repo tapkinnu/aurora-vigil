@@ -161,7 +161,11 @@ func _ready() -> void:
 	_wire_systems()
 	if _persistence_enabled():
 		SaveGame.load_into(progression, missions, events)
-	events.seed_initial()
+	# Capture runs stage their own per-shot event context below, so skip the
+	# default seed events. Clearing already-spawned seed events caused their
+	# looping tweens to warn/error during screenshot startup.
+	if OS.get_environment("AURORA_CAPTURE_PATH") == "":
+		events.seed_initial()
 	objectives.spawn_all()
 	_stage_capture_scene()
 	flight.attach_contact_shadow(hero, 2.6, 1.4)
@@ -1298,38 +1302,41 @@ func _stage_capture_scene() -> void:
 	if mode == "gameplay":
 		# Stage gameplay captures in the open central avenue so the chase camera
 		# reads as city flight instead of starting with a tower face behind the hero.
+		# Spawn a bridge_collapse event so the HUD shows a distinct event context.
 		hero.position = Vector3(-8, 34, 10)
+		events.spawn_event("bridge_collapse", Vector3(-8, 4, 10))
 	elif mode == "city":
 		# Cinematic city vista: park the hero as a small flying silhouette south of
 		# the elevated interchange, facing north toward the skyline cluster. The
 		# camera (PlayerFlightController) sits behind/above it so the highway sweeps
 		# across the foreground as leading lines and the hero/grid towers rise into
 		# the golden-hour sky behind — the reference wide-angle metropolitan frame.
+		# No events for the pure skyline postcard.
 		hero.position = Vector3(0, 24, -128)
 		hero.rotation_degrees = Vector3(0, 0, 0)
 		hero.visible = false
-		for event_node in events.event_nodes:
-			if is_instance_valid(event_node):
-				event_node.visible = false
 	elif mode == "drone":
 		# Put the hero and seeded rogue drone in the same air corridor; the drone
 		# camera frames the pair and the actual Meshy drone actor, not just the
 		# event volume. Use a fixed high oblique capture pose so both actors sit
 		# below the HUD and remain readable at 1152×648.
+		# Spawn a rogue_drone event so the panel context is explicitly drone-related.
+		events.spawn_event("rogue_drone", Vector3(0, 70, 60))
 		var nearest_drone := events.nearest_event()
 		if nearest_drone != null and str(nearest_drone.get_meta("kind", "")) == "rogue_drone":
-			nearest_drone.position = Vector3(0, 70, 60)
 			nearest_drone.set_meta("orbit_center", nearest_drone.position)
 			nearest_drone.set_meta("drift_radius", 4.0)
 			nearest_drone.set_meta("drift_angle", 0.4)
 		hero.position = Vector3(-10, 70, 55)
 	elif mode == "closeup":
-		camera.fov = 55
 		# Pull the close-up back into the central avenue so the hero silhouettes
 		# against sky/open street depth, not a skyscraper wall.
+		# Spawn a skyway_runaway event so the panel context differs from gameplay.
+		camera.fov = 55
 		hero.position = Vector3(0, 34, 4)
 		hero.rotation_degrees = Vector3(0, 180, 0)
 		hero.scale = Vector3(2.0, 2.0, 2.0)
+		events.spawn_event("skyway_runaway", Vector3(0, 18, 4))
 	objectives.stage_for_capture(mode)
 
 func _add_part(parent: Node3D, part_name: String, mesh: Mesh, pos: Vector3, scale_v: Vector3, albedo: Color, emission: Color, energy: float) -> void:

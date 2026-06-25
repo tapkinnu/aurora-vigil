@@ -98,9 +98,11 @@ func is_open() -> bool:
 	return _is_open
 
 func _on_resume() -> void:
+	AuroraAudio.trigger("ui_confirm")
 	close()
 
 func _on_settings() -> void:
+	AuroraAudio.trigger("ui_click")
 	if _settings != null and is_instance_valid(_settings):
 		return
 	_settings = AuroraSettingsPanel.new()
@@ -110,6 +112,7 @@ func _on_settings() -> void:
 	_settings.focus_default()
 
 func _on_settings_closed() -> void:
+	AuroraAudio.trigger("ui_click")
 	if host != null and host.has_method("apply_difficulty"):
 		host.apply_difficulty()
 	if _settings != null and is_instance_valid(_settings):
@@ -119,6 +122,7 @@ func _on_settings_closed() -> void:
 		_resume_button.grab_focus()
 
 func _on_quit_to_menu() -> void:
+	AuroraAudio.trigger("ui_confirm")
 	close()
 	if host != null and host.has_method("return_to_main_menu"):
 		host.return_to_main_menu()

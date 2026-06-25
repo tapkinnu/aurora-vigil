@@ -134,16 +134,19 @@ func _reveal_menu() -> void:
 		_new_button.grab_focus()
 
 func _on_new_game() -> void:
+	AuroraAudio.trigger("ui_confirm")
 	if host != null:
 		host.start_game(true)
 	_dismiss()
 
 func _on_continue() -> void:
+	AuroraAudio.trigger("ui_confirm")
 	if host != null:
 		host.start_game(false)
 	_dismiss()
 
 func _on_settings() -> void:
+	AuroraAudio.trigger("ui_click")
 	if _settings != null and is_instance_valid(_settings):
 		return
 	_settings = AuroraSettingsPanel.new()
@@ -153,6 +156,7 @@ func _on_settings() -> void:
 	_settings.focus_default()
 
 func _on_settings_closed() -> void:
+	AuroraAudio.trigger("ui_click")
 	if host != null and host.has_method("apply_difficulty"):
 		host.apply_difficulty()
 	if _settings != null and is_instance_valid(_settings):
@@ -162,6 +166,7 @@ func _on_settings_closed() -> void:
 		_settings_button.grab_focus()
 
 func _on_quit() -> void:
+	AuroraAudio.trigger("ui_confirm")
 	if host != null and host.has_method("request_quit"):
 		host.request_quit()
 	else:
