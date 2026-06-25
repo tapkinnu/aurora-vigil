@@ -8,6 +8,7 @@ the cross-data invariants the in-engine spawner relies on:
   * every marker.target_kind references an existing event kind id;
   * every mission.target_kind references an existing event kind id AND has a
     matching objective marker (so the active mission always has an in-world marker);
+  * every timed_spawn.types[] event kind has a matching objective marker entry;
   * every position value the spawner consumes is finite — seed_events positions,
     timed_spawn positions, and the bridge_zone position/size.
 
@@ -111,6 +112,9 @@ def main() -> int:
             for i, pos in enumerate(ts.get("positions", [])):
                 if not _all_finite(pos):
                     errors.append(f"{EVENTS_REL}: timed_spawn positions[{i}] must be finite numbers")
+            for t in ts.get("types", []):
+                if t not in marker_kinds:
+                    errors.append(f"{EVENTS_REL}: timed_spawn type '{t}' has no objective marker entry")
 
     if errors:
         print("AURORA_VOLUMES_VALIDATE: FAIL")

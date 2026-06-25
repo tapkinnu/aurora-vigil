@@ -35,6 +35,12 @@
       "label": "OBJECTIVE: TRANSIT DERAILMENT",
       "icon": "train",
       "enter_audio": ["civic_grid_alert", "civilian_panicked_help"]
+    },
+    {
+      "target_kind": "skyway_runaway",
+      "label": "OBJECTIVE: SKYWAY RUNAWAY",
+      "icon": "capsule",
+      "enter_audio": ["civic_grid_alert", "event_alert_rescue_needed"]
     }
   ],
   "bridge_zone": {
