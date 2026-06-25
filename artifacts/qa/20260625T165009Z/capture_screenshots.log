@@ -1,0 +1,6 @@
+AURORA_SCREENSHOT_IMAGE PASS artifacts/qa/20260625T165009Z/screenshots/gameplay.png mean=75.20 size=(1152, 648)
+AURORA_SCREENSHOT_IMAGE PASS artifacts/qa/20260625T165009Z/screenshots/city.png mean=66.04 size=(1152, 648)
+AURORA_SCREENSHOT_IMAGE PASS artifacts/qa/20260625T165009Z/screenshots/drone.png mean=83.23 size=(1152, 648)
+AURORA_SCREENSHOT_IMAGE PASS artifacts/qa/20260625T165009Z/screenshots/closeup.png mean=84.71 size=(1152, 648)
+AURORA_CONTACT_SHEET: PASS artifacts/qa/20260625T165009Z/screenshots/contact_sheet.jpg images=4
+AURORA_SCREENSHOT: PASS out=artifacts/qa/20260625T165009Z/screenshots

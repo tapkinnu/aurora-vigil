@@ -1,0 +1,16 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+Vulkan 1.4.318 - Forward+ - Using Device #0: Unknown - llvmpipe (LLVM 20.1.2, 256 bits)
+
+AURORA_GROUND: loading 3 ground texture sets...
+AURORA_GROUND: loaded set res://assets/textures/ground/asphalt_
+AURORA_GROUND: loaded set res://assets/textures/ground/grass_
+AURORA_GROUND: loaded set res://assets/textures/ground/plaza_
+AURORA_GROUND_TEXTURES: loaded 3 sets
+AURORA_FACADE: loading 5 facade texture sets...
+AURORA_FACADE: loaded set res://assets/textures/facades/glass_curtain_wall_
+AURORA_FACADE: loaded set res://assets/textures/facades/concrete_panel_
+AURORA_FACADE: loaded set res://assets/textures/facades/brick_
+AURORA_FACADE: loaded set res://assets/textures/facades/metal_cladding_
+AURORA_FACADE: loaded set res://assets/textures/facades/commercial_facade_
+AURORA_FACADE_TEXTURES: loaded 5 sets
+AURORA_SCREENSHOT: artifacts/qa/20260625T165009Z/screenshots/gameplay.png err=0 size=1152x648
