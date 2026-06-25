@@ -18,6 +18,8 @@ const AUDIO_PATHS: Dictionary = {
 	"civilian_grateful_thanks": "res://assets/audio/voices/civilian_grateful/civilian_grateful_thanks.ogg",
 	"emergency_dispatcher_dispatch": "res://assets/audio/voices/emergency_dispatcher/emergency_dispatcher_dispatch.ogg",
 	"null_choir_cmdr_threat": "res://assets/audio/voices/null_choir_cmdr/null_choir_cmdr_threat.ogg",
+	"ui_click": "res://assets/audio/sfx/ui/ui_click.ogg",
+	"ui_confirm": "res://assets/audio/sfx/ui/ui_confirm.ogg",
 }
 
 const TRIGGER_RULES: Dictionary = {
@@ -35,6 +37,8 @@ const TRIGGER_RULES: Dictionary = {
 	"civilian_grateful_thanks": {"cooldown": 12.0, "probability": 0.7, "volume_db": -5.0},
 	"emergency_dispatcher_dispatch": {"cooldown": 14.0, "probability": 0.75, "volume_db": -6.0},
 	"null_choir_cmdr_threat": {"cooldown": 18.0, "probability": 0.65, "volume_db": -5.0},
+	"ui_click": {"cooldown": 0.0, "probability": 1.0, "volume_db": -10.0},
+	"ui_confirm": {"cooldown": 0.0, "probability": 1.0, "volume_db": -8.0},
 }
 
 const LOOP_RULES: Dictionary = {

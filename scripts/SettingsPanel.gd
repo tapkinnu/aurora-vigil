@@ -191,4 +191,5 @@ func _on_difficulty_selected(index: int) -> void:
 		sm.set_difficulty(str(order[index]))
 
 func _on_back() -> void:
+	AuroraAudio.trigger("ui_click")
 	closed.emit()

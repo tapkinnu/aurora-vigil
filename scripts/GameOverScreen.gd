@@ -91,11 +91,13 @@ func is_shown() -> bool:
 	return _shown
 
 func _on_retry() -> void:
+	AuroraAudio.trigger("ui_confirm")
 	hide_screen()
 	if host != null and host.has_method("retry_from_checkpoint"):
 		host.retry_from_checkpoint()
 
 func _on_quit_to_menu() -> void:
+	AuroraAudio.trigger("ui_confirm")
 	hide_screen()
 	if host != null and host.has_method("return_to_main_menu"):
 		host.return_to_main_menu()
