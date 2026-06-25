@@ -213,6 +213,13 @@ func spawn_event(kind: String, pos: Vector3) -> void:
 			beacon_mesh = BoxMesh.new()
 			beacon_mesh.size = Vector3(3.5, 2.5, 8.0)
 			beacon_scale = Vector3(1.0, 1.0, 1.0)
+		"null_resonator":
+			# Tall resonator silhouette so the event beacon is distinct before details load.
+			beacon_mesh = CylinderMesh.new()
+			beacon_mesh.top_radius = 1.0
+			beacon_mesh.bottom_radius = 2.0
+			beacon_mesh.height = 9.0
+			beacon_scale = Vector3(1.0, 1.0, 1.0)
 		_:
 			beacon_mesh = SphereMesh.new()
 			beacon_mesh.radius = 4.0
@@ -392,6 +399,46 @@ func spawn_event(kind: String, pos: Vector3) -> void:
 			spark_tween.tween_property(spark, "position:y", spark.position.y + 2.0, 0.25 + float(i) * 0.08)
 			spark_tween.tween_property(spark, "position:y", spark.position.y, 0.25 + float(i) * 0.08)
 
+	elif kind == "null_resonator":
+		# Tall mast with pulsing wave rings and a glowing core — Null Choir acoustic disruptor.
+		var mast := MeshInstance3D.new()
+		mast.name = "NullResonatorMast"
+		var mast_mesh := CylinderMesh.new()
+		mast_mesh.top_radius = 0.3
+		mast_mesh.bottom_radius = 0.6
+		mast_mesh.height = 10.0
+		mast.mesh = mast_mesh
+		mast.position = Vector3(0, 2.0, 0)
+		mast.material_override = host._mat(Color(0.25, 0.24, 0.28, 1.0), Color(0.0, 0.0, 0.0, 1.0), 0.0)
+		marker.add_child(mast)
+
+		var core := MeshInstance3D.new()
+		core.name = "NullResonatorCore"
+		var core_mesh := SphereMesh.new()
+		core_mesh.radius = 1.2
+		core_mesh.height = 2.4
+		core.mesh = core_mesh
+		core.position = Vector3(0, 7.5, 0)
+		core.material_override = host._mat(color, color, 3.0)
+		marker.add_child(core)
+
+		var core_tween: Tween = host._remember_tween(host.create_tween().set_loops())
+		core_tween.tween_property(core, "scale", Vector3(1.3, 1.3, 1.3), 0.6)
+		core_tween.tween_property(core, "scale", Vector3.ONE, 0.6)
+
+		for i in range(2):
+			var wave := MeshInstance3D.new()
+			wave.name = "NullResonatorWave_%d" % i
+			var wave_mesh := TorusMesh.new()
+			wave_mesh.inner_radius = 2.5 + float(i) * 1.2
+			wave_mesh.outer_radius = 3.5 + float(i) * 1.2
+			wave.mesh = wave_mesh
+			wave.position = Vector3(0, 3.0 + float(i) * 2.5, 0)
+			wave.rotation_degrees = Vector3(90.0, 0.0, 0.0)
+			wave.material_override = host._transparent_mat(Color(color.r, color.g, color.b, 0.3), color, 1.5)
+			marker.add_child(wave)
+			var wave_tween: Tween = host._remember_tween(host.create_tween().set_loops())
+			wave_tween.tween_property(wave, "rotation:y", TAU, 2.0 - float(i) * 0.5)
 	elif kind == "skyway_runaway":
 		# Tilt the capsule to look like a runaway vehicle pitching forward.
 		beacon.rotation_degrees = Vector3(0.0, 0.0, -6.0)

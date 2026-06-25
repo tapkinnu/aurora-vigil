@@ -69,6 +69,16 @@
       "required_action": "Hold Shift orbit sprint to overtake the runaway skyway capsule",
       "spawn_audio": ["event_alert_rescue_needed", "civic_grid_alert"],
       "resolve_audio": ["emergency_dispatcher_dispatch"]
+    },
+    {
+      "id": "null_resonator",
+      "display_name": "Null resonator",
+      "color": [0.9, 0.25, 1.0, 1.0],
+      "reward_xp": 160,
+      "required_power": "sonic_burst",
+      "required_action": "Use Q sonic burst to disrupt and calibrate the resonator",
+      "spawn_audio": ["null_choir_cmdr_threat", "event_alert_rescue_needed"],
+      "resolve_audio": ["civic_grid_alert"]
     }
   ],
   "seed_events": [
@@ -77,7 +87,7 @@
     { "kind": "bridge_collapse", "position": [0.0, 8.0, 64.0] }
   ],
   "timed_spawn": {
-    "types": ["tower_fire", "rogue_drone", "power_surge", "rescue_signal", "bridge_collapse", "transit_derailment", "skyway_runaway"],
+    "types": ["tower_fire", "rogue_drone", "power_surge", "rescue_signal", "bridge_collapse", "transit_derailment", "skyway_runaway", "null_resonator"],
     "positions": [
       [-92.0, 46.0, 44.0],
       [88.0, 28.0, -44.0],

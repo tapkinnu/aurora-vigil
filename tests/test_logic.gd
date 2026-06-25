@@ -45,6 +45,7 @@ func _init() -> void:
 	_test_event_data()
 	_test_power_data()
 	_test_skyway_runaway_visual_id()
+	_test_null_resonator_visual_id()
 	if failed:
 		print("AURORA_LOGIC_TESTS: FAIL")
 		quit(1)
@@ -145,8 +146,8 @@ func _test_event_data() -> void:
 			continue
 		var entry: Dictionary = raw_entry
 		event_kinds[str(entry.get("id", ""))] = entry
-	_assert(event_kinds.size() == 7, "seven event kinds loaded")
-	for kind in ["tower_fire", "rogue_drone", "power_surge", "rescue_signal", "bridge_collapse", "transit_derailment", "skyway_runaway"]:
+	_assert(event_kinds.size() == 8, "eight event kinds loaded")
+	for kind in ["tower_fire", "rogue_drone", "power_surge", "rescue_signal", "bridge_collapse", "transit_derailment", "skyway_runaway", "null_resonator"]:
 		_assert(event_kinds.has(kind), "event kind present: %s" % kind)
 	var seed_events_data: Array = parsed.get("seed_events", [])
 	_assert(seed_events_data.size() == 3, "three seed events loaded")
@@ -157,6 +158,31 @@ func _test_event_data() -> void:
 		_assert(event_kinds.has(str(t)), "timed_spawn type '%s' defined in event_kinds" % str(t))
 	_assert(timed_spawn_data.get("types", []).has("bridge_collapse"), "bridge_collapse in timed_spawn.types")
 	_assert(timed_spawn_data.get("types", []).has("transit_derailment"), "transit_derailment in timed_spawn.types")
+	# Null resonator round-trips.
+	_assert(event_kinds.has("null_resonator"), "null_resonator event kind exists")
+	var nr_event: Dictionary = event_kinds.get("null_resonator", {})
+	_assert(str(nr_event.get("display_name", "")) == "Null resonator", "null_resonator display name from data")
+	_assert("sonic_burst" == str(nr_event.get("required_power", "")), "sonic_burst matches null_resonator from data")
+	var nr_action: String = str(nr_event.get("required_action", "")).to_lower()
+	_assert(nr_action.contains("q") and nr_action.contains("sonic burst"), "null_resonator action mentions Q and sonic burst")
+	_assert(nr_action.contains("resonator"), "null_resonator action mentions resonator")
+	_assert(int(nr_event.get("reward_xp", 0)) == 160, "null_resonator reward resolves to 160 from data")
+	_assert(timed_spawn_data.get("types", []).has("null_resonator"), "null_resonator in timed_spawn.types")
+
+	# Check objective marker data includes null_resonator.
+	var om_text: String = FileAccess.get_file_as_string("res://data/objective_markers.json")
+	var om_parsed_variant: Variant = JSON.parse_string(om_text)
+	_assert(typeof(om_parsed_variant) == TYPE_DICTIONARY, "objective_markers json parses to dictionary")
+	if typeof(om_parsed_variant) == TYPE_DICTIONARY:
+		var om_parsed: Dictionary = om_parsed_variant
+		var markers_arr: Array = om_parsed.get("markers", [])
+		var found_nr_marker := false
+		for m in markers_arr:
+			if typeof(m) == TYPE_DICTIONARY and str(m.get("target_kind", "")) == "null_resonator":
+				found_nr_marker = true
+				break
+		_assert(found_nr_marker, "objective_markers has entry for null_resonator")
+
 	# Round-trip: resolve reward comes from the data lookup, not a constant.
 	_assert(int(event_kinds["tower_fire"].get("reward_xp", 0)) == 70, "tower_fire reward resolves to 70 from data")
 	_assert(str(event_kinds["tower_fire"].get("display_name", "")) == "Tower fire", "tower_fire display name from data")
@@ -230,6 +256,38 @@ func _test_skyway_runaway_visual_id() -> void:
 		_assert(marker.get_node("SkywayTrail_0") != null, "skyway_runaway: SkywayTrail_0 exists")
 		_assert(marker.get_node("SkywayRail_0") != null, "skyway_runaway: SkywayRail_0 exists")
 		_assert(marker.get_node("SkywayNoseGlow") != null, "skyway_runaway: SkywayNoseGlow exists")
+
+	for t in host._tweens:
+		if is_instance_valid(t):
+			t.kill()
+	host.queue_free()
+	temp_hero.queue_free()
+	temp_camera.queue_free()
+
+func _test_null_resonator_visual_id() -> void:
+	var host := _SkywayTestHost.new()
+	root.add_child(host)
+	var CEScript = load("res://scripts/CityEventSystem.gd")
+	var ces = CEScript.new()
+	var temp_hero := Node3D.new()
+	var temp_camera := Camera3D.new()
+	ces.setup(host, temp_hero, temp_camera, ProgressionModel.new(), MissionDirector.new())
+	ces.spawn_event("null_resonator", Vector3(5.0, 10.0, -3.0))
+
+	var marker := host.get_node("DynamicEvent_null_resonator") as Node3D
+	_assert(marker != null, "null_resonator: marker exists on host")
+	if marker != null:
+		var beacon := marker.get_node("EventBeacon") as MeshInstance3D
+		_assert(beacon != null, "null_resonator: EventBeacon exists")
+		if beacon != null:
+			_assert(beacon.mesh is CylinderMesh, "null_resonator: EventBeacon is a distinct CylinderMesh")
+			if beacon.mesh is CylinderMesh:
+				var cyl: CylinderMesh = beacon.mesh
+				_assert(cyl.height > cyl.bottom_radius * 4.0, "null_resonator: EventBeacon is tall resonator silhouette")
+		_assert(marker.get_node("NullResonatorMast") != null, "null_resonator: NullResonatorMast exists")
+		_assert(marker.get_node("NullResonatorWave_0") != null, "null_resonator: NullResonatorWave_0 exists")
+		_assert(marker.get_node("NullResonatorWave_1") != null, "null_resonator: NullResonatorWave_1 exists")
+		_assert(marker.get_node("NullResonatorCore") != null, "null_resonator: NullResonatorCore exists")
 
 	for t in host._tweens:
 		if is_instance_valid(t):

@@ -41,6 +41,12 @@
       "label": "OBJECTIVE: SKYWAY RUNAWAY",
       "icon": "capsule",
       "enter_audio": ["civic_grid_alert", "event_alert_rescue_needed"]
+    },
+    {
+      "target_kind": "null_resonator",
+      "label": "OBJECTIVE: NULL RESONATOR",
+      "icon": "resonator",
+      "enter_audio": ["null_choir_cmdr_threat", "event_alert_rescue_needed"]
     }
   ],
   "bridge_zone": {
