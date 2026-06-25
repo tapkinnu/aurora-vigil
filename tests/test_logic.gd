@@ -116,8 +116,8 @@ func _test_event_data() -> void:
 			continue
 		var entry: Dictionary = raw_entry
 		event_kinds[str(entry.get("id", ""))] = entry
-	_assert(event_kinds.size() == 6, "six event kinds loaded")
-	for kind in ["tower_fire", "rogue_drone", "power_surge", "rescue_signal", "bridge_collapse", "transit_derailment"]:
+	_assert(event_kinds.size() == 7, "seven event kinds loaded")
+	for kind in ["tower_fire", "rogue_drone", "power_surge", "rescue_signal", "bridge_collapse", "transit_derailment", "skyway_runaway"]:
 		_assert(event_kinds.has(kind), "event kind present: %s" % kind)
 	var seed_events_data: Array = parsed.get("seed_events", [])
 	_assert(seed_events_data.size() == 3, "three seed events loaded")
@@ -140,6 +140,14 @@ func _test_event_data() -> void:
 	var transit_action: String = str(transit_event.get("required_action", "")).to_lower()
 	_assert(transit_action.contains("aegis field") and transit_action.contains("transit car"), "transit_derailment action mentions aegis field and transit car")
 	_assert(int(transit_event.get("reward_xp", 0)) == 150, "transit_derailment reward resolves to 150 from data")
+	# Skyway runaway round-trips.
+	_assert(event_kinds.has("skyway_runaway"), "skyway_runaway event kind exists")
+	var skyway_event: Dictionary = event_kinds.get("skyway_runaway", {})
+	_assert(str(skyway_event.get("display_name", "")) == "Skyway runaway", "skyway_runaway display name from data")
+	_assert("orbit_sprint" == str(skyway_event.get("required_power", "")), "orbit_sprint matches skyway_runaway from data")
+	var skyway_action: String = str(skyway_event.get("required_action", "")).to_lower()
+	_assert(skyway_action.contains("shift") and skyway_action.contains("orbit sprint"), "skyway_runaway action mentions shift and orbit sprint")
+	_assert(int(skyway_event.get("reward_xp", 0)) == 180, "skyway_runaway reward resolves to 180 from data")
 
 func _test_power_data() -> void:
 	var text: String = FileAccess.get_file_as_string("res://data/powers/powers.json")

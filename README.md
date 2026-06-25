@@ -12,12 +12,12 @@ You play as **The Lumen**, an original solar-charged guardian learning to protec
   - `WASD` horizontal flight
   - `Space` ascend
   - `Ctrl` descend
-  - `Shift` boost
+  - `Shift` boost (becomes Orbit Sprint when unlocked)
   - `F` radiant beam
   - `Q` sonic burst
   - `E` aegis field
   - `R` rescue lift
-- Dynamic event seed system: tower fires, rogue drones, bridge collapse, power surges, and transit derailments.
+- Dynamic event seed system: tower fires, rogue drones, bridge collapse, power surges, transit derailments, and skyway runaways.
 - Story mission spine: 10-mission campaign from tutorial patrol through Null Choir conflict, post-crisis grid stabilization, and sky-rail rescue response.
 - Real audio pack: SFX, music, and TTS voice barks via FAL/Kenney/ElevenLabs (`tools/audio_pipeline.py`).
 - Data-driven missions, events, and powers under `data/` with schema validation.

@@ -59,6 +59,16 @@
       "required_action": "Use E aegis field to brace/guide the derailed transit car",
       "spawn_audio": ["event_alert_rescue_needed", "civic_grid_alert"],
       "resolve_audio": ["civilian_grateful_thanks"]
+    },
+    {
+      "id": "skyway_runaway",
+      "display_name": "Skyway runaway",
+      "color": [1.0, 0.78, 0.18, 1.0],
+      "reward_xp": 180,
+      "required_power": "orbit_sprint",
+      "required_action": "Hold Shift orbit sprint to overtake the runaway skyway capsule",
+      "spawn_audio": ["event_alert_rescue_needed", "civic_grid_alert"],
+      "resolve_audio": ["emergency_dispatcher_dispatch"]
     }
   ],
   "seed_events": [
@@ -67,12 +77,13 @@
     { "kind": "bridge_collapse", "position": [0.0, 8.0, 64.0] }
   ],
   "timed_spawn": {
-    "types": ["tower_fire", "rogue_drone", "power_surge", "rescue_signal", "bridge_collapse", "transit_derailment"],
+    "types": ["tower_fire", "rogue_drone", "power_surge", "rescue_signal", "bridge_collapse", "transit_derailment", "skyway_runaway"],
     "positions": [
       [-92.0, 46.0, 44.0],
       [88.0, 28.0, -44.0],
       [0.0, 18.0, -112.0],
-      [112.0, 32.0, 78.0]
+      [112.0, 32.0, 78.0],
+      [64.0, 72.0, 116.0]
     ],
     "min_seconds": 8.0,
     "max_seconds": 14.0
