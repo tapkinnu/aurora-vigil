@@ -89,6 +89,16 @@
       "required_action": "Hold E aegis field to contain and ground the shimmer echo",
       "spawn_audio": ["event_alert_rescue_needed", "civic_grid_alert"],
       "resolve_audio": ["emergency_dispatcher_dispatch"]
+    },
+    {
+      "id": "solar_array_overload",
+      "display_name": "Solar array overload",
+      "color": [1.0, 0.68, 0.16, 1.0],
+      "reward_xp": 135,
+      "required_power": "radiant_beam",
+      "required_action": "Use F radiant beam to vent the solar array overload",
+      "spawn_audio": ["event_alert_rescue_needed", "civic_grid_alert"],
+      "resolve_audio": ["emergency_dispatcher_dispatch"]
     }
   ],
   "seed_events": [
@@ -97,7 +107,7 @@
     { "kind": "bridge_collapse", "position": [0.0, 8.0, 64.0] }
   ],
   "timed_spawn": {
-    "types": ["tower_fire", "rogue_drone", "power_surge", "rescue_signal", "bridge_collapse", "transit_derailment", "skyway_runaway", "null_resonator", "shimmer_echo"],
+    "types": ["tower_fire", "rogue_drone", "power_surge", "rescue_signal", "bridge_collapse", "transit_derailment", "skyway_runaway", "null_resonator", "shimmer_echo", "solar_array_overload"],
     "positions": [
       [-92.0, 46.0, 44.0],
       [88.0, 28.0, -44.0],

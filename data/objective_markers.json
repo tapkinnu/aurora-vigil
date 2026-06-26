@@ -53,6 +53,12 @@
       "label": "OBJECTIVE: SHIMMER ECHO",
       "icon": "shimmer",
       "enter_audio": ["civic_grid_alert", "event_alert_rescue_needed"]
+    },
+    {
+      "target_kind": "solar_array_overload",
+      "label": "OBJECTIVE: SOLAR ARRAY",
+      "icon": "solar",
+      "enter_audio": ["civic_grid_alert", "event_alert_rescue_needed"]
     }
   ],
   "bridge_zone": {

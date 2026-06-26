@@ -226,6 +226,11 @@ func spawn_event(kind: String, pos: Vector3) -> void:
 			beacon_mesh.inner_radius = 3.5
 			beacon_mesh.outer_radius = 6.0
 			beacon_scale = Vector3(1.0, 0.6, 1.0)
+		"solar_array_overload":
+			# Wide flat solar-panel silhouette.
+			beacon_mesh = BoxMesh.new()
+			beacon_mesh.size = Vector3(8.0, 0.3, 4.0)
+			beacon_scale = Vector3(1.0, 1.0, 1.0)
 		_:
 			beacon_mesh = SphereMesh.new()
 			beacon_mesh.radius = 4.0
@@ -520,6 +525,53 @@ func spawn_event(kind: String, pos: Vector3) -> void:
 		nose_glow.position = Vector3(0.0, 0.0, 5.0)
 		nose_glow.material_override = host._mat(Color(0.15, 0.55, 1.0, 1.0), Color(0.15, 0.55, 1.0, 1.0), 3.0)
 		marker.add_child(nose_glow)
+
+	elif kind == "solar_array_overload":
+		# Two tilted solar panels extending from a central mast with an overload spark.
+		var panel_0 := MeshInstance3D.new()
+		panel_0.name = "SolarArrayPanel_0"
+		var panel_0_mesh := BoxMesh.new()
+		panel_0_mesh.size = Vector3(5.0, 0.05, 2.0)
+		panel_0.mesh = panel_0_mesh
+		panel_0.position = Vector3(0.0, 1.0, 0.0)
+		panel_0.rotation_degrees = Vector3(0.0, 0.0, 15.0)
+		panel_0.material_override = host._mat(Color(0.15, 0.25, 0.45, 1.0), Color(0.0, 0.0, 0.0, 1.0), 0.0)
+		marker.add_child(panel_0)
+
+		var panel_1 := MeshInstance3D.new()
+		panel_1.name = "SolarArrayPanel_1"
+		var panel_1_mesh := BoxMesh.new()
+		panel_1_mesh.size = Vector3(5.0, 0.05, 2.0)
+		panel_1.mesh = panel_1_mesh
+		panel_1.position = Vector3(0.0, 1.0, 0.0)
+		panel_1.rotation_degrees = Vector3(0.0, 0.0, -15.0)
+		panel_1.material_override = panel_0.material_override
+		marker.add_child(panel_1)
+
+		var mast := MeshInstance3D.new()
+		mast.name = "SolarArrayMast"
+		var mast_mesh := CylinderMesh.new()
+		mast_mesh.top_radius = 0.15
+		mast_mesh.bottom_radius = 0.2
+		mast_mesh.height = 3.0
+		mast.mesh = mast_mesh
+		mast.position = Vector3(0.0, 0.5, 0.0)
+		mast.material_override = host._mat(Color(0.3, 0.3, 0.32, 1.0), Color(0.0, 0.0, 0.0, 1.0), 0.0)
+		marker.add_child(mast)
+
+		var spark := MeshInstance3D.new()
+		spark.name = "SolarArraySpark_0"
+		var spark_mesh := SphereMesh.new()
+		spark_mesh.radius = 0.6
+		spark_mesh.height = 1.2
+		spark.mesh = spark_mesh
+		spark.position = Vector3(0.0, 1.8, 0.0)
+		var spark_color := Color(1.0, 0.68, 0.16, 1.0)
+		spark.material_override = host._mat(spark_color, spark_color, 3.0)
+		marker.add_child(spark)
+		var spark_tween: Tween = host._remember_tween(host.create_tween().set_loops())
+		spark_tween.tween_property(spark, "scale", Vector3(1.5, 1.5, 1.5), 0.4)
+		spark_tween.tween_property(spark, "scale", Vector3.ONE, 0.4)
 
 	# --- Large floating label with outline ---
 	var label := Label3D.new()
