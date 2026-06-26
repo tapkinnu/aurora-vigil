@@ -76,6 +76,13 @@
       "objective": "Use Orbit Sprint / Shift to overtake the runaway skyway capsule and stabilize it before it crashes.",
       "target_kind": "skyway_runaway",
       "reward_xp": 200
+    },
+    {
+      "id": "solar_cascade",
+      "title": "Solar Cascade",
+      "objective": "Stabilize the overloaded solar arrays with F radiant beam before the cascade reaches the civic grid.",
+      "target_kind": "solar_array_overload",
+      "reward_xp": 240
     }
   ]
 }

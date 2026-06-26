@@ -115,7 +115,7 @@ func _test_mission_data() -> void:
 	var md := MissionDirector.new()
 	_assert(md.load_data("res://data/missions/missions.json"), "missions json loads")
 	_assert(md.loaded_data.has("missions"), "missions loaded_data populated")
-	_assert(md.count() == 11, "eleven missions loaded from json")
+	_assert(md.count() == 12, "twelve missions loaded from json")
 	_assert(str(md.missions[0]["title"]) == "Dawn Patrol", "first mission title is Dawn Patrol")
 	_assert(str(md.missions[0]["target_kind"]) == "tower_fire", "first mission target_kind matches json")
 	_assert(int(md.missions[0]["reward_xp"]) == 80, "first mission reward_xp matches json")
@@ -131,6 +131,13 @@ func _test_mission_data() -> void:
 	_assert(str(md.missions[10]["title"]) == "Skyway Runaway", "eleventh mission title is Skyway Runaway")
 	_assert(str(md.missions[10]["target_kind"]) == "skyway_runaway", "eleventh mission target_kind is skyway_runaway")
 	_assert(int(md.missions[10]["reward_xp"]) == 200, "eleventh mission reward_xp matches json")
+	_assert(str(md.missions[11]["id"]) == "solar_cascade", "twelfth mission id is solar_cascade")
+	_assert(str(md.missions[11]["title"]) == "Solar Cascade", "twelfth mission title is Solar Cascade")
+	_assert(str(md.missions[11]["target_kind"]) == "solar_array_overload", "twelfth mission target_kind is solar_array_overload")
+	_assert(int(md.missions[11]["reward_xp"]) == 240, "twelfth mission reward_xp matches json")
+	var obj12: String = str(md.missions[11]["objective"]).to_lower()
+	_assert(obj12.contains("solar") and obj12.contains("array"), "twelfth mission objective mentions solar array")
+	_assert(obj12.contains("f") or obj12.contains("radiant beam"), "twelfth mission objective mentions F or radiant beam")
 
 func _test_event_data() -> void:
 	var text: String = FileAccess.get_file_as_string("res://data/events/events.json")
