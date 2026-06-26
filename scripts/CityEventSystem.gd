@@ -220,6 +220,12 @@ func spawn_event(kind: String, pos: Vector3) -> void:
 			beacon_mesh.bottom_radius = 2.0
 			beacon_mesh.height = 9.0
 			beacon_scale = Vector3(1.0, 1.0, 1.0)
+		"shimmer_echo":
+			# Halo/rift silhouette — a shimmering torus ring.
+			beacon_mesh = TorusMesh.new()
+			beacon_mesh.inner_radius = 3.5
+			beacon_mesh.outer_radius = 6.0
+			beacon_scale = Vector3(1.0, 0.6, 1.0)
 		_:
 			beacon_mesh = SphereMesh.new()
 			beacon_mesh.radius = 4.0
@@ -439,6 +445,45 @@ func spawn_event(kind: String, pos: Vector3) -> void:
 			marker.add_child(wave)
 			var wave_tween: Tween = host._remember_tween(host.create_tween().set_loops())
 			wave_tween.tween_property(wave, "rotation:y", TAU, 2.0 - float(i) * 0.5)
+	elif kind == "shimmer_echo":
+		# Shimmer Echo: a shimmering aurora rift with rings, core, and arc details.
+		var core := MeshInstance3D.new()
+		core.name = "ShimmerEchoCore"
+		var core_mesh := SphereMesh.new()
+		core_mesh.radius = 1.4
+		core_mesh.height = 2.8
+		core.mesh = core_mesh
+		core.material_override = host._mat(color, color, 3.5)
+		marker.add_child(core)
+		var se_core_tween: Tween = host._remember_tween(host.create_tween().set_loops())
+		se_core_tween.tween_property(core, "scale", Vector3(1.25, 1.25, 1.25), 0.7)
+		se_core_tween.tween_property(core, "scale", Vector3.ONE, 0.7)
+
+		for i in range(2):
+			var ring := MeshInstance3D.new()
+			ring.name = "ShimmerEchoRing_%d" % i
+			var sr_mesh := TorusMesh.new()
+			sr_mesh.inner_radius = 4.5 + float(i) * 1.2
+			sr_mesh.outer_radius = 5.5 + float(i) * 1.2
+			ring.mesh = sr_mesh
+			ring.position = Vector3(0, -0.8 + float(i) * 1.6, 0)
+			if i == 1:
+				ring.rotation_degrees = Vector3(35.0, 0.0, 0.0)
+			ring.material_override = host._transparent_mat(Color(color.r, color.g, color.b, 0.3), color, 1.2)
+			marker.add_child(ring)
+			var se_ring_tween: Tween = host._remember_tween(host.create_tween().set_loops())
+			se_ring_tween.tween_property(ring, "rotation:y", TAU, 2.5 - float(i) * 0.5)
+
+		var arc := MeshInstance3D.new()
+		arc.name = "ShimmerEchoArc_0"
+		var arc_mesh := BoxMesh.new()
+		arc_mesh.size = Vector3(0.12, 0.6, 1.8)
+		arc.mesh = arc_mesh
+		arc.position = Vector3(3.8, 0.5, 0.0)
+		arc.rotation_degrees = Vector3(0.0, 0.0, 15.0)
+		arc.material_override = host._transparent_mat(Color(color.r, color.g, color.b, 0.45), color, 1.8)
+		marker.add_child(arc)
+
 	elif kind == "skyway_runaway":
 		# Tilt the capsule to look like a runaway vehicle pitching forward.
 		beacon.rotation_degrees = Vector3(0.0, 0.0, -6.0)

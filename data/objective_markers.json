@@ -47,6 +47,12 @@
       "label": "OBJECTIVE: NULL RESONATOR",
       "icon": "resonator",
       "enter_audio": ["null_choir_cmdr_threat", "event_alert_rescue_needed"]
+    },
+    {
+      "target_kind": "shimmer_echo",
+      "label": "OBJECTIVE: SHIMMER ECHO",
+      "icon": "shimmer",
+      "enter_audio": ["civic_grid_alert", "event_alert_rescue_needed"]
     }
   ],
   "bridge_zone": {

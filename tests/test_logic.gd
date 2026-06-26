@@ -46,6 +46,7 @@ func _init() -> void:
 	_test_power_data()
 	_test_skyway_runaway_visual_id()
 	_test_null_resonator_visual_id()
+	_test_shimmer_echo_visual_id()
 	if failed:
 		print("AURORA_LOGIC_TESTS: FAIL")
 		quit(1)
@@ -146,8 +147,8 @@ func _test_event_data() -> void:
 			continue
 		var entry: Dictionary = raw_entry
 		event_kinds[str(entry.get("id", ""))] = entry
-	_assert(event_kinds.size() == 8, "eight event kinds loaded")
-	for kind in ["tower_fire", "rogue_drone", "power_surge", "rescue_signal", "bridge_collapse", "transit_derailment", "skyway_runaway", "null_resonator"]:
+	_assert(event_kinds.size() == 9, "nine event kinds loaded")
+	for kind in ["tower_fire", "rogue_drone", "power_surge", "rescue_signal", "bridge_collapse", "transit_derailment", "skyway_runaway", "null_resonator", "shimmer_echo"]:
 		_assert(event_kinds.has(kind), "event kind present: %s" % kind)
 	var seed_events_data: Array = parsed.get("seed_events", [])
 	_assert(seed_events_data.size() == 3, "three seed events loaded")
@@ -203,6 +204,31 @@ func _test_event_data() -> void:
 	var skyway_action: String = str(skyway_event.get("required_action", "")).to_lower()
 	_assert(skyway_action.contains("shift") and skyway_action.contains("orbit sprint"), "skyway_runaway action mentions shift and orbit sprint")
 	_assert(int(skyway_event.get("reward_xp", 0)) == 180, "skyway_runaway reward resolves to 180 from data")
+
+	# Shimmer Echo round-trips.
+	_assert(event_kinds.has("shimmer_echo"), "shimmer_echo event kind exists")
+	var shimmer_event: Dictionary = event_kinds.get("shimmer_echo", {})
+	_assert(str(shimmer_event.get("display_name", "")) == "Shimmer Echo", "shimmer_echo display name from data")
+	_assert("aegis_field" == str(shimmer_event.get("required_power", "")), "aegis_field matches shimmer_echo from data")
+	var shimmer_action: String = str(shimmer_event.get("required_action", "")).to_lower()
+	_assert(shimmer_action.contains("hold e") and shimmer_action.contains("aegis field"), "shimmer_echo action mentions Hold E and aegis field")
+	var shimmer_xp: int = int(shimmer_event.get("reward_xp", 0))
+	_assert(shimmer_xp > 125 and shimmer_xp < 180, "shimmer_echo reward_xp between power_surge(125) and skyway_runaway(180), got %d" % shimmer_xp)
+	_assert(timed_spawn_data.get("types", []).has("shimmer_echo"), "shimmer_echo in timed_spawn.types")
+
+	# Check objective marker data includes shimmer_echo.
+	var om_text2: String = FileAccess.get_file_as_string("res://data/objective_markers.json")
+	var om_parsed_variant2: Variant = JSON.parse_string(om_text2)
+	_assert(typeof(om_parsed_variant2) == TYPE_DICTIONARY, "objective_markers json parses to dictionary (shimmer check)")
+	if typeof(om_parsed_variant2) == TYPE_DICTIONARY:
+		var om_parsed2: Dictionary = om_parsed_variant2
+		var markers_arr2: Array = om_parsed2.get("markers", [])
+		var found_se_marker := false
+		for m in markers_arr2:
+			if typeof(m) == TYPE_DICTIONARY and str(m.get("target_kind", "")) == "shimmer_echo":
+				found_se_marker = true
+				break
+		_assert(found_se_marker, "objective_markers has entry for shimmer_echo")
 
 func _test_power_data() -> void:
 	var text: String = FileAccess.get_file_as_string("res://data/powers/powers.json")
@@ -288,6 +314,36 @@ func _test_null_resonator_visual_id() -> void:
 		_assert(marker.get_node("NullResonatorWave_0") != null, "null_resonator: NullResonatorWave_0 exists")
 		_assert(marker.get_node("NullResonatorWave_1") != null, "null_resonator: NullResonatorWave_1 exists")
 		_assert(marker.get_node("NullResonatorCore") != null, "null_resonator: NullResonatorCore exists")
+
+	for t in host._tweens:
+		if is_instance_valid(t):
+			t.kill()
+	host.queue_free()
+	temp_hero.queue_free()
+	temp_camera.queue_free()
+
+func _test_shimmer_echo_visual_id() -> void:
+	var host := _SkywayTestHost.new()
+	root.add_child(host)
+	var CEScript = load("res://scripts/CityEventSystem.gd")
+	var ces = CEScript.new()
+	var temp_hero := Node3D.new()
+	var temp_camera := Camera3D.new()
+	ces.setup(host, temp_hero, temp_camera, ProgressionModel.new(), MissionDirector.new())
+	ces.spawn_event("shimmer_echo", Vector3(7.0, 12.0, -5.0))
+
+	var marker := host.get_node("DynamicEvent_shimmer_echo") as Node3D
+	_assert(marker != null, "shimmer_echo: marker exists on host")
+	if marker != null:
+		var beacon := marker.get_node("EventBeacon") as MeshInstance3D
+		_assert(beacon != null, "shimmer_echo: EventBeacon exists")
+		if beacon != null:
+			_assert(beacon.mesh is TorusMesh, "shimmer_echo: EventBeacon is TorusMesh (halo/rift silhouette)")
+
+		_assert(marker.get_node("ShimmerEchoCore") != null, "shimmer_echo: ShimmerEchoCore exists")
+		_assert(marker.get_node("ShimmerEchoRing_0") != null, "shimmer_echo: ShimmerEchoRing_0 exists")
+		_assert(marker.get_node("ShimmerEchoRing_1") != null, "shimmer_echo: ShimmerEchoRing_1 exists")
+		_assert(marker.get_node("ShimmerEchoArc_0") != null, "shimmer_echo: ShimmerEchoArc_0 exists")
 
 	for t in host._tweens:
 		if is_instance_valid(t):
