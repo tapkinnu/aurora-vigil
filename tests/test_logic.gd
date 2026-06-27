@@ -44,6 +44,7 @@ func _init() -> void:
 	_test_mission_data()
 	_test_event_data()
 	_test_power_data()
+	_test_power_name_key_data()
 	_test_skyway_runaway_visual_id()
 	_test_null_resonator_visual_id()
 	_test_shimmer_echo_visual_id()
@@ -288,6 +289,53 @@ func _test_power_data() -> void:
 	if c_arr.size() == 4:
 		var c: Color = Color(c_arr[0], c_arr[1], c_arr[2], c_arr[3])
 		_assert(c.is_equal_approx(Color(1.0, 0.72, 0.22, 1.0)), "radiant_beam flash_color matches original")
+
+func _test_power_name_key_data() -> void:
+	var text: String = FileAccess.get_file_as_string("res://data/powers/powers.json")
+	var parsed_variant: Variant = JSON.parse_string(text)
+	_assert(typeof(parsed_variant) == TYPE_DICTIONARY, "powers json parses to dictionary")
+	if typeof(parsed_variant) != TYPE_DICTIONARY:
+		return
+	var parsed: Dictionary = parsed_variant
+	var power_entries: Array = parsed.get("powers", [])
+
+	_assert(power_entries.size() == 5, "five power entries in json")
+	for entry in power_entries:
+		var id: String = str(entry.get("id", ""))
+		var name: String = str(entry.get("name", ""))
+		var key: String = str(entry.get("key", ""))
+		_assert(name != "", "%s has non-empty name" % id)
+		_assert(key != "", "%s has non-empty key" % id)
+
+	var expected_keys := {
+		"rescue_lift": "R",
+		"radiant_beam": "F",
+		"sonic_burst": "Q",
+		"aegis_field": "E",
+		"orbit_sprint": "Shift",
+	}
+	for entry in power_entries:
+		var id: String = str(entry.get("id", ""))
+		var key: String = str(entry.get("key", ""))
+		_assert(expected_keys.has(id), "%s has expected key entry" % id)
+		if expected_keys.has(id):
+			_assert(key == expected_keys[id], "%s key '%s' matches HUD_POWERS" % [id, key])
+
+	var ps := PowerSystem.new()
+	var loaded := ps.load_data("res://data/powers/powers.json")
+	_assert(loaded, "PowerSystem.load_data returns true")
+	_assert(ps.power_data.size() >= 5, "power_data has at least 5 entries")
+
+	for entry in power_entries:
+		var id: String = str(entry.get("id", ""))
+		var json_name: String = str(entry.get("name", ""))
+		_assert(ps.power_data.has(id), "power_data has entry for %s" % id)
+		if ps.power_data.has(id):
+			var pd_name: String = str(ps.power_data[id]["name"])
+			_assert(pd_name == json_name, "%s name round-trips: '%s' == '%s'" % [id, pd_name, json_name])
+
+	for id in ["radiant_beam", "sonic_burst", "aegis_field", "rescue_lift", "orbit_sprint"]:
+		_assert(ps.power_data.has(id), "power_data has entry for %s" % id)
 
 func _test_skyway_runaway_visual_id() -> void:
 	var host := _SkywayTestHost.new()

@@ -18,7 +18,8 @@ var events: CityEventSystem
 
 # Raw JSON payload last loaded by `load_data`, exposed for tests/inspection.
 var loaded_data: Dictionary = {}
-# Per-power lookup: id -> { "flash_color": Color, "audio_triggers": Array[String] }.
+# Per-power lookup: id -> { "flash_color": Color, "audio_triggers": Array[String],
+#                               "name": String, "key": String }.
 var power_data: Dictionary = {}
 
 func setup(host_ref, hero_ref: Node3D, progression_ref: ProgressionModel, events_ref: CityEventSystem, data_path: String = DEFAULT_DATA_PATH) -> void:
@@ -48,6 +49,8 @@ func load_data(path: String) -> bool:
 		lookup[str(entry.get("id", ""))] = {
 			"flash_color": Color(c[0], c[1], c[2], c[3]),
 			"audio_triggers": triggers,
+			"name": str(entry.get("name", "")),
+			"key": str(entry.get("key", "")),
 		}
 	if lookup.is_empty():
 		push_error("PowerSystem: powers data at %s had no entries; using fallback" % path)

@@ -11,10 +11,12 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["id", "flash_color", "audio_triggers"],
+        "required": ["id", "name", "key", "flash_color", "audio_triggers"],
         "additionalProperties": false,
         "properties": {
           "id": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1 },
+          "key": { "type": "string", "minLength": 1 },
           "flash_color": {
             "type": "array",
             "minItems": 4,

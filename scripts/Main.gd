@@ -1587,7 +1587,12 @@ func _power_hud_text() -> String:
 	var parts: Array[String] = []
 	for p in HUD_POWERS:
 		var id: String = p["id"]
-		var label := "%s %s" % [p["key"], id.replace("_", " ")]
+		var display_name: String = ""
+		if powers != null and powers.power_data.has(id):
+			display_name = powers.power_data[id].get("name", "")
+		if display_name == "":
+			display_name = id.replace("_", " ").capitalize()
+		var label := "%s %s" % [p["key"], display_name]
 		if not progression.has_power(id):
 			label += " [L]"
 		parts.append(label)
@@ -1677,7 +1682,15 @@ func _update_transients(delta: float) -> void:
 	if progression.unlocked.size() > _last_unlocked_count:
 		var newly: Array[String] = []
 		for i in range(_last_unlocked_count, progression.unlocked.size()):
-			newly.append(progression.unlocked[i].replace("_", " ").to_upper())
+			var newly_id: String = progression.unlocked[i]
+			var newly_name: String = ""
+			if powers != null and powers.power_data.has(newly_id):
+				newly_name = powers.power_data[newly_id].get("name", "")
+			if newly_name == "":
+				newly_name = newly_id.replace("_", " ").to_upper()
+			else:
+				newly_name = newly_name.to_upper()
+			newly.append(newly_name)
 		_last_unlocked_count = progression.unlocked.size()
 		if unlock_toast != null:
 			unlock_toast.text = "POWER UNLOCKED: %s" % ", ".join(newly)
