@@ -170,7 +170,11 @@
     {"id": "vehicle_parked_car", "name": "Parked Car", "path": "res://assets/3d/props/vehicle_parked_car.glb", "provider": "FAL 3D", "status": "backlog", "variants": "2–3"},
     {"id": "vehicle_transit_pod", "name": "Transit Pod", "path": "res://assets/3d/props/vehicle_transit_pod.glb", "provider": "FAL 3D", "status": "backlog", "variants": "1–2"},
     {"id": "drone_pad", "name": "Drone Pad", "path": "res://assets/3d/props/drone_pad.glb", "provider": "FAL 3D", "status": "backlog", "variants": "1–2"},
-    {"id": "null_resonator_emitter", "name": "Null Resonator Emitter", "path": "res://assets/3d/props/null_resonator_emitter.glb", "provider": "FAL 3D", "status": "backlog", "variants": "1–2"}
+    {"id": "null_resonator_emitter", "name": "Null Resonator Emitter", "path": "res://assets/3d/props/null_resonator_emitter.glb", "provider": "FAL 3D", "status": "backlog", "variants": "1–2"},
+    {"id": "null_choir_resonator", "name": "Null Choir Resonator", "path": "res://assets/3d/props/null_choir_resonator.glb", "provider": "Meshy AI", "status": "complete", "variants": "1"},
+    {"id": "shimmer_echo_emitter", "name": "Shimmer Echo Cascade Emitter", "path": "res://assets/3d/props/shimmer_echo_emitter.glb", "provider": "Meshy AI", "status": "complete", "variants": "1"},
+    {"id": "solar_array_panel", "name": "Solar Array Panel", "path": "res://assets/3d/props/solar_array_panel.glb", "provider": "Meshy AI", "status": "complete", "variants": "1"},
+    {"id": "skyway_transit_pod", "name": "Skyway Transit Pod", "path": "res://assets/3d/props/skyway_transit_pod.glb", "provider": "Meshy AI", "status": "complete", "variants": "1"}
   ],
   "vfx": [
     {"id": "vfx_ion_trail", "name": "Ion Flight Trail", "path": "res://assets/3d/vfx/vfx_ion_trail.png", "size": [512, 256], "status": "backlog"},

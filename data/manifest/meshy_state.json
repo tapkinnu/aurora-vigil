@@ -14,5 +14,37 @@
     "glb_path": "assets/3d/characters/enemies/drone_rogue.glb",
     "bytes": 17449220,
     "sha256": "7d8c96632cd87ce00eb2c1b94e441a7b90366a611f487fd871f0ad30c5929053"
+  },
+  "null_choir_resonator": {
+    "preview_id": "019f0a93-c803-72e7-a913-012d1a5febe3",
+    "refine_id": "019f0a96-0412-7aa8-8b53-5c4ef36933c9",
+    "remesh_id": "019f0a97-9dfa-7573-8be6-1795a05293ab",
+    "glb_path": "assets/3d/props/null_choir_resonator.glb",
+    "bytes": 19761664,
+    "sha256": "b45e8b38e83e85adce6f2c1be70bf70007343ce4ffaf739f4038d4f4413df335"
+  },
+  "shimmer_echo_emitter": {
+    "preview_id": "019f0a98-d64e-7418-b792-e5f36cc00e4b",
+    "refine_id": "019f0a9a-c174-75f6-917f-07f400cfe1dc",
+    "remesh_id": "019f0a9c-5b49-7daa-89cf-cc7673b493a1",
+    "glb_path": "assets/3d/props/shimmer_echo_emitter.glb",
+    "bytes": 20471172,
+    "sha256": "c61f92c599d70b144dd3987413db84b3bcb76c0e99f3af29df19f9cbd0e3cf1e"
+  },
+  "solar_array_panel": {
+    "preview_id": "019f0a9d-7ab8-7661-b543-a74f4938aeca",
+    "refine_id": "019f0aa2-c430-7d83-8d7d-b10226e04406",
+    "remesh_id": "019f0aa4-f688-7fc9-993c-e28cd60d5351",
+    "glb_path": "assets/3d/props/solar_array_panel.glb",
+    "bytes": 19713544,
+    "sha256": "0d51574bf5aa0ff2c7d7b8ba09a47e26ddd092f4fe140f799c4b3ec0ab8f1161"
+  },
+  "skyway_transit_pod": {
+    "preview_id": "019f0aa6-630f-77b8-8935-6d942a02998b",
+    "refine_id": "019f0aa7-9ce1-7072-a925-2187a01af688",
+    "remesh_id": "019f0aa9-36e0-70df-b904-677ff5f3decd",
+    "glb_path": "assets/3d/props/skyway_transit_pod.glb",
+    "bytes": 18581924,
+    "sha256": "2306d9b07b431ad50efbd8223724863795fbc9b7ff19a86041feac1d67cf27fa"
   }
 }

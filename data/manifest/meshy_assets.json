@@ -18,15 +18,59 @@
       "manifest_ref": "characters.hero[lumen]"
     },
     {
-      "id": "drone_rogue",
-      "name": "Rogue Civic Drone",
-      "kind": "enemy",
-      "prompt": "Small non-humanoid civic security quadrotor drone, dark purple and gunmetal angular chassis, four short rotor arms with ducted fans, a single glowing teal cyclops sensor eye on the front, compact hovering sci-fi robot, no humanoid features, game-ready prop, clean design",
-      "target_polycount": 10000,
-      "topology": "triangle",
-      "target_height_m": 0.9,
-      "out_path": "assets/3d/characters/enemies/drone_rogue.glb",
-      "manifest_ref": "characters.enemies[drone_scout]"
+        "id": "drone_rogue",
+        "name": "Rogue Civic Drone",
+        "kind": "enemy",
+        "prompt": "Small non-humanoid civic security quadrotor drone, dark purple and gunmetal angular chassis, four short rotor arms with ducted fans, a single glowing teal cyclops sensor eye on the front, compact hovering sci-fi robot, no humanoid features, game-ready prop, clean design",
+        "target_polycount": 10000,
+        "topology": "triangle",
+        "target_height_m": 0.9,
+        "out_path": "assets/3d/characters/enemies/drone_rogue.glb",
+        "manifest_ref": "characters.enemies[drone_scout]"
+    },
+    {
+        "id": "null_choir_resonator",
+        "name": "Null Choir Resonator",
+        "kind": "prop",
+        "prompt": "A sinister alien-tech resonator device, dark obsidian crystalline structure with pulsing violet energy veins, floating geometric shards orbiting a central dark core, mounted on a heavy matte-black alloy base with warning hazard stripes, sci-fi enemy technology, ominous glowing accents, game-ready environment prop",
+        "target_polycount": 12000,
+        "topology": "triangle",
+        "target_height_m": 2.5,
+        "out_path": "assets/3d/props/null_choir_resonator.glb",
+        "manifest_ref": "props.special[null_choir_resonator]"
+    },
+    {
+        "id": "shimmer_echo_emitter",
+        "name": "Shimmer Echo Cascade Emitter",
+        "kind": "prop",
+        "prompt": "A radiant energy emitter device, sleek silver and white cylindrical core with concentric golden rings, soft teal and amber light pulses, floating particle rings, clean futuristic design with glass panels showing internal energy flow, solar-tech aesthetic, game-ready environment prop",
+        "target_polycount": 10000,
+        "topology": "triangle",
+        "target_height_m": 1.8,
+        "out_path": "assets/3d/props/shimmer_echo_emitter.glb",
+        "manifest_ref": "props.special[shimmer_echo_emitter]"
+    },
+    {
+        "id": "solar_array_panel",
+        "name": "Solar Array Panel",
+        "kind": "prop",
+        "prompt": "A large futuristic rooftop solar panel array, hexagonal blue photovoltaic cells with gold conductive traces, mounted on an articulated white alloy frame with hydraulic pistons, clean energy technology, slight weathering, industrial sci-fi aesthetic, game-ready environment prop",
+        "target_polycount": 8000,
+        "topology": "triangle",
+        "target_height_m": 3.0,
+        "out_path": "assets/3d/props/solar_array_panel.glb",
+        "manifest_ref": "props.special[solar_array_panel]"
+    },
+    {
+        "id": "skyway_transit_pod",
+        "name": "Skyway Transit Pod",
+        "kind": "prop",
+        "prompt": "A sleek futuristic autonomous transit pod for a skyway system, elongated aerodynamic capsule with panoramic tinted windows, white and teal livery with gold accent lines, magnetic levitation skids underneath, neon underglow, clean cyberpunk public transport design, game-ready vehicle prop",
+        "target_polycount": 15000,
+        "topology": "triangle",
+        "target_height_m": 2.2,
+        "out_path": "assets/3d/props/skyway_transit_pod.glb",
+        "manifest_ref": "props.vehicles[skyway_transit_pod]"
     }
-  ]
-}
+    ]
+    }

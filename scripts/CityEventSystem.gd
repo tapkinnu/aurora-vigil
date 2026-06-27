@@ -8,6 +8,10 @@ extends RefCounted
 # scene tree plus shared material/tween/actor-visibility helpers.
 
 const ROGUE_DRONE_SCENE = preload("res://assets/3d/characters/enemies/drone_rogue.glb")
+const NULL_CHOIR_RESONATOR_SCENE = preload("res://assets/3d/props/null_choir_resonator.glb")
+const SHIMMER_ECHO_EMITTER_SCENE = preload("res://assets/3d/props/shimmer_echo_emitter.glb")
+const SOLAR_ARRAY_PANEL_SCENE = preload("res://assets/3d/props/solar_array_panel.glb")
+const SKYWAY_TRANSIT_POD_SCENE = preload("res://assets/3d/props/skyway_transit_pod.glb")
 const EVENT_RESOLVE_RADIUS: float = 18.0
 const DEFAULT_DATA_PATH := "res://data/events/events.json"
 # Inline fallbacks, used only when the JSON data fails to load.
@@ -411,32 +415,18 @@ func spawn_event(kind: String, pos: Vector3) -> void:
 			spark_tween.tween_property(spark, "position:y", spark.position.y, 0.25 + float(i) * 0.08)
 
 	elif kind == "null_resonator":
-		# Tall mast with pulsing wave rings and a glowing core — Null Choir acoustic disruptor.
-		var mast := MeshInstance3D.new()
-		mast.name = "NullResonatorMast"
-		var mast_mesh := CylinderMesh.new()
-		mast_mesh.top_radius = 0.3
-		mast_mesh.bottom_radius = 0.6
-		mast_mesh.height = 10.0
-		mast.mesh = mast_mesh
-		mast.position = Vector3(0, 2.0, 0)
-		mast.material_override = host._mat(Color(0.25, 0.24, 0.28, 1.0), Color(0.0, 0.0, 0.0, 1.0), 0.0)
-		marker.add_child(mast)
+		# Load the real Meshy asset; fall back to primitives if it fails.
+		var resonator_actor := NULL_CHOIR_RESONATOR_SCENE.instantiate() as Node3D
+		if resonator_actor == null:
+			push_error("Failed to load Meshy asset: res://assets/3d/props/null_choir_resonator.glb")
+			resonator_actor = Node3D.new()
+		resonator_actor.name = "NullChoirResonator_MeshyActor"
+		resonator_actor.position = Vector3(0, 0, 0)
+		resonator_actor.scale = Vector3(2.5, 2.5, 2.5)
+		host._apply_actor_visibility_overrides(resonator_actor, Color(0.9, 0.25, 1.0, 1), Color(0.9, 0.25, 1.0, 1), 1.0)
+		marker.add_child(resonator_actor)
 
-		var core := MeshInstance3D.new()
-		core.name = "NullResonatorCore"
-		var core_mesh := SphereMesh.new()
-		core_mesh.radius = 1.2
-		core_mesh.height = 2.4
-		core.mesh = core_mesh
-		core.position = Vector3(0, 7.5, 0)
-		core.material_override = host._mat(color, color, 3.0)
-		marker.add_child(core)
-
-		var core_tween: Tween = host._remember_tween(host.create_tween().set_loops())
-		core_tween.tween_property(core, "scale", Vector3(1.3, 1.3, 1.3), 0.6)
-		core_tween.tween_property(core, "scale", Vector3.ONE, 0.6)
-
+		# Keep the wave rings as VFX overlay.
 		for i in range(2):
 			var wave := MeshInstance3D.new()
 			wave.name = "NullResonatorWave_%d" % i
@@ -451,19 +441,18 @@ func spawn_event(kind: String, pos: Vector3) -> void:
 			var wave_tween: Tween = host._remember_tween(host.create_tween().set_loops())
 			wave_tween.tween_property(wave, "rotation:y", TAU, 2.0 - float(i) * 0.5)
 	elif kind == "shimmer_echo":
-		# Shimmer Echo: a shimmering aurora rift with rings, core, and arc details.
-		var core := MeshInstance3D.new()
-		core.name = "ShimmerEchoCore"
-		var core_mesh := SphereMesh.new()
-		core_mesh.radius = 1.4
-		core_mesh.height = 2.8
-		core.mesh = core_mesh
-		core.material_override = host._mat(color, color, 3.5)
-		marker.add_child(core)
-		var se_core_tween: Tween = host._remember_tween(host.create_tween().set_loops())
-		se_core_tween.tween_property(core, "scale", Vector3(1.25, 1.25, 1.25), 0.7)
-		se_core_tween.tween_property(core, "scale", Vector3.ONE, 0.7)
+		# Load the real Meshy asset; fall back to primitives if it fails.
+		var emitter_actor := SHIMMER_ECHO_EMITTER_SCENE.instantiate() as Node3D
+		if emitter_actor == null:
+			push_error("Failed to load Meshy asset: res://assets/3d/props/shimmer_echo_emitter.glb")
+			emitter_actor = Node3D.new()
+		emitter_actor.name = "ShimmerEchoEmitter_MeshyActor"
+		emitter_actor.position = Vector3(0, 0, 0)
+		emitter_actor.scale = Vector3(1.8, 1.8, 1.8)
+		host._apply_actor_visibility_overrides(emitter_actor, Color(0.1, 0.9, 0.75, 1), Color(0.1, 0.9, 0.75, 1), 1.0)
+		marker.add_child(emitter_actor)
 
+		# Keep the ring VFX overlay.
 		for i in range(2):
 			var ring := MeshInstance3D.new()
 			ring.name = "ShimmerEchoRing_%d" % i
@@ -490,8 +479,17 @@ func spawn_event(kind: String, pos: Vector3) -> void:
 		marker.add_child(arc)
 
 	elif kind == "skyway_runaway":
-		# Tilt the capsule to look like a runaway vehicle pitching forward.
-		beacon.rotation_degrees = Vector3(0.0, 0.0, -6.0)
+		# Load the real Meshy asset; fall back to primitives if it fails.
+		var pod_actor := SKYWAY_TRANSIT_POD_SCENE.instantiate() as Node3D
+		if pod_actor == null:
+			push_error("Failed to load Meshy asset: res://assets/3d/props/skyway_transit_pod.glb")
+			pod_actor = Node3D.new()
+		pod_actor.name = "SkywayTransitPod_MeshyActor"
+		pod_actor.position = Vector3(0, 0, 0)
+		pod_actor.scale = Vector3(2.2, 2.2, 2.2)
+		pod_actor.rotation_degrees = Vector3(0.0, 0.0, -6.0)
+		host._apply_actor_visibility_overrides(pod_actor, Color(1.0, 0.78, 0.18, 1), Color(1.0, 0.78, 0.18, 1), 1.0)
+		marker.add_child(pod_actor)
 
 		# Speed trail streaks behind the capsule.
 		for i in range(2):
@@ -527,38 +525,18 @@ func spawn_event(kind: String, pos: Vector3) -> void:
 		marker.add_child(nose_glow)
 
 	elif kind == "solar_array_overload":
-		# Two tilted solar panels extending from a central mast with an overload spark.
-		var panel_0 := MeshInstance3D.new()
-		panel_0.name = "SolarArrayPanel_0"
-		var panel_0_mesh := BoxMesh.new()
-		panel_0_mesh.size = Vector3(5.0, 0.05, 2.0)
-		panel_0.mesh = panel_0_mesh
-		panel_0.position = Vector3(0.0, 1.0, 0.0)
-		panel_0.rotation_degrees = Vector3(0.0, 0.0, 15.0)
-		panel_0.material_override = host._mat(Color(0.15, 0.25, 0.45, 1.0), Color(0.0, 0.0, 0.0, 1.0), 0.0)
-		marker.add_child(panel_0)
+		# Load the real Meshy asset; fall back to primitives if it fails.
+		var panel_actor := SOLAR_ARRAY_PANEL_SCENE.instantiate() as Node3D
+		if panel_actor == null:
+			push_error("Failed to load Meshy asset: res://assets/3d/props/solar_array_panel.glb")
+			panel_actor = Node3D.new()
+		panel_actor.name = "SolarArrayPanel_MeshyActor"
+		panel_actor.position = Vector3(0, 0, 0)
+		panel_actor.scale = Vector3(3.0, 3.0, 3.0)
+		host._apply_actor_visibility_overrides(panel_actor, Color(1.0, 0.68, 0.16, 1), Color(1.0, 0.68, 0.16, 1), 1.0)
+		marker.add_child(panel_actor)
 
-		var panel_1 := MeshInstance3D.new()
-		panel_1.name = "SolarArrayPanel_1"
-		var panel_1_mesh := BoxMesh.new()
-		panel_1_mesh.size = Vector3(5.0, 0.05, 2.0)
-		panel_1.mesh = panel_1_mesh
-		panel_1.position = Vector3(0.0, 1.0, 0.0)
-		panel_1.rotation_degrees = Vector3(0.0, 0.0, -15.0)
-		panel_1.material_override = panel_0.material_override
-		marker.add_child(panel_1)
-
-		var mast := MeshInstance3D.new()
-		mast.name = "SolarArrayMast"
-		var mast_mesh := CylinderMesh.new()
-		mast_mesh.top_radius = 0.15
-		mast_mesh.bottom_radius = 0.2
-		mast_mesh.height = 3.0
-		mast.mesh = mast_mesh
-		mast.position = Vector3(0.0, 0.5, 0.0)
-		mast.material_override = host._mat(Color(0.3, 0.3, 0.32, 1.0), Color(0.0, 0.0, 0.0, 1.0), 0.0)
-		marker.add_child(mast)
-
+		# Overload spark VFX overlay.
 		var spark := MeshInstance3D.new()
 		spark.name = "SolarArraySpark_0"
 		var spark_mesh := SphereMesh.new()
