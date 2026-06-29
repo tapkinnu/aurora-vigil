@@ -21,7 +21,7 @@ Audio wiring:
 - Story mission chain with at least 6 missions for release.
 - Level progression with at least 6 unlockable powers.
 - Save/load for level, XP, powers, mission state, city trust, and completed events.
-- Real 3D hero, civilians, drones/enemies, and major props; no world-character 2D card composites.
+- Real 3D hero, civilians, drones/enemies, major props, and imported runtime city dressing; no world-character 2D card composites.
 - Music, SFX, and voice/city radio barks with provenance in `assets/audio/SOURCES.md`.
 - README, controls, screenshots/contact sheet, and release artifact package.
 

@@ -13,6 +13,7 @@ VOLUME_TEST_LOG=.godot_validation/volume_tests.log
 CITY_ROADS_TEST_LOG=.godot_validation/city_roads_tests.log
 CITY_FACADE_TEXTURES_TEST_LOG=.godot_validation/city_facade_textures_tests.log
 CITY_FACADE_POLISH_TEST_LOG=.godot_validation/city_facade_polish_tests.log
+RUNTIME_ASSET_DRESSING_LOG=.godot_validation/runtime_asset_dressing.log
 "$GODOT" --headless --path . --import --quit-after 120 >"$IMPORT_LOG" 2>&1 || { tail -120 "$IMPORT_LOG"; exit 1; }
 if grep -E "SCRIPT ERROR|Parse Error|ERROR:" "$IMPORT_LOG" | grep -v "USER ERROR"; then
   echo "AURORA_IMPORT: FAIL"; exit 1
@@ -30,6 +31,9 @@ echo "AURORA_LOGIC: PASS"
 "$GODOT" --headless --path . -s tests/test_interaction_volumes.gd >"$VOLUME_TEST_LOG" 2>&1 || { cat "$VOLUME_TEST_LOG"; exit 1; }
 grep -q "AURORA_VOLUME_TESTS: PASS" "$VOLUME_TEST_LOG" || { cat "$VOLUME_TEST_LOG"; exit 1; }
 echo "AURORA_VOLUME_TESTS: PASS"
+AURORA_CAPTURE_MODE=asset_dressing_test "$GODOT" --headless --path . -s tests/test_runtime_asset_dressing.gd >"$RUNTIME_ASSET_DRESSING_LOG" 2>&1 || { cat "$RUNTIME_ASSET_DRESSING_LOG"; exit 1; }
+grep -q "AURORA_RUNTIME_ASSET_DRESSING: PASS" "$RUNTIME_ASSET_DRESSING_LOG" || { cat "$RUNTIME_ASSET_DRESSING_LOG"; exit 1; }
+echo "AURORA_RUNTIME_ASSET_DRESSING: PASS"
 AURORA_CAPTURE_MODE=city "$GODOT" --headless --path . -s tests/test_city_capture_roads.gd >"$CITY_ROADS_TEST_LOG" 2>&1 || { cat "$CITY_ROADS_TEST_LOG"; exit 1; }
 grep -q "AURORA_CITY_ROADS_TESTS: PASS" "$CITY_ROADS_TEST_LOG" || { cat "$CITY_ROADS_TEST_LOG"; exit 1; }
 echo "AURORA_CITY_ROADS_TESTS: PASS"

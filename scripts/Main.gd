@@ -632,6 +632,7 @@ func _build_city() -> void:
 		_add_construction_crane(district, Vector3(-86.0, 0.0, -118.0), 24.0, 58.0)
 		_add_boulevard_palms(district)
 		_add_street_props(district)
+		_add_civic_asset_dressing(district)
 	# Cinematic city-capture dressing: a dominant foreground freeway, a cluster of
 	# distinctive downtown landmark towers, and a subtle sun flare — staged only for
 	# the deterministic "city" postcard capture so gameplay/flight stays unchanged.
@@ -2511,6 +2512,158 @@ func _add_street_props(parent: Node3D) -> void:
 				_add_traffic_cone(parent, pos, rot)
 	_add_parked_cars(parent)
 	_add_bollard_line(parent)
+
+# Runtime imported-asset dressing: uses the already-generated Meshy special props
+# as ordinary city set dressing, not only as event beacons. This makes the playable
+# skyline visibly asset-backed in normal flight: elevated skyway pods, rooftop solar
+# arrays, civic shimmer sensors, and quarantined Null Choir pylons. All pieces are
+# non-colliding visuals and fall back to simple meshes if an import is unavailable.
+func _add_civic_asset_dressing(parent: Node3D) -> void:
+	var dressing := Node3D.new()
+	dressing.name = "AuroraAssetDressing"
+	parent.add_child(dressing)
+	_add_skyway_asset_line(dressing)
+	_add_rooftop_solar_assets(dressing)
+	_add_civic_emitter_assets(dressing)
+
+func _add_civic_imported_asset(parent: Node3D, asset_path: String, node_name: String, pos: Vector3, rot_degrees: Vector3, fit_axis: String, target_size: float, fallback_size: Vector3, fallback_color: Color, pre_rot := Vector3.ZERO) -> Node3D:
+	var holder := _instance_prop(asset_path, fit_axis, target_size, true, pre_rot)
+	if holder == null:
+		holder = _add_prop_fallback_box(parent, node_name, pos, rot_degrees.y, fallback_size, fallback_color)
+		holder.rotation_degrees = rot_degrees
+		holder.set_meta("runtime_asset_dressing", true)
+		holder.set_meta("asset_loaded", false)
+		holder.set_meta("asset_path", asset_path)
+		return holder
+	holder.name = node_name
+	holder.position = pos
+	holder.rotation_degrees = rot_degrees
+	holder.set_meta("runtime_asset_dressing", true)
+	holder.set_meta("asset_loaded", true)
+	holder.set_meta("asset_path", asset_path)
+	parent.add_child(holder)
+	return holder
+
+func _add_skyway_asset_line(parent: Node3D) -> void:
+	var skyway := Node3D.new()
+	skyway.name = "AssetBackedSkywayLine"
+	parent.add_child(skyway)
+	var rail_mat := _matte(Color(0.23, 0.24, 0.26, 1.0), 0.46, 0.18)
+	var rail_y := 26.0
+	for x in [-2.8, 2.8]:
+		_add_box(skyway, "AssetGuidewayRail_%d" % int(x * 10.0), Vector3(0.34, 0.22, 178.0), Vector3(x, rail_y, -24.0), rail_mat)
+	for i in range(8):
+		var z := -104.0 + float(i) * 24.0
+		_add_box(skyway, "AssetGuidewayTie_%d" % i, Vector3(7.2, 0.18, 0.32), Vector3(0.0, rail_y - 0.04, z), rail_mat)
+		if i % 2 == 0:
+			_add_box(skyway, "AssetGuidewayPylon_%d" % i, Vector3(0.7, rail_y, 0.7), Vector3(0.0, rail_y * 0.5, z), rail_mat)
+	var pod_specs := [
+		[-2.8, -108.0, 0.0],
+		[2.8, -66.0, 180.0],
+		[-2.8, -16.0, 0.0],
+		[2.8, 34.0, 180.0],
+	]
+	for i in range(pod_specs.size()):
+		var spec: Array = pod_specs[i]
+		var pod := _add_civic_imported_asset(
+			skyway,
+			PROP_DIR + "skyway_transit_pod.glb",
+			"SkywayTransitPod_AssetDressing_%d" % i,
+			Vector3(float(spec[0]), rail_y + 1.15, float(spec[1])),
+			Vector3(0.0, float(spec[2]), 0.0),
+			"z",
+			7.4,
+			Vector3(2.8, 1.8, 7.2),
+			Color(0.35, 0.42, 0.50, 1.0)
+		)
+		pod.set_meta("asset_role", "skyway_transit_pod")
+		var light := OmniLight3D.new()
+		light.name = "SkywayPodMarkerLight"
+		light.light_color = Color(0.34, 0.72, 1.0, 1.0)
+		light.light_energy = 0.18
+		light.omni_range = 6.0
+		pod.add_child(light)
+
+func _add_rooftop_solar_assets(parent: Node3D) -> void:
+	var solar := Node3D.new()
+	solar.name = "AssetBackedRooftopSolar"
+	parent.add_child(solar)
+	var specs := [
+		[-78.0, 42.0, -66.0, -10.0, -25.0],
+		[-34.0, 50.0, 78.0, -12.0, 18.0],
+		[34.0, 58.0, -78.0, -8.0, 32.0],
+		[78.0, 46.0, 56.0, -14.0, -35.0],
+		[-102.0, 34.0, 12.0, -9.0, 8.0],
+		[102.0, 38.0, -12.0, -11.0, -18.0],
+	]
+	for i in range(specs.size()):
+		var s: Array = specs[i]
+		var panel := _add_civic_imported_asset(
+			solar,
+			PROP_DIR + "solar_array_panel.glb",
+			"RooftopSolarArray_AssetDressing_%d" % i,
+			Vector3(float(s[0]), float(s[1]), float(s[2])),
+			Vector3(float(s[3]), float(s[4]), 0.0),
+			"x",
+			6.6,
+			Vector3(6.5, 0.24, 3.2),
+			Color(0.10, 0.18, 0.26, 1.0)
+		)
+		panel.set_meta("asset_role", "solar_array_panel")
+
+func _add_civic_emitter_assets(parent: Node3D) -> void:
+	var tech := Node3D.new()
+	tech.name = "AssetBackedCivicTech"
+	parent.add_child(tech)
+	var emitter_specs := [
+		[-32.0, 0.0, -32.0, 24.0],
+		[32.0, 0.0, 32.0, -38.0],
+		[-88.0, 0.0, 88.0, 110.0],
+	]
+	for i in range(emitter_specs.size()):
+		var e: Array = emitter_specs[i]
+		var emitter := _add_civic_imported_asset(
+			tech,
+			PROP_DIR + "shimmer_echo_emitter.glb",
+			"CivicShimmerEmitter_AssetDressing_%d" % i,
+			Vector3(float(e[0]), float(e[1]), float(e[2])),
+			Vector3(0.0, float(e[3]), 0.0),
+			"y",
+			3.2,
+			Vector3(1.2, 3.2, 1.2),
+			Color(0.08, 0.55, 0.48, 1.0)
+		)
+		emitter.set_meta("asset_role", "shimmer_echo_emitter")
+		var emitter_light := OmniLight3D.new()
+		emitter_light.name = "CivicShimmerMarkerLight"
+		emitter_light.light_color = Color(0.05, 0.55, 0.45, 1.0)
+		emitter_light.light_energy = 0.16
+		emitter_light.omni_range = 7.0
+		emitter.add_child(emitter_light)
+	var resonator_specs := [
+		[-116.0, 0.0, -22.0, 12.0],
+		[116.0, 0.0, 22.0, -24.0],
+	]
+	for i in range(resonator_specs.size()):
+		var r: Array = resonator_specs[i]
+		var pylon := _add_civic_imported_asset(
+			tech,
+			PROP_DIR + "null_choir_resonator.glb",
+			"NullChoirContainmentPylon_AssetDressing_%d" % i,
+			Vector3(float(r[0]), float(r[1]), float(r[2])),
+			Vector3(0.0, float(r[3]), 0.0),
+			"y",
+			4.2,
+			Vector3(1.4, 4.2, 1.4),
+			Color(0.42, 0.16, 0.52, 1.0)
+		)
+		pylon.set_meta("asset_role", "null_choir_resonator")
+		var pylon_light := OmniLight3D.new()
+		pylon_light.name = "NullChoirContainmentMarkerLight"
+		pylon_light.light_color = Color(0.42, 0.14, 0.55, 1.0)
+		pylon_light.light_energy = 0.14
+		pylon_light.omni_range = 8.0
+		pylon.add_child(pylon_light)
 
 func _add_traffic_light(parent: Node3D, pos: Vector3, rot: float) -> void:
 	var holder := _instance_prop(PROP_DIR + "street/traffic_light.glb", "y", 6.0, true)

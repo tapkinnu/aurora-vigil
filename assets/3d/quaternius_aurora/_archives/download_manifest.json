@@ -1,0 +1,341 @@
+{
+  "base": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora",
+  "packs": {
+    "cyberpunk_game_kit": {
+      "title": "Cyberpunk Game Kit",
+      "source_url": "https://quaternius.com/packs/cyberpunkgamekit.html",
+      "folder_url": "https://drive.google.com/drive/folders/1GyKLypoBxrpLN6GERF9U610Wiub48v9y?usp=sharing",
+      "listing_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/cyberpunk_game_kit/cyberpunk_game_kit_gdrive_listing.json",
+      "archive_dir": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/cyberpunk_game_kit/original_selected_files",
+      "selected_dir": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/cyberpunk_game_kit",
+      "files": [
+        {
+          "relative_path": "License.txt",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/cyberpunk_game_kit/original_selected_files/License.txt",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/cyberpunk_game_kit/License.txt",
+          "bytes": 374,
+          "sha256": "de990ef6fc68cffd7fd1ae342c4d0c823b541b8848d8f76bca5d3339f4de6f6e",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Enemies/Enemy_Flying.gltf",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/cyberpunk_game_kit/original_selected_files/Enemies/Enemy_Flying.gltf",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/cyberpunk_game_kit/Enemies/Enemy_Flying.gltf",
+          "bytes": 321534,
+          "sha256": "02700de283e3dcea893e4d09e89886ea66961ba118d2a193cc54f314a5ea8af6",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Enemies/Enemy_Flying_Gun.gltf",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/cyberpunk_game_kit/original_selected_files/Enemies/Enemy_Flying_Gun.gltf",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/cyberpunk_game_kit/Enemies/Enemy_Flying_Gun.gltf",
+          "bytes": 351723,
+          "sha256": "e62ac34971ea73d8769d61e86ec2dfc72eb8559889bccb7578bebaea0232479e",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Enemies/Turret_Cannon.gltf",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/cyberpunk_game_kit/original_selected_files/Enemies/Turret_Cannon.gltf",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/cyberpunk_game_kit/Enemies/Turret_Cannon.gltf",
+          "bytes": 101694,
+          "sha256": "9b880be1af7451aececbd2da5b09935dba5cf41051a5cb68f96a69c3f1bcf08b",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Enemies/Turret_Teleporter.gltf",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/cyberpunk_game_kit/original_selected_files/Enemies/Turret_Teleporter.gltf",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/cyberpunk_game_kit/Enemies/Turret_Teleporter.gltf",
+          "bytes": 87726,
+          "sha256": "d11eee867b45b019020362752110df0340ecd0b655c9fba18c3a9055a9429be9",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Platforms/Antenna_1.gltf",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/cyberpunk_game_kit/original_selected_files/Platforms/Antenna_1.gltf",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/cyberpunk_game_kit/Platforms/Antenna_1.gltf",
+          "bytes": 8751,
+          "sha256": "98a364e1aba5a485efd2723dc72075735fba96243e276322b569dbc9b0965fcb",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Platforms/Computer_Large.gltf",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/cyberpunk_game_kit/original_selected_files/Platforms/Computer_Large.gltf",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/cyberpunk_game_kit/Platforms/Computer_Large.gltf",
+          "bytes": 572921,
+          "sha256": "017c452b50b37fb29631150e497351dc91e031b02669a2aa2d176fe9e4577d3e",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Platforms/Light_Street_1.gltf",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/cyberpunk_game_kit/original_selected_files/Platforms/Light_Street_1.gltf",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/cyberpunk_game_kit/Platforms/Light_Street_1.gltf",
+          "bytes": 26431,
+          "sha256": "34f81e3ab9966524fe51e0cca6b7da2f57eb8e3ed9d34ea53f573d6b99425b35",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Platforms/Rail_Long.gltf",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/cyberpunk_game_kit/original_selected_files/Platforms/Rail_Long.gltf",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/cyberpunk_game_kit/Platforms/Rail_Long.gltf",
+          "bytes": 10905,
+          "sha256": "d1b096240351b761491c1befd72edcc4932d730ea84f5e1e64fc9477168448d5",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Platforms/Sign_1.gltf",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/cyberpunk_game_kit/original_selected_files/Platforms/Sign_1.gltf",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/cyberpunk_game_kit/Platforms/Sign_1.gltf",
+          "bytes": 439004,
+          "sha256": "a17dd1f59c8504f28a3330a5cc5c09c7271aebb8bc6a0ef54400827b54574fc3",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Textures/Texture_Sign.png",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/cyberpunk_game_kit/original_selected_files/Textures/Texture_Sign.png",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/cyberpunk_game_kit/Textures/Texture_Sign.png",
+          "bytes": 321879,
+          "sha256": "9cf8637e787e417ea7372632459edf3f6807973470259c6fc7c6876e83e91e74",
+          "status": "downloaded"
+        }
+      ]
+    },
+    "ultimate_modular_scifi": {
+      "title": "Ultimate Modular Sci-Fi Pack",
+      "source_url": "https://quaternius.com/packs/ultimatemodularscifi.html",
+      "folder_url": "https://drive.google.com/drive/folders/1zpr6HxVa-sCV93IHubN3A1d8HhF2wGbM?usp=sharing",
+      "listing_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_modular_scifi/ultimate_modular_scifi_gdrive_listing.json",
+      "archive_dir": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_modular_scifi/original_selected_files",
+      "selected_dir": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_modular_scifi",
+      "files": [
+        {
+          "relative_path": "License.txt",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_modular_scifi/original_selected_files/License.txt",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_modular_scifi/License.txt",
+          "bytes": 364,
+          "sha256": "83d8959f9fc56353ed571fbe2dc52e4bcd64508e2399501cd45ac2ce3df0bf8c",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "FBX/Props_Computer.fbx",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_modular_scifi/original_selected_files/FBX/Props_Computer.fbx",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_modular_scifi/FBX/Props_Computer.fbx",
+          "bytes": 29708,
+          "sha256": "2b03a7015ccbf0c21d20e8a9bb863971354f89e1ef1b045d16f2b26f921a706a",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "FBX/Props_ComputerSmall.fbx",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_modular_scifi/original_selected_files/FBX/Props_ComputerSmall.fbx",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_modular_scifi/FBX/Props_ComputerSmall.fbx",
+          "bytes": 29708,
+          "sha256": "7cf7feebea75bf415608083ef8701669474fab51e838d09682f65a22a74c794d",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "FBX/Props_Teleporter_1.fbx",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_modular_scifi/original_selected_files/FBX/Props_Teleporter_1.fbx",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_modular_scifi/FBX/Props_Teleporter_1.fbx",
+          "bytes": 27116,
+          "sha256": "3f7275e38c87b3bcc3b06f95549cea1a2a0e36df10cb8eafb73092855314ac2d",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "FBX/Props_Teleporter_2.fbx",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_modular_scifi/original_selected_files/FBX/Props_Teleporter_2.fbx",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_modular_scifi/FBX/Props_Teleporter_2.fbx",
+          "bytes": 31548,
+          "sha256": "e371ce585919d02ff9c7b0b01b2eafe0a4ce9cd178dbc80c4bc0adce5fbc237a",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "FBX/Props_Laser.fbx",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_modular_scifi/original_selected_files/FBX/Props_Laser.fbx",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_modular_scifi/FBX/Props_Laser.fbx",
+          "bytes": 47180,
+          "sha256": "d97e80e65dc53ed59473a55ad25422e946affe222445d45452fc51e7ef9f6eef",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "FBX/Props_Pod.fbx",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_modular_scifi/original_selected_files/FBX/Props_Pod.fbx",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_modular_scifi/FBX/Props_Pod.fbx",
+          "bytes": 51692,
+          "sha256": "eb65c43b30a27dfde27b6e5a7b4e5dd21eac7b03ed80f1cadf13ea87e02e1473",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "FBX/Props_CrateLong.fbx",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_modular_scifi/original_selected_files/FBX/Props_CrateLong.fbx",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_modular_scifi/FBX/Props_CrateLong.fbx",
+          "bytes": 66764,
+          "sha256": "752dce91d67887b7b3c0c3f5c94ca6b76fc86117f75b5bcf4042771d714bc9ed",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "FBX/Details/Details_Pipes_Long.fbx",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_modular_scifi/original_selected_files/FBX/Details/Details_Pipes_Long.fbx",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_modular_scifi/FBX/Details/Details_Pipes_Long.fbx",
+          "bytes": 28636,
+          "sha256": "6eb245a33dd797efd9b0a9633b5de0a69aa36af964964b0fedbd19ca2359e4b2",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "FBX/RoofTile_Pipes1.fbx",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_modular_scifi/original_selected_files/FBX/RoofTile_Pipes1.fbx",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_modular_scifi/FBX/RoofTile_Pipes1.fbx",
+          "bytes": 25580,
+          "sha256": "8d8f2fa50a806eb187c62d74288c3110179c2b64149a809b0f1bf2caa6f68683",
+          "status": "downloaded"
+        }
+      ]
+    },
+    "ultimate_buildings_pack": {
+      "title": "Ultimate Buildings Pack",
+      "source_url": "https://quaternius.com/packs/ultimatetexturedbuildings.html",
+      "folder_url": "https://drive.google.com/drive/folders/1RE3qXhbE5yGS3t-xGFJ8GmOtTgCUF3LQ?usp=sharing",
+      "listing_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_buildings_pack/ultimate_buildings_pack_gdrive_listing.json",
+      "archive_dir": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_buildings_pack/original_selected_files",
+      "selected_dir": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_buildings_pack",
+      "files": [
+        {
+          "relative_path": "License.txt",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_buildings_pack/original_selected_files/License.txt",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_buildings_pack/License.txt",
+          "bytes": 364,
+          "sha256": "83d8959f9fc56353ed571fbe2dc52e4bcd64508e2399501cd45ac2ce3df0bf8c",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Models with Materials/FBX/2Story_Balcony_Mat.fbx",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_buildings_pack/original_selected_files/Models with Materials/FBX/2Story_Balcony_Mat.fbx",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_buildings_pack/Models with Materials/FBX/2Story_Balcony_Mat.fbx",
+          "bytes": 139228,
+          "sha256": "9414a8e05372444ef83630ca12af78e0f45a142229051ffc93c9fbe940dae774",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Models with Materials/FBX/2Story_Sign_Mat.fbx",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_buildings_pack/original_selected_files/Models with Materials/FBX/2Story_Sign_Mat.fbx",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_buildings_pack/Models with Materials/FBX/2Story_Sign_Mat.fbx",
+          "bytes": 120252,
+          "sha256": "d9fe40170035c0ea11082308aabf269fe60d053177e49ab797f9022f4f7470f3",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Models with Materials/FBX/3Story_Slim_Mat.fbx",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_buildings_pack/original_selected_files/Models with Materials/FBX/3Story_Slim_Mat.fbx",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_buildings_pack/Models with Materials/FBX/3Story_Slim_Mat.fbx",
+          "bytes": 124764,
+          "sha256": "c9f81911b1d0770f8196445ce5e0c4c551d8b4e85a35eae81d5e033f70cb01b6",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Models with Materials/FBX/4Story_Wide_2Doors_Roof_Mat.fbx",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_buildings_pack/original_selected_files/Models with Materials/FBX/4Story_Wide_2Doors_Roof_Mat.fbx",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_buildings_pack/Models with Materials/FBX/4Story_Wide_2Doors_Roof_Mat.fbx",
+          "bytes": 349772,
+          "sha256": "2d9663a841230e50a3249358f21c7fd6c6c4754e4d4b085f97692d90e8dea15e",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Models with Materials/FBX/6Story_Stack_Mat.fbx",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_buildings_pack/original_selected_files/Models with Materials/FBX/6Story_Stack_Mat.fbx",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_buildings_pack/Models with Materials/FBX/6Story_Stack_Mat.fbx",
+          "bytes": 186972,
+          "sha256": "44ee4e9de231202044055c78957b2e5a04ab2e01bbbe91549a0fb10361e000b0",
+          "status": "downloaded"
+        }
+      ]
+    },
+    "ultimate_spaceships_pack": {
+      "title": "Ultimate Spaceships Pack",
+      "source_url": "https://quaternius.com/packs/ultimatespaceships.html",
+      "folder_url": "https://drive.google.com/drive/folders/1NpfT3wqe2k3Jwue2xryi7tzxP4bWzETu?usp=sharing",
+      "listing_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_spaceships_pack/ultimate_spaceships_pack_gdrive_listing.json",
+      "archive_dir": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_spaceships_pack/original_selected_files",
+      "selected_dir": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_spaceships_pack",
+      "files": [
+        {
+          "relative_path": "License.txt",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_spaceships_pack/original_selected_files/License.txt",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_spaceships_pack/License.txt",
+          "bytes": 364,
+          "sha256": "83d8959f9fc56353ed571fbe2dc52e4bcd64508e2399501cd45ac2ce3df0bf8c",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Dispatcher/glTF/Dispatcher.gltf",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_spaceships_pack/original_selected_files/Dispatcher/glTF/Dispatcher.gltf",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_spaceships_pack/Dispatcher/glTF/Dispatcher.gltf",
+          "bytes": 3165384,
+          "sha256": "e76c42a694ac602152ee0c8a897f6c79a894da716d22410838892df0d04e8d5c",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Dispatcher/Textures/Dispatcher_Blue.png",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_spaceships_pack/original_selected_files/Dispatcher/Textures/Dispatcher_Blue.png",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_spaceships_pack/Dispatcher/Textures/Dispatcher_Blue.png",
+          "bytes": 2536357,
+          "sha256": "52710365d069b317650dd80e6c1f0022d8e4ccc8b1f7dbf3fb0efcec78cb1efa",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Dispatcher/Textures/Dispatcher_Orange.png",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_spaceships_pack/original_selected_files/Dispatcher/Textures/Dispatcher_Orange.png",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_spaceships_pack/Dispatcher/Textures/Dispatcher_Orange.png",
+          "bytes": 2329866,
+          "sha256": "0a0f80acff5d07ae8cc34d1fe1f45bcf44ffd40e1fba9916cf00397cb62f03a0",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Striker/glTF/Striker.gltf",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_spaceships_pack/original_selected_files/Striker/glTF/Striker.gltf",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_spaceships_pack/Striker/glTF/Striker.gltf",
+          "bytes": 2704340,
+          "sha256": "2f6c4b1d16f11d5ce02833c5841ff17e19700418c83e52501ed29e3c2bc79359",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Striker/Textures/Striker_Blue.png",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_spaceships_pack/original_selected_files/Striker/Textures/Striker_Blue.png",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_spaceships_pack/Striker/Textures/Striker_Blue.png",
+          "bytes": 1986107,
+          "sha256": "38b2477b43a1253a15a3bdf4eec3473d334f9c281049b6cb7daeea265a955435",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Striker/Textures/Striker_Orange.png",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_spaceships_pack/original_selected_files/Striker/Textures/Striker_Orange.png",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_spaceships_pack/Striker/Textures/Striker_Orange.png",
+          "bytes": 1841630,
+          "sha256": "bb5070f7db34206d4e17fb2b3003c77d60681437ad752beb924e731a40cc9391",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Zenith/glTF/Zenith.gltf",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_spaceships_pack/original_selected_files/Zenith/glTF/Zenith.gltf",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_spaceships_pack/Zenith/glTF/Zenith.gltf",
+          "bytes": 4610098,
+          "sha256": "bba4e0f5774da3d459ad69855045909fea9b173849ed50993134073241ed613b",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Zenith/Textures/Zenith_Blue.png",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_spaceships_pack/original_selected_files/Zenith/Textures/Zenith_Blue.png",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_spaceships_pack/Zenith/Textures/Zenith_Blue.png",
+          "bytes": 3603013,
+          "sha256": "7d6d2bd79849ee4489d25043d212d05049442385e5928badacc8c755b77b28c6",
+          "status": "downloaded"
+        },
+        {
+          "relative_path": "Zenith/Textures/Zenith_Orange.png",
+          "original_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/_archives/ultimate_spaceships_pack/original_selected_files/Zenith/Textures/Zenith_Orange.png",
+          "selected_path": "/home/ganomix/projects/aurora-vigil/assets/3d/quaternius_aurora/ultimate_spaceships_pack/Zenith/Textures/Zenith_Orange.png",
+          "bytes": 3360176,
+          "sha256": "849b8fae59d57487ca05a1652a8aa92f874a223f80004de373d1b604b3cf67f9",
+          "status": "downloaded"
+        }
+      ]
+    }
+  }
+}

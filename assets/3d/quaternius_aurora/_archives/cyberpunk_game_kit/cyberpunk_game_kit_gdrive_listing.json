@@ -1,0 +1,1434 @@
+[
+  {
+    "url": "https://drive.google.com/uc?id=1DyBzAotqq2Rih7AM9JSAXGy2WCv5_pCB",
+    "path": "Blends/AC.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=14Q9hV5igSmpOP4B_wQCOX5evZeClCqxl",
+    "path": "Blends/AC_Side.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1pzUWLXTPeK0HfrWxDdZfAHdWMEfj1rRh",
+    "path": "Blends/AC_Stacked.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Qv8igTZi6ygDLumbfE5Jd2mZCm1toT7u",
+    "path": "Blends/Antenna_1.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1v5bJzYTIEfzeyzzNB88lenLRh_gOYQqs",
+    "path": "Blends/Antenna_2.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Aebji0ShnZHEKrbNQrt87MDCrEMxtyev",
+    "path": "Blends/Cable_Long.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1C692BBRvs_hs376dw9nCBx9Ww5S_qWvK",
+    "path": "Blends/Cable_Small.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1xJ7S8v1H__w36jB0uLS678DPCtDTqvPP",
+    "path": "Blends/Cable_Thick.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1hl71FR9wmUZ5M0l-RNn_JFVPIP-ehbP0",
+    "path": "Blends/Character.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1XFhLcA6X1SWnj8F7tIjRf3ssLl07XK3m",
+    "path": "Blends/Collectible_Board.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=10lrmCo7R5-0HlFDafAqjGswHjirRIa4R",
+    "path": "Blends/Collectible_Gear.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1c_MJjzT6occyIhPseuwONt-edTEjkVUu",
+    "path": "Blends/Computer.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1skim_Ogln63DH_lbi9aK9V-mP4IqoCun",
+    "path": "Blends/Computer_Large.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1eB9YNhyikAoNzJcRne6ywY2Bk-5IVk8G",
+    "path": "Blends/Door.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=18ZUnIHTl_9cEyyOYDL_d-ytXOkeoZrzy",
+    "path": "Blends/Enemy_2Legs.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1f_Xc6cXnRFep14SVh9SlIbP0-QnTvzqP",
+    "path": "Blends/Enemy_2Legs_Gun.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1vBYbmapwfYbBbJ4evns8YV6_PLaLUM8W",
+    "path": "Blends/Enemy_Flying.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1oVDPTfS3CoYi8FgJ7Tl9Sz3aixO3bV6G",
+    "path": "Blends/Enemy_Flying_Gun.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1s9m92cYVcTdCqSz14eOCkB-d6xgBY3Ls",
+    "path": "Blends/Enemy_Large.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1vxuJVyWbOOUt1m-IlOZSKMqGphJD8Thq",
+    "path": "Blends/Enemy_Large_Gun.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1VgizscAX4oK8EukTbPEGxrxgLDaf7MPe",
+    "path": "Blends/Fence.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1nvuY0cNu1aiDL-smOfm-ANzpb8NsphFs",
+    "path": "Blends/Lever.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1GnrweAz1saPtCbjU52LfxJr0c28utVBA",
+    "path": "Blends/Light_Square.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=16yQvfr-AS_hUla2rD5lq7Dsex2pGau0u",
+    "path": "Blends/Light_Street_1.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1_PFPktHQNRPzGBVOS4dBn-Ka0Hyfdu-H",
+    "path": "Blends/Light_Street_2.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1lReFgYw6pIS6bHrm9UcPaa-2d3xCnJls",
+    "path": "Blends/Lootbox.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1pMLOG1bE_9EFXalnt9ARi8nGfygNrNeL",
+    "path": "Blends/Pickup_Health.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1QbUJrY_Gz5nGnhn5cw8b1yNtrchg7I2V",
+    "path": "Blends/Pickup_Heart.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1fxb4Zhe9nAzYQnD0bfiFjWQge5q4-qno",
+    "path": "Blends/Pickup_Tank.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ibVPhitvHEdg10WEYtL5H_XWOd-y5b_I",
+    "path": "Blends/Pipe_1.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1m7B2e44hSxPmG6H7KdrMKOQeJ8PU-s0G",
+    "path": "Blends/Pipe_2.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1LtnD0q9d9LxOSVhATHzrtYr4TQWFWA7x",
+    "path": "Blends/Pipe_Corner.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1aL9KSMAexgW_J0WHmbhfGvSVKo9KjDsK",
+    "path": "Blends/Pipe_Corner_2.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Ad-XUGlu5Dt9tu2TmeD82FwsWqE7OOIk",
+    "path": "Blends/Platform_1x1_Empty.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1t6spCM7HC9cghwvO46cLqRFa36qj8o2g",
+    "path": "Blends/Platform_2x1_Empty.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1CVf41D9OPoEt9i81K5xM2DB4Qvf2vL6n",
+    "path": "Blends/Platform_2x2.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1AuG3fp5iXRuE6z9IRnmGSkqpFHVDNJZw",
+    "path": "Blends/Platform_2x2_Empty.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Pii21iwjX303-wsu_BAKchG0B8iUnTda",
+    "path": "Blends/Platform_4x1.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1EYnOJi41bYgzHpBhA18k9nNU09ZNkQmq",
+    "path": "Blends/Platform_4x1_Empty.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1f_ExQ-fCNJE8xVHrIYLZncFps-xHS54B",
+    "path": "Blends/Platform_4x2.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=16NRpPhrBHnPNYjR4RFwSEauk7Dofebyp",
+    "path": "Blends/Platform_4x4.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1T7sRnkfAeaW6QbsUpI5TTuC6qjeKa1fF",
+    "path": "Blends/Platform_4x4_Empty.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1b2Aw84mzXfw0nRlHOAoFvvwXTmccgxUB",
+    "path": "Blends/Rail_Corner.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1_2C5OQbn--UPRDE4wrhD85AnOO_RszI6",
+    "path": "Blends/Rail_Corner_2.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1RZmeMji5tInTOFaomOxgonq3fn-wtXwG",
+    "path": "Blends/Rail_Long.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Gs0Wc4P0RPA1NBH4ENxg6r0qZQVLNUNd",
+    "path": "Blends/Rail_Short.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1kXChpa6KokmkTjeVJzPUi5nIKRFnwU8q",
+    "path": "Blends/Sign_1.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1qz8gQUJdhlAbBgIi2UiZ6cQeObhlNCyM",
+    "path": "Blends/Sign_2.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1i2-AH_NKn8yH5GWbs94aOKCaCNRTk-LF",
+    "path": "Blends/Sign_3.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ZuqjIBUO__cG0_doEIYZoUjurEP5abBr",
+    "path": "Blends/Sign_4.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1WgDJ9upZpIkx-UOtAUEpy5Ir_sH5ME1t",
+    "path": "Blends/Sign_Corner_1.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1FN_6uiK2dnjFY6C6cVS_BdWzHQlfzqTG",
+    "path": "Blends/Sign_Corner_2.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1kTP1FYiLwcZZfdQklu6JE7YB9uqdRko4",
+    "path": "Blends/Sign_Corner_3.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1wX9F4Vr9bDhXDT0EZmy6qji0_gS0ZBuh",
+    "path": "Blends/Sign_Corner_3_Fenced.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Es5JEConTtROTv9y6H0VWHCtLX8iYoJE",
+    "path": "Blends/Sign_Corner_Hazard.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1eDYDmBChrzd7M0zJa2pUiSxboD68Uh0e",
+    "path": "Blends/Sign_Corner_Small1.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1zjFxV43eQL5o3q6EWaUHCBNCOg07LSBQ",
+    "path": "Blends/Sign_Corner_Small2.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1h7F0MWkgMaxGdBlknqfwibDiEQU3bjN7",
+    "path": "Blends/Sign_Small_1.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1E6vy_AMQqBbYZV2SOw0Tu26I4lnqddZW",
+    "path": "Blends/Sign_Small_2.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1GzdtbOXZNMJor3ArxSLyhuNXsDIWEwiq",
+    "path": "Blends/Sign_Small_3.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1FusBF3RRme97pAqiIKjOzKp0uPke0hpF",
+    "path": "Blends/Support.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1vfAt6kCvY_bOoGTTH6dDjfXevyRoNcxV",
+    "path": "Blends/Support_Long.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1A4hWHFgVRpZXRujObKNxvUGcRFdUgj6T",
+    "path": "Blends/Support_Short.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1diOVbtTBJChiSSLOwyBrmB060w1_syTq",
+    "path": "Blends/Tank.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1NHlBTNEDjDbkbjrh4kW9vGgvh_8sGWoC",
+    "path": "Blends/Turret_Cannon.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=15vZIbFTQ68x4CR84lKCrB6QXSa2sxkjU",
+    "path": "Blends/Turret_Gun.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=194mAfo0Nu_wrw4q4I2WZUGNaSEO4NvYb",
+    "path": "Blends/Turret_GunDouble.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ycX2TdzFgJVs75a5UZp5O0zKa7hjUWir",
+    "path": "Blends/Turret_Teleporter.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1sOkAyllVewZsr7XjdQNiuyv3Dc6w4UsU",
+    "path": "Blends/TV_1.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1YupaLhrIIJx_H2CtYppHJhv_OzrOsUxy",
+    "path": "Blends/TV_2.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1TiF5WLVSMdQkLyGfPcKug7FkjPDr7ROk",
+    "path": "Blends/TV_3.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1S9QYrx54_a4UX6q5-6A_-KtH5xq7arG_",
+    "path": "Character/Character.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1s_mUK4qNGhjNERlXb0gb65QPBedmGBF1",
+    "path": "Character/Character.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Q-GTf53WIExCni0DfWyticwKo071_DIQ",
+    "path": "Character/Character.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1lbY4bHGp963UAVkUxSbF3RfMRzoYGngw",
+    "path": "Character/Character.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1h1D_rOgiKx2_xRUqT0o3JN61tel7CknX",
+    "path": "Enemies/Enemy_2Legs.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1JIjYjxF1Q4vvlxP5qqPPmM41_oDu9C0c",
+    "path": "Enemies/Enemy_2Legs.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1y3lW_6F5dumG3sHqxunOku_x9wLSTzZF",
+    "path": "Enemies/Enemy_2Legs.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1K7OY1VqPPpkF-R-2sVgBjQ0Z0Yq_rGu9",
+    "path": "Enemies/Enemy_2Legs.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1-8mtdGKgu_H_1l8fDFyex3yrmjtCTLSu",
+    "path": "Enemies/Enemy_2Legs_Gun.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1QrCYDnrQsCFHi-x2_irtzgsXXEkzWwtp",
+    "path": "Enemies/Enemy_2Legs_Gun.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1a7A3dhaBtY2368x2--CjZQ175IK05AN2",
+    "path": "Enemies/Enemy_2Legs_Gun.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1juyrJDNZ_WSrcOVoiBcM5F1lqTgUapDA",
+    "path": "Enemies/Enemy_2Legs_Gun.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1CU4-TCsosIl2UBdtXZbxc-w2RZRzh6Xg",
+    "path": "Enemies/Enemy_Flying.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=14Vivg6Ukcx8CqfLNLUVaWvA91tjqS36k",
+    "path": "Enemies/Enemy_Flying.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1vx6rMuLX-e8EEY39Id5d9aau-k_IrU1F",
+    "path": "Enemies/Enemy_Flying.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1jvFF3WUB1omOlmnTvEGjn4h9YG5fT9Hk",
+    "path": "Enemies/Enemy_Flying.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1yv41Uvx4p1R_SRywguBf7xwnjxAItZK5",
+    "path": "Enemies/Enemy_Flying_Gun.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=18Hg0L72nJSSixhYxaX-2oXpzF33cComy",
+    "path": "Enemies/Enemy_Flying_Gun.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1W5q7LC814lxGP8SfNGlYZN8VGpIgHegm",
+    "path": "Enemies/Enemy_Flying_Gun.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1gRprZkZ9tMwEx98xcyKPOCc5qG-_YNdL",
+    "path": "Enemies/Enemy_Flying_Gun.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1WClFEPcJ8IjiACXZiguei7CxuhuWqlPT",
+    "path": "Enemies/Enemy_Large.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=18tv4WQRYxX6JcHLXFviFuNXdA2JsYluZ",
+    "path": "Enemies/Enemy_Large.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1gRgzu2IOK3Xugme2DP8nUrCMUTwRGtFi",
+    "path": "Enemies/Enemy_Large.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ug-fNZL60-dMQCoyahwlHo7yVzoxohR8",
+    "path": "Enemies/Enemy_Large.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1CcpphsZ-eCYEMX1rvi699noomsaghfPq",
+    "path": "Enemies/Enemy_Large_Gun.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1DpGwoIMSsN_twKuwm4mNyu3NOxuDvQrP",
+    "path": "Enemies/Enemy_Large_Gun.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1MT6yI5w0ZKCRodRxSjC3-5lRSF-XZOJk",
+    "path": "Enemies/Enemy_Large_Gun.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1RQZtiTwZYoguAjET09mH-Uzip77aBNFj",
+    "path": "Enemies/Enemy_Large_Gun.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1rxxrE60PnHLpB5ck7EVsVFQMl4QuMgxS",
+    "path": "Enemies/Turret_Cannon.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1G43vBl-E89ECP7h-pcPCIdcMFMsGpRVN",
+    "path": "Enemies/Turret_Cannon.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=16CpD72FmjqUsGw9vGhzZOiGJdgdEopks",
+    "path": "Enemies/Turret_Cannon.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1MxIx_97HGimtklD2RLyTur_Y9Nyb6Wvn",
+    "path": "Enemies/Turret_Cannon.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1QounDmBfZ_UukMJVbiyJGtWExkgBo1oV",
+    "path": "Enemies/Turret_Gun.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1XEf6ml8K_pgjKcVKEM6br8HhxYc6fKZa",
+    "path": "Enemies/Turret_Gun.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1VeMVEQqE9HuQhUVtIVLqwihyd3cTdDzm",
+    "path": "Enemies/Turret_Gun.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Jqh76yt_4PeA-48Pbn8OWglu6H27cseh",
+    "path": "Enemies/Turret_Gun.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1mDYpX0ypTLQ-oyXVV1pvSiKhXaSaF1ga",
+    "path": "Enemies/Turret_GunDouble.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ozkZdw_bM2_jiCIy8kpvUEdQHOPGE9oT",
+    "path": "Enemies/Turret_GunDouble.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1wgrVWSPzsyB48RXhPnCQ1Q9qDDn2E3nF",
+    "path": "Enemies/Turret_GunDouble.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1y68-_7dtP_SrzDKUDFBAfDK-5G1-nsPp",
+    "path": "Enemies/Turret_GunDouble.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1swGof-EMPi1bPLm_gh5Ug_Na4Z4wQEro",
+    "path": "Enemies/Turret_Teleporter.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1nKP6d_6slu0bQfi6E_q3WxMIW82Ojmdm",
+    "path": "Enemies/Turret_Teleporter.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1WNsGi9kQDCFM-6rltGAETTulJKdE0A5S",
+    "path": "Enemies/Turret_Teleporter.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1jvnSdg2p9TQD1K1-ljPPg-rxMuCw9EaK",
+    "path": "Enemies/Turret_Teleporter.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1M6m25vYeEjtkkb3SyXc0yKxqD39Xeptf",
+    "path": "Pickups and Objects/Collectible_Board.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1mt6m6u3de2zJ7Y7t-3v9aeVCodmn3gD2",
+    "path": "Pickups and Objects/Collectible_Board.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1CMrK5N9ZOAxhpfTQrWLsJ0sZOugvlbuU",
+    "path": "Pickups and Objects/Collectible_Board.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1hrtenD_caSMBBTf2H6Kle4MYt46kzNYa",
+    "path": "Pickups and Objects/Collectible_Board.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1EWBPm8s1T6EuNvW00lFfHTqEB6FM4rrQ",
+    "path": "Pickups and Objects/Collectible_Gear.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1-D-6gopuWex69-rcgWyxYb7Oiac_h2sF",
+    "path": "Pickups and Objects/Collectible_Gear.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1gjw9zdHmbX6jwSYffTBFSKE4VpB_PPHo",
+    "path": "Pickups and Objects/Collectible_Gear.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=10ok8T_LhJGrBu2b-A6pxKI1NeF093dxi",
+    "path": "Pickups and Objects/Collectible_Gear.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1mN6vC1SWXFTfZom2X9d-IjnXeIh1x4B9",
+    "path": "Pickups and Objects/Lever.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1i_Zojm_oJ4T40aD8OqMbz-Ud6mNeAUbB",
+    "path": "Pickups and Objects/Lever.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=17JApy06gAn5gw6Zpc1Yexa06U0USEbjh",
+    "path": "Pickups and Objects/Lever.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1zb7A8Di47Ey7KjAfBSa-5nTN-AqO424J",
+    "path": "Pickups and Objects/Lever.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1DCiAnSGlHsXSQ9hJuu4_CVFCOeJujW5Y",
+    "path": "Pickups and Objects/Lootbox.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=18AyD-zFoZYuln2KkAu1DA1UKkBStkU6N",
+    "path": "Pickups and Objects/Lootbox.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1boDCs7WAr6yFI9PehKZa-KCEFIljZPFO",
+    "path": "Pickups and Objects/Lootbox.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1mXi7e-QKuy-vy9u9PHsJIFiOJC5cDlH5",
+    "path": "Pickups and Objects/Lootbox.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=15kD8SeYH53jFUikRobHcAsqawbDObQCZ",
+    "path": "Pickups and Objects/Pickup_Health.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ydF8JxRyum4hBdI7aq4iUim-gM2GYM5m",
+    "path": "Pickups and Objects/Pickup_Health.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1coQmBpvPvVWSGswgfEvDxWWIYH3PEo91",
+    "path": "Pickups and Objects/Pickup_Health.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1l7I_aHIsJgo1IgiXGh0nJbHYDjouEnXn",
+    "path": "Pickups and Objects/Pickup_Health.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=14VoQid5g5ddozq48T3HHIEp2OFOtuGvK",
+    "path": "Pickups and Objects/Pickup_Heart.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ogPotkBxdeOpOcYz3b0wHNWPZbGzeKJ7",
+    "path": "Pickups and Objects/Pickup_Heart.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=18GsZmbnbF9Xk5CY18eH6x4OUpxFGQ2CG",
+    "path": "Pickups and Objects/Pickup_Heart.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Ax50HFgnv4JA6ip9U2zLj0ZxzxkqwlBB",
+    "path": "Pickups and Objects/Pickup_Heart.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ieDZOd11u859Tsmg1dWmCRVH5ZnaoWQv",
+    "path": "Pickups and Objects/Pickup_Tank.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1N_oYHZlfVp_0G9uIrBk-LbtOnBDrm9Uu",
+    "path": "Pickups and Objects/Pickup_Tank.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1kMVvJPH015yHIZg_Ldb4jbMz4nQYrSRi",
+    "path": "Pickups and Objects/Pickup_Tank.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=10kdi5VPQp8hmNM5x-7Ae2d7QQF2TJLQy",
+    "path": "Pickups and Objects/Pickup_Tank.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1XaenAPU5rqVYNx1PuRaZkbNZFjHO-y57",
+    "path": "Pickups and Objects/Tank.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1NF8KVe4xTH_u2HK00Hqqn74YSvSPcdEC",
+    "path": "Pickups and Objects/Tank.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=19-8HRZ2tnJgnN9woiZmrt4YFK_QecHus",
+    "path": "Pickups and Objects/Tank.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Cxmj88LGilGMZjCzQp5KmzDuuGXELI2i",
+    "path": "Pickups and Objects/Tank.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=14vlqSEH65vL3II_vD4UTfQyFPMBPs0Yw",
+    "path": "Platforms/AC.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=14h_AVm3rBQDIQSb_QGirPiRcFoDTzk_g",
+    "path": "Platforms/AC.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1OzzTBz1-vWiRCeom3s2y1ZkBDHME2X-a",
+    "path": "Platforms/AC.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1dxaKE8jyJp9CBfaURcUsLhQ4gfvU2-je",
+    "path": "Platforms/AC.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1RBACy-cPL7kkEyadOvDlc66OjoAQj9sH",
+    "path": "Platforms/AC_Side.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1y9XdBi2Es3blllLD6kEpeyGrCAX-u-dT",
+    "path": "Platforms/AC_Side.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=197AV1zRYtmjdiz2vEI5moxB9E84lgKxE",
+    "path": "Platforms/AC_Side.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1FAVn3ZnVyrhUn2srweUWzdI8gimkAWwk",
+    "path": "Platforms/AC_Side.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1lo5f9I2dNz7FhahjcLzz8YAlRbQM--qb",
+    "path": "Platforms/AC_Stacked.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Jh-qpuy8umzk-lozgXkuN4KG9c3qqAQO",
+    "path": "Platforms/AC_Stacked.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1lwqxFqnR9fMO-XXarnZK-Cy2eU1WVBdZ",
+    "path": "Platforms/AC_Stacked.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=174Q9CznTzZqLlOWOUPQXGNqJ3B0E7rRR",
+    "path": "Platforms/AC_Stacked.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=12tng5x7yELISf75uZ1_OcrB0SjPXawjs",
+    "path": "Platforms/Antenna_1.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1YhIftWvLIeHwCosQCuG7zFbiVXNetERr",
+    "path": "Platforms/Antenna_1.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1gE2Lw_puQ80Zs4s3NCDsHVdVbLMmWr8Q",
+    "path": "Platforms/Antenna_1.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=11Qxf7mqJcCOeae4sWNlgY_630IrR1I9Q",
+    "path": "Platforms/Antenna_1.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=13rSXkJfDl5Rt4Odb6bnnQ2H2eLIlvf9l",
+    "path": "Platforms/Antenna_2.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1BSBjqi4yRPrPeIG1iJ6gRizillq1BqG8",
+    "path": "Platforms/Antenna_2.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=13zpQlExnoZZkHNigHmBaE2QEey3SHn8t",
+    "path": "Platforms/Antenna_2.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1v3wg6kDG-uU62-6TVp3zOn6Qt0yq_6Uq",
+    "path": "Platforms/Antenna_2.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=15LRPiFHkCx0Nyrzm82sUKVp5yeXx8kxB",
+    "path": "Platforms/Cable_Long.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1JBYAq0geA8lB6uvuOrbwsN7Iyqn8HC0h",
+    "path": "Platforms/Cable_Long.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1WCsoBTtQbk2bSatiXromxkEtKpIE_ZsI",
+    "path": "Platforms/Cable_Long.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1MLvTzc3s2etd5zvvTzqxMjik8EOFEI5J",
+    "path": "Platforms/Cable_Long.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1kiQYne46XrkKIagyNujO3TqNzYdRx5Yj",
+    "path": "Platforms/Cable_Small.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1h2H2L2UChQtxyMwJNVZawIaPR0xUsveE",
+    "path": "Platforms/Cable_Small.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1zVxva6nebZyfOcOWRxe4zLVIm3vSCMLp",
+    "path": "Platforms/Cable_Small.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=16pCn0Kakh_Dhxd_BaT5AIgTvQr24RAbp",
+    "path": "Platforms/Cable_Small.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1PjflLrmVayLbpe41f75AZSfV9XJb6KW-",
+    "path": "Platforms/Cable_Thick.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=16FGePhoKYTYEoWFvpZJXfwZhSX1arUfa",
+    "path": "Platforms/Cable_Thick.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1iHImfqQdxvJjR34gxtk4XTrjElK3TXrp",
+    "path": "Platforms/Cable_Thick.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1dknkCtV2hXu2j7-rnRdHVQcfv63j815p",
+    "path": "Platforms/Cable_Thick.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Yqne_D99ApqYkTtXAnkT887dhKXfxhxJ",
+    "path": "Platforms/Computer.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1l8LhvW6D3rqgW68wdZTgNIZSXt6y1hRb",
+    "path": "Platforms/Computer.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1S_j5kyU-QyrWFHsL1QYU3lgRshAFRoU3",
+    "path": "Platforms/Computer.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1N8QlagPb1CptY6X8jmT61HQ_LWxUD4cK",
+    "path": "Platforms/Computer.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ncb0--DYFPfWm109iIFYL41NPkGHb_5j",
+    "path": "Platforms/Computer_Large.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1oANf2eX_Hcc3JKCA2zU8uiyK5bvF8ePt",
+    "path": "Platforms/Computer_Large.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Tr2CeLFv7Q1MLOBnFkweVPG0Vxdi3UQG",
+    "path": "Platforms/Computer_Large.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1MXPToppgHIr677oeAna7FDue8D8ZhgAU",
+    "path": "Platforms/Computer_Large.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1f7aDn85H72pzgHoeasntjWqzwCi-lI9B",
+    "path": "Platforms/Door.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1rAwx2URbuX9DeqNXOQMiBn-ArTtopaRI",
+    "path": "Platforms/Door.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1N3JWvOnEd4ocd-H63ggUcwHVM_mfzg-X",
+    "path": "Platforms/Door.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=11AD7SEvG-uh0asJ1Oty7LNCWz4xtmztn",
+    "path": "Platforms/Door.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1saDWX0vdEjNmpeoxRmg9zDQXVkQREq8z",
+    "path": "Platforms/Fence.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=119DaF8fbqJzXgzhjUqJSOdYQll_dlTSE",
+    "path": "Platforms/Fence.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1mwKDdLXasU8ZKkFHEhT9er7utDeO04rK",
+    "path": "Platforms/Fence.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1fK0uSeoGiQhDQzAKsZuSgwbbHqJZGb1i",
+    "path": "Platforms/Fence.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1gXkvgmL3y6E6fwdbhxtHGbm6x_-W5ofV",
+    "path": "Platforms/Light_Square.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1_XX2V1i11Ki_oKNdEmuR1C7EySngNW5L",
+    "path": "Platforms/Light_Square.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ESjc59F3dWDeCAG4vbfbsyccaUJnfOUS",
+    "path": "Platforms/Light_Square.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=18dAa6LxnwvsTjzlABLFw9dMeTxv4ObaL",
+    "path": "Platforms/Light_Square.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1sIZGnsCHk19PVVnSM0yQx3gAAnYGa2xc",
+    "path": "Platforms/Light_Street_1.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1kt17KO8FMQXbtMtlEfYxuGS0X5NDB4-z",
+    "path": "Platforms/Light_Street_1.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1I4VFV6AI2_VCB_OH0DH1AktTfA0CMndd",
+    "path": "Platforms/Light_Street_1.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1NBTdT2KEff_S-6xX6pwtKgoX8s_-D0so",
+    "path": "Platforms/Light_Street_1.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1zh-E4d1m7zLZW-Qcn-yBEv3WAbTEPmJI",
+    "path": "Platforms/Light_Street_2.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1On3YgpVNTfbrif04Wl3GCApY5YgkHtcx",
+    "path": "Platforms/Light_Street_2.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1M1It8glXBL2OBeShEDAv0cv4WATdxjtG",
+    "path": "Platforms/Light_Street_2.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Yv53XofhHsx8c9BLxh5fVCA95owHWW7m",
+    "path": "Platforms/Light_Street_2.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=17r1UYsgocEpji7KhBb4r4DvTepGR4ErZ",
+    "path": "Platforms/Pipe_1.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1-hhtKUwroDLlY_17kR2HwR4iczYR42DW",
+    "path": "Platforms/Pipe_1.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1oG-34iWYBvNr8e0tf8oidBzrE9zkTxZO",
+    "path": "Platforms/Pipe_1.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1d8BWKfWqphbJospDjo7b7Z4sPomZyQ9z",
+    "path": "Platforms/Pipe_1.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1F8tukHeALf34ClHJ8mcZvk4oIcvBhpDN",
+    "path": "Platforms/Pipe_2.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1PocBST1UPFchcD62OfgP5kB2KE3w-93r",
+    "path": "Platforms/Pipe_2.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1W0_fPgd6u54WRnJtJiwl9zAUhgcbrXhB",
+    "path": "Platforms/Pipe_2.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1-klRqhuBGYctFpo4wS-DTHSWZrAHsZGh",
+    "path": "Platforms/Pipe_2.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1lsG5iOKAA83ukkESu1GM_eM9u9btW22s",
+    "path": "Platforms/Pipe_Corner.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1stVoDPtUdYE3-vvuKZvMwDE9DEAHItPc",
+    "path": "Platforms/Pipe_Corner.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1o7A-mGWftfa5OP5_DL2QR33M-X89Lpjd",
+    "path": "Platforms/Pipe_Corner.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1qM_cMGxYVEekxnlhbVnsLxGq5fB3oLfG",
+    "path": "Platforms/Pipe_Corner.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1h4BZFoE_CVfuDs9OjslPmEr9Q2xX2qbh",
+    "path": "Platforms/Pipe_Corner_2.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=16z_qGGmtOHuvcVuSlEKUYLwRxTtye9rl",
+    "path": "Platforms/Pipe_Corner_2.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ccQS2cixyPfHfTcXVoYlKk9RkDbHUeYg",
+    "path": "Platforms/Pipe_Corner_2.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1wznxYOV8CYeJEHr0M9FMk3-T8sPRCIz_",
+    "path": "Platforms/Pipe_Corner_2.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1HGGJ0Z10nkfir0nF31bipOAPQXkVzf0E",
+    "path": "Platforms/Platform_1x1_Empty.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1xTyldaTDDvXbockJrCllX-j-DhYXRzU7",
+    "path": "Platforms/Platform_1x1_Empty.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1pnc75QcI8DaTysagM3sgZ4qVGtHxdteM",
+    "path": "Platforms/Platform_1x1_Empty.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1vGEfNI880-uJtLKIjo45I2-PcK9LpQuT",
+    "path": "Platforms/Platform_1x1_Empty.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1W_a_GsjZajzVeZVSLN7VHl8Z4UqVBbWr",
+    "path": "Platforms/Platform_2x1_Empty.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1FEbzFGTOq7Iz2QB86KDMToED9z4nGP4N",
+    "path": "Platforms/Platform_2x1_Empty.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1yscdU9bBliikoz7yeQ6qSS_Dkq82Uw5H",
+    "path": "Platforms/Platform_2x1_Empty.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1mX0XW-96bwn6xmjM3hdUNJnGRrKzF4Ws",
+    "path": "Platforms/Platform_2x1_Empty.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ILxCByT89bdHDmsd-1x1eJCI7t2tQ5Ob",
+    "path": "Platforms/Platform_2x2.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ZXHnm2YnmucWPxnRW0EPh4M56y5FZ3vu",
+    "path": "Platforms/Platform_2x2.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1yCrTI-X-_9Jz1wK4YtQ1pv7HQUdwnNGE",
+    "path": "Platforms/Platform_2x2.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=177xA8UIWa1NVJc6NwsjjpUTSbxNFjqRN",
+    "path": "Platforms/Platform_2x2.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1yjgaBnXHRXpHPWSnOijHb9J8QX6KMew4",
+    "path": "Platforms/Platform_2x2_Empty.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=13D8Yy_YGFvOPv76eGJlbfzp2SIGf8tSL",
+    "path": "Platforms/Platform_2x2_Empty.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1FaRj4YURccU-KvAkXaPFP-dIacPFqhNH",
+    "path": "Platforms/Platform_2x2_Empty.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1XKtaCpDqjR3VRwQQrgZvgDoRlCuXU2Wa",
+    "path": "Platforms/Platform_2x2_Empty.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1TQkBzVbmTvP0upL019T7wXCPeeEXI0O8",
+    "path": "Platforms/Platform_4x1.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1qqGqXI3htKriRhMN8YOYRqwUxII98sYI",
+    "path": "Platforms/Platform_4x1.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1IMw9t165zwHtvI4N72_zA7fc0Yobz9dj",
+    "path": "Platforms/Platform_4x1.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1V3E3EM5PINoXinrFA9JiwoMboDDlsMGI",
+    "path": "Platforms/Platform_4x1.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1hjL9LsJUBAQNYc6WytnP_HEyDUeyDvKP",
+    "path": "Platforms/Platform_4x1_Empty.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1R6G-tlktrwwiHS1j4fk_Ai5_2hDl4Zq2",
+    "path": "Platforms/Platform_4x1_Empty.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1QmhiSnAvtpvjmIiP_09KvQRcgocjja2H",
+    "path": "Platforms/Platform_4x1_Empty.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1fnAZoZHm9IDteAPmE_8haTuuN2rNj7rF",
+    "path": "Platforms/Platform_4x1_Empty.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1iXUgicR7AH7HzvCCFVKL_CN-hOSqmSUX",
+    "path": "Platforms/Platform_4x2.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ea5v5-6L1kraRbDQu-8A1cnH1JHUcJZl",
+    "path": "Platforms/Platform_4x2.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=12h_5Budg_bzQA6YCxbVBDIeKY2XWJrNd",
+    "path": "Platforms/Platform_4x2.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1l-k6fXKqU9DeP1pHeN250Pcf9Rgi7CeZ",
+    "path": "Platforms/Platform_4x2.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=14b-V8gYEQAGHJS33MXJ25qoVHUdaj8OR",
+    "path": "Platforms/Platform_4x4.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1DMvs7Ore-iedkltyerQZHUKcyD565bqI",
+    "path": "Platforms/Platform_4x4.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1AGPR4DMCRBLyNuV4rsrdb362aUiLXrbs",
+    "path": "Platforms/Platform_4x4.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Rl565BnQL8Ldg-W_z0xuNRCd9OBN81Tk",
+    "path": "Platforms/Platform_4x4.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1HBxBMvLuFtN1RBONJTDGhXHBre1IyRIW",
+    "path": "Platforms/Platform_4x4_Empty.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1fwuF2BKyMVAz65tORiSDywgNlc70JlH7",
+    "path": "Platforms/Platform_4x4_Empty.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1fiYpqnP9toiEcJ8R_w1zBBBljVjKIrNt",
+    "path": "Platforms/Platform_4x4_Empty.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1dJZCW6ad5sN1-mR7tiiv2cfXWKkTj_9h",
+    "path": "Platforms/Platform_4x4_Empty.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1HIz3UuFxglI4B_iPM5G_rukUnZNdUz1m",
+    "path": "Platforms/Rail_Corner.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1rp963qaqQ-YIwJaX93kfcoHPAX62X69m",
+    "path": "Platforms/Rail_Corner.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Mm1iNTyXEUPVrs72Tkga6er1d2hitFxY",
+    "path": "Platforms/Rail_Corner.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1bIUz0GiJYEZgRQJRC6L1tOT6QF9zJ0OC",
+    "path": "Platforms/Rail_Corner.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ADbW9U1ZoVxu-SLM7RlB2Ttl1K5MWb1H",
+    "path": "Platforms/Rail_Corner_2.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1hIPbyMVlollFrwQky13nePrNrw7ot16D",
+    "path": "Platforms/Rail_Corner_2.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1BjmEQu73WsfHuwgqYacotvMY12be_t7C",
+    "path": "Platforms/Rail_Corner_2.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1FEhbfQmeUcpS6NH25qeCSfOOlRR5LTa5",
+    "path": "Platforms/Rail_Corner_2.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1A9yop7suW7ooY3jtejrAqerMyG28wljO",
+    "path": "Platforms/Rail_Long.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1_PzgYzuvizzrgc1XACR8gOv2fBwrVN1p",
+    "path": "Platforms/Rail_Long.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1LqOhDdwNacHfyJNw9a0_ew9KKjEQBfwM",
+    "path": "Platforms/Rail_Long.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=11_A-fW0j-7OV_3VG15iSqPFacFIf94U2",
+    "path": "Platforms/Rail_Long.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ZrdHBBE7vs2ticv-bfqD5KbieNqi39xI",
+    "path": "Platforms/Rail_Short.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1fn5hdMenihsyIpdlvA9cEUHT40owqtUL",
+    "path": "Platforms/Rail_Short.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1KqRgbabNRKFBstTIfWJ3rWczsgZ0WEu6",
+    "path": "Platforms/Rail_Short.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1n82SCJOzWP1yEu5idPAvD_XNn0O7WaZd",
+    "path": "Platforms/Rail_Short.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1i6dJHw7bJvOvkf-LtWzST9SyUfUn7Yc3",
+    "path": "Platforms/Sign_1.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1F0wq2LdeFdB1RMLHKwnAUzoxrRVVoIcg",
+    "path": "Platforms/Sign_1.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=19kilHuRWRFmmplv1ocZoIZFyrgo-PK2t",
+    "path": "Platforms/Sign_1.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1H8CtTpoVqusV8x6sbLqpTvqhThZvjvU_",
+    "path": "Platforms/Sign_1.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1WSbDa8uTfV5TszTK6qX0OMDtSJv5nhbj",
+    "path": "Platforms/Sign_2.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=15c8-bb4MwIskN3O8rdRzyKlnTF4-mqGv",
+    "path": "Platforms/Sign_2.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1pWZcwOKh0PL53t1nWKkVVrJzlT4rSfJs",
+    "path": "Platforms/Sign_2.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1RseH5Sypz6FQvIuwd30kaNLNnK9k16Bu",
+    "path": "Platforms/Sign_2.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1GwqA5dG2OpUmUMDQXWqT7dTNfGQlDkVL",
+    "path": "Platforms/Sign_3.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=11OSxFlG24Vj0CxBjXNUT8ZaKSZOd6oZe",
+    "path": "Platforms/Sign_3.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1-hnuKKRlhEXCKL2IHvLNrRV-E2R-abpZ",
+    "path": "Platforms/Sign_3.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1MBZb4wtzJM3qbrIj6rXMharxP1p1ro68",
+    "path": "Platforms/Sign_3.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1avN4r20Mqx-IetDEq6F5Ru_og2QE13bm",
+    "path": "Platforms/Sign_4.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1vtGGH-Nf8EfZFN1KNkUw3d8o9Aq9R66P",
+    "path": "Platforms/Sign_4.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1bySWkecki5vUxUYhnpsMdnNbjkm9yjeE",
+    "path": "Platforms/Sign_4.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1REPxyjd-D5Yuj5b7Bf5WD0CUdu67OjQI",
+    "path": "Platforms/Sign_4.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1dx1dEu0AtWeOl0O_YuAwk3wSDVse_eeJ",
+    "path": "Platforms/Sign_Corner_1.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Hfmozv_Ptg4Aee3q3f9B9g2EdPJr_ANP",
+    "path": "Platforms/Sign_Corner_1.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1BuM5cy5vjb0iwKR9XpUZE1d4RhDMYFmO",
+    "path": "Platforms/Sign_Corner_1.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1dW295Igzdg2SyU0csYNP6IKdxjdrd_5p",
+    "path": "Platforms/Sign_Corner_1.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=15oD-4VrkkJUSoUqFuE5nO70m_PiuYz5W",
+    "path": "Platforms/Sign_Corner_2.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Pv4NnGNwSGbw6ZpNkzcGCn067X3NADnc",
+    "path": "Platforms/Sign_Corner_2.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1LgM2Ta5_6lFxlj9dfK4OOmLj7H7cBuPH",
+    "path": "Platforms/Sign_Corner_2.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1RoGeZ09WKU__HH0Ym6Z4Cokboc8JY2Ys",
+    "path": "Platforms/Sign_Corner_2.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1rymTpRS5fONyVP_NtdFAj3ui4fIyOBmX",
+    "path": "Platforms/Sign_Corner_3.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1h98ryxBHzyco0vOpbcvJhQ0scTJ374PL",
+    "path": "Platforms/Sign_Corner_3.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1B5cJ91q0n6zwQ3DdqHNWd7MnuWloDsvb",
+    "path": "Platforms/Sign_Corner_3.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ZXchFqO0slDBmG38Xp3lxQ6sPC8FRsc_",
+    "path": "Platforms/Sign_Corner_3.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1pPl6lmcHtMnjvYERaYtJfCJxPOMVfv0Z",
+    "path": "Platforms/Sign_Corner_3_Fenced.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1u0Sfin-7JCkNgDqcDxKYoQ88qZ-sUIS1",
+    "path": "Platforms/Sign_Corner_3_Fenced.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1CbIk8W9aya2Nye6I5bkUD4j48RT_PHcq",
+    "path": "Platforms/Sign_Corner_3_Fenced.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1b33de24CL8GR8lt3SKzd-SAm77vTLWrK",
+    "path": "Platforms/Sign_Corner_3_Fenced.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ikAQCXAy_W4fEzm2OUvuMZOOQDQh6M5p",
+    "path": "Platforms/Sign_Corner_Hazard.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1bUKeFSia3FA8QXy-_dUIak4OnNFFcitk",
+    "path": "Platforms/Sign_Corner_Hazard.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=12SmltEakEW3hS3umnOHdr-NDOgAnD9tO",
+    "path": "Platforms/Sign_Corner_Hazard.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1YbPsteQ18rB7WXYAwk1s4mooeFK0q8L4",
+    "path": "Platforms/Sign_Corner_Hazard.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1U4RWDbtep81MUhdyLQojWf1GYwfhGp5-",
+    "path": "Platforms/Sign_Corner_Small1.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1_Vx0UMoVAkrtoR4iEKer34a2Xawa4SW3",
+    "path": "Platforms/Sign_Corner_Small1.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1kHKlOEf0Mv0Lz5aciTn1If3oq9a67g8K",
+    "path": "Platforms/Sign_Corner_Small1.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1U6XkHuzKWNt8F2yq3j1Y6GlTvhgopmSv",
+    "path": "Platforms/Sign_Corner_Small1.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1zyQagjKahUi0USen5yI8krImki2ExILw",
+    "path": "Platforms/Sign_Corner_Small2.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1XwdaDB-cDX8Ni_k_yc_gIVuZGMl4CugM",
+    "path": "Platforms/Sign_Corner_Small2.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1HeNWOGm5KnlC5j96NtoTadTBkxKj5D01",
+    "path": "Platforms/Sign_Corner_Small2.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1VkcW0vGhwYPpkmP0GOPZjyVPMq7wW09T",
+    "path": "Platforms/Sign_Corner_Small2.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1kMKdqSKvyxrA4mqJVWcuOenRhS0A6qcD",
+    "path": "Platforms/Sign_Small_1.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ArN5UwWSc_uWmMg1ldvHJ0T1I7Z2K5w4",
+    "path": "Platforms/Sign_Small_1.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1EKcTAHB9SkB0yyvQ_pAt2YnsrE72JG-o",
+    "path": "Platforms/Sign_Small_1.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=177CXoL6K7i-8GN1fK1jS6hxTT-JRiVf0",
+    "path": "Platforms/Sign_Small_1.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1obL6BlPBaOPhRaB9Xb3gtTnwhTgAgDi_",
+    "path": "Platforms/Sign_Small_2.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1KW_kOhY9lmSXzAcPJvANLNqn_gT7ArAd",
+    "path": "Platforms/Sign_Small_2.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1jKNj2nniCD3U10oN3cWFuJdJrZGWEsd6",
+    "path": "Platforms/Sign_Small_2.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1qDSxoQNjmk0K6eMCf31nQSDdk0PcwEuh",
+    "path": "Platforms/Sign_Small_2.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1QCyurdgQ-_FImr7tsAnS2FEt3Pr6Jwvg",
+    "path": "Platforms/Sign_Small_3.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=11mBQKUiH3cW1BvIhndJafkORCzUW_HGm",
+    "path": "Platforms/Sign_Small_3.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1CtCQJEwxNobunK7OrFXR5ptEeRi56ZKs",
+    "path": "Platforms/Sign_Small_3.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1C64RFJU8y4B0PBeKZHypldpx8FjSAIOV",
+    "path": "Platforms/Sign_Small_3.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1yuHFoK0pJw-VXJGJv0pba4npqOQci5ru",
+    "path": "Platforms/Support.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=12d_k4ck11RfsK0IvzRBMgpKD1fVtuIWA",
+    "path": "Platforms/Support.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1MV8PkGFg2cVS0O7TF0feCWFTWryoCOQZ",
+    "path": "Platforms/Support.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1HyYv41DznuHpFOvBwjB7jFJvOfVSG3Z2",
+    "path": "Platforms/Support.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=15Nak8fqo1khASIzx0o6D_8G410xwqdNN",
+    "path": "Platforms/Support_Long.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1fRQScptvXGv0yWLgvEKiuKIFIKatub2X",
+    "path": "Platforms/Support_Long.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=10kJ3VvaUHVOVF1sWP8KETOLyDNGZoJ0R",
+    "path": "Platforms/Support_Long.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1XYcXyIiVa9qTpa_uhG3DtBoBWs5C9jpW",
+    "path": "Platforms/Support_Long.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1-5YOuE-tKwMMbBGG-7dcDnfYp3fEW55-",
+    "path": "Platforms/Support_Short.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1K9Ldh1xj5-nE2wd9lDhONTb64nh3PYVD",
+    "path": "Platforms/Support_Short.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1HYNmnWglMHM3AO5R9iGm9XhSi5Q_SUKB",
+    "path": "Platforms/Support_Short.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1N64ESMaUxzE_Ew0CjkdxLfsDZ_v93L5P",
+    "path": "Platforms/Support_Short.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=17dMDQsKIlbp_zJdpnayH9CJk6ZAnITsz",
+    "path": "Platforms/TV_1.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1H_ljvkBf4rcsaQTrxudkoXs5kSQYWpZu",
+    "path": "Platforms/TV_1.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1lKn2uw_ScxC9FC0uXWTb0m6BGbbmcK0P",
+    "path": "Platforms/TV_1.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1iHLKWe_lzBNI5ZlSptd83I5XmLUp5Kn7",
+    "path": "Platforms/TV_1.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1pTq4aKvOHcc_fy_X-vJYQ5suCmjhSfm8",
+    "path": "Platforms/TV_2.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=14PySR05DUdbbVEqkjH2OYedf8AA7BE7V",
+    "path": "Platforms/TV_2.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1iXAhmFVxo0YgviL_4iKRAOUb6-ICVghc",
+    "path": "Platforms/TV_2.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=10v5JKFgA9YkpmCrqF1UxCwOXSuaLbYdq",
+    "path": "Platforms/TV_2.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1yEE4F6L7jhcyeC90JsYH10ZNGfC_XPXb",
+    "path": "Platforms/TV_3.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1DN1g5Lln1rzMTkcVU-v0rszDgVKvbs83",
+    "path": "Platforms/TV_3.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1P2M1wsolkUJi3CVcV9AkaQ_JfDh7bOZX",
+    "path": "Platforms/TV_3.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=10qrPJdU9YKCkjDRl9eo5duSHS1XZMqNQ",
+    "path": "Platforms/TV_3.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1FdeI2OH11uifpfkSKFZyPVcYHgUomNxY",
+    "path": "Textures/Texture_Sign.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1-hNes9woutDvbaJCpPYOKJlvO_cTMSU8",
+    "path": "License.txt"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1lTOVkROGKvb7tYlliwTmEyTqC_SE-XvL",
+    "path": "Preview.jpg"
+  }
+]

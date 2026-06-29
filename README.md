@@ -7,7 +7,8 @@ You play as **The Lumen**, an original solar-charged guardian learning to protec
 ## Current state
 
 - 3D city sandbox with neon-cyberpunk aesthetic, readable skyline, and objective markers.
-- Real 3D hero (The Lumen) and rogue drone models via Meshy AI pipeline (`tools/meshy_assets.py`).
+- Real 3D hero (The Lumen), rogue drone, special-event props, and runtime city dressing via Meshy AI pipeline (`tools/meshy_assets.py`).
+- Playable city now includes imported GLB set dressing in normal flight: skyway transit pods, rooftop solar arrays, Shimmer Echo civic emitters, and Null Choir containment pylons.
 - Free-flight superhero controls:
   - `WASD` horizontal flight
   - `Space` ascend

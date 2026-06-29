@@ -1,0 +1,490 @@
+[
+  {
+    "url": "https://drive.google.com/uc?id=17Jhsh7R6nl50rWoFbbm5cePQ49r5_wEj",
+    "path": "Bob/Blend/Bob.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1WkV3R9ra-FWN2e1AEmIQR1hmzHb5yiJZ",
+    "path": "Bob/Blend/Bob.blend1"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1qO_blhSiNsx8O6ZNQmJka_yl2x0Md7af",
+    "path": "Bob/FBX/Bob.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1FSiQ7w0bARnGuLVbSYozU8KZ6G_93tq6",
+    "path": "Bob/glTF/Bob.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=17Ev7dsHbAC96lWT6DDLLbt8mn-JdISt9",
+    "path": "Bob/OBJ/Bob.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1DnfZUF7astMSCm3wmqgo0-sQzWa3ObS5",
+    "path": "Bob/OBJ/Bob.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=18ZzSSZzIfW05hWFaVkgpiSY1qW_GcX37",
+    "path": "Bob/Textures/Bob_Blue.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ZM9i4fgXmZbUczkAtlRlzpF_6F1bHxtb",
+    "path": "Bob/Textures/Bob_Green.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1hqvPUFNAvHhuRNcmzSFGtFfrfm9b06b5",
+    "path": "Bob/Textures/Bob_Orange.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Yc2uQa54DdkL5uyAV-9AfEzcdhhC8twG",
+    "path": "Bob/Textures/Bob_Purple.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1fQ_F8el7_QBnncXSLSyuFwfhDp6IL8QU",
+    "path": "Bob/Textures/Bob_Red.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=190lUNgqb30eJM5aJe1kNmd1AoDQPeOYm",
+    "path": "Challenger/Blend/Challenger.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1GwXXpd2gT-Kl4gbUp6_82yslbiW-Tjca",
+    "path": "Challenger/Blend/Challenger.blend1"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=14Ta7ERegkvgTkYL-3WmzMoDqjgqA-ita",
+    "path": "Challenger/FBX/Challenger.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1t-fA25DrO2v48m_PSPnz6cvMU0VLzeoR",
+    "path": "Challenger/glTF/Challenger.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1leHrDY15m45vOVs-UL1YeSlWDfeonegk",
+    "path": "Challenger/OBJ/Challenger.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1NdDGutdtTiZCBZQQMbjTnFKePioZZPRN",
+    "path": "Challenger/OBJ/Challenger.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1dw45bEPxN0OH9eCn3AyVmnAjD1X6B19b",
+    "path": "Challenger/Textures/Challenger_Blue.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1C-FHNa78-H1Gx5uDp9CMGFXQttV4049V",
+    "path": "Challenger/Textures/Challenger_Green.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1gBJU2ccdib6FoVRRvvl4T57kH9fWHj23",
+    "path": "Challenger/Textures/Challenger_Orange.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=186zkRp40ceo0JsO6JVO9UrVHlyvq8c4v",
+    "path": "Challenger/Textures/Challenger_Purple.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1QWY0oPrIF604zRYD7VPa8lGTbPJszJh9",
+    "path": "Challenger/Textures/Challenger_Red.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1X2wQy9YTqVzZgZKQw5iUyrMUQZxVOuno",
+    "path": "Dispatcher/Blend/Dispatcher.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1l7THMJ2Z7LJb3gn159NwqYlycLwMp56E",
+    "path": "Dispatcher/Blend/Dispatcher.blend1"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=185ctqc3lTlfpQkKUxadQMxSu2rD4cv4b",
+    "path": "Dispatcher/FBX/Dispatcher.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1oAFY-NWo0Icqfstijhk-5U_9PPNW6kUD",
+    "path": "Dispatcher/glTF/Dispatcher.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=120xcKjmqDaoQaiBvtyULJCxPUfEkaOoT",
+    "path": "Dispatcher/OBJ/Dispatcher.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1YQCMsrdbxkjAITu7CXgxLvNw9k68rzFp",
+    "path": "Dispatcher/OBJ/Dispatcher.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1aBJ4a_S3eev3lYfICzm3no8iuD2hTqMV",
+    "path": "Dispatcher/Textures/Dispatcher_Blue.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ABbj2ivJtREU7vGSYIpOcHvX1m1aw6ke",
+    "path": "Dispatcher/Textures/Dispatcher_Green.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1P80lrIjjWFtuRvFa1t5wGaz-u_0NHrr4",
+    "path": "Dispatcher/Textures/Dispatcher_Orange.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Vuld1gj0-xU_uPDkxL4fGDxg4i72tliA",
+    "path": "Dispatcher/Textures/Dispatcher_Purple.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=10f-JDYIKkazkTO2bmkm0aIMDyxu3pu7y",
+    "path": "Dispatcher/Textures/Dispatcher_Red.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1lxY8LQoWX9DV-0Y88EGZ9RBDUgDfD6-w",
+    "path": "Executioner/Blend/Executioner.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1w2YyxRo_Yw0_wkuai3FG8iSwg2XXhOTS",
+    "path": "Executioner/Blend/Executioner.blend1"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=192R_BdXwaCZM3N97MqshV9CMTzKaVYUI",
+    "path": "Executioner/FBX/Executioner.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1DaCoRPG1Q54SFBOPMrhTOZNaNETsuRB1",
+    "path": "Executioner/glTF/Executioner.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1eNeDFVAzHDmXYvDy3yOmQ8a1QlOtJvNq",
+    "path": "Executioner/OBJ/Executioner.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Jjk1CFYA8zW_9JJfi6nAzLx8sHOavxve",
+    "path": "Executioner/OBJ/Executioner.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1T5oHIGc2fhrTbObp1FQLhcaGFxFEyrfm",
+    "path": "Executioner/Textures/Executioner_Blue.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1NDiFtemX6ZvNJ8D2HznwZe4XeqtSfQnH",
+    "path": "Executioner/Textures/Executioner_Green.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=153gmJNfdXobJgQTbyyUdwykqw0oxj32M",
+    "path": "Executioner/Textures/Executioner_Orange.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1xpnggTBFER8--snFeYx7W2JKNXtZnGqC",
+    "path": "Executioner/Textures/Executioner_Purple.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1SNmGO_0L4pOnDGW3Z86J2N7hnz6EmFuw",
+    "path": "Executioner/Textures/Executioner_Red.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Mct1aNpmZVRmHFWQMpe21e4Su59u95kU",
+    "path": "Imperial/Blend/Imperial.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1pQ67Eu9rZ6FyCOUIg6HAT8a-oz4H9s9E",
+    "path": "Imperial/FBX/Imperial.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1QWFecMijLgalCJpj9O_wihq6VE09Hrl-",
+    "path": "Imperial/glTF/Imperial.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1_VZg7SxH9hbdxNc8-cfJs-pFwanaMScb",
+    "path": "Imperial/OBJ/Imperial.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1h1gdReMW85WFsbtv9PsM4tOJAL3mvwPW",
+    "path": "Imperial/OBJ/Imperial.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=14SCtCM04gJw3AguF7lb5OJK9p5Ja2NZt",
+    "path": "Imperial/Textures/Imperial_Blue.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ecDLoVjPZXrzrHs64og2nx5ue_YcO7tc",
+    "path": "Imperial/Textures/Imperial_Green.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1s0YWbytvhZ_XerM8QulCZn0O502dJSco",
+    "path": "Imperial/Textures/Imperial_Orange.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1_kAFvDH0El0RUGYDS2YCXdCYDe28_PVl",
+    "path": "Imperial/Textures/Imperial_Purple.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1rulcb694V2ZnHWEYFRIEQ2mfjvzRa2aI",
+    "path": "Imperial/Textures/Imperial_Red.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1k9wAL_hBdxYtSTgPo0SZxurXhc78nTFH",
+    "path": "Insurgent/Blend/Insurgent.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1luwGUI2ZDdwJnkemmLScwjcimexLyrm8",
+    "path": "Insurgent/Blend/Insurgent.blend1"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1OTI73Wd9VDhYaIRXzLgxB-J_H-IGk_-Y",
+    "path": "Insurgent/FBX/Insurgent.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1p_-EZ9OzTMEIOOcW3O2NDAi2pB4nRPP2",
+    "path": "Insurgent/glTF/Insurgent.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1o1UD6v4S9dUJxUigj8b0qM81AHTtvGyP",
+    "path": "Insurgent/OBJ/Insurgent.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1qgV8xx8oCwIfnRKMmrbS9TEfv-dYgYLI",
+    "path": "Insurgent/OBJ/Insurgent.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1wqv9fC_5zLVZ-A5ZHE5HHgks_6QMSix_",
+    "path": "Insurgent/Textures/Insurgent_Blue.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1HbPO2cR4609whadz7kAdb9UGl6ecE1n5",
+    "path": "Insurgent/Textures/Insurgent_Green.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=17XOYKuPJ-IE4DpWLYLLlLKnZ-PD9MgAe",
+    "path": "Insurgent/Textures/Insurgent_Orange.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1jmgyBX7LUbSsCLWzNcwsIZWU7wbW7tm5",
+    "path": "Insurgent/Textures/Insurgent_Purple.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1oRMxlDXlv6xg_wp3HVp3f0pPmOZ0TVjm",
+    "path": "Insurgent/Textures/Insurgent_Red.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1w0aYlsHdC4p7jzkIPpqzAmH6Md0Sj_V9",
+    "path": "Omen/Blend/Omen.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1HjHRYWt3DAieq3atpuJAiKuTboRr959V",
+    "path": "Omen/Blend/Omen.blend1"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=12A1QXkpl9_YhvXsPzkh9C07iOj_E9HA6",
+    "path": "Omen/FBX/Omen.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1AI4LO8e8-CRd9z9fm4h8XPG90OekGdZb",
+    "path": "Omen/glTF/Omen.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1NA-6SC0A_KOrOv-VRop9U3aZhJtsWvNu",
+    "path": "Omen/OBJ/Omen.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1LZvbe1MR_O4jJ8SPvyP5wJKFwrv69l-0",
+    "path": "Omen/OBJ/Omen.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1cG90y7uo48I_is8puZRAoSRxSw3O7EW8",
+    "path": "Omen/Textures/Omen_Blue.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1holS38E_4wuhqElZpLJ_C4PsHOm3SRrf",
+    "path": "Omen/Textures/Omen_Green.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1u_H0fMN_wSJCIwtoeDoKIOi30Cf4JY0z",
+    "path": "Omen/Textures/Omen_Orange.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ieyN7Uq1MdBw58e1Uh7mkKmomgoKHXIn",
+    "path": "Omen/Textures/Omen_Purple.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1tHTHNoq-hGa8nAu40A4cV8VnP-cva2wU",
+    "path": "Omen/Textures/Omen_Red.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=10MNu1M_uzXn8kV1hkduvO-etUaPei3__",
+    "path": "Pancake/Blend/Pancake.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1NsWfjnCLkMFuIoCqlp7IFnVE8ZjgNscv",
+    "path": "Pancake/Blend/Pancake.blend1"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1sftwuWsdgEoKfpmCvc5W-2gxtiI7C6r9",
+    "path": "Pancake/FBX/Pancake.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=10_URZSGRm8lyHXfdOYjp1m9aS4_ZYrOO",
+    "path": "Pancake/glTF/Pancake.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1QsdO2Kinn7kWiRj0NmDipNCo5Q2wnVXS",
+    "path": "Pancake/OBJ/Pancake.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1aGS-yIjfk0dI-JxJ03HzscDQvK72YQfR",
+    "path": "Pancake/OBJ/Pancake.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1-QD5J1WMSSuRcG9gmfwmHi3BSAATMN3C",
+    "path": "Pancake/Textures/Pancake_Blue.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=14wlTbwEvJ0xC1nnPt3bZqpgUPZ7Yp6uH",
+    "path": "Pancake/Textures/Pancake_Green.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1z6434vLSIZLW0CHT5DcBkwk7GdkDr2jk",
+    "path": "Pancake/Textures/Pancake_Orange.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Xmz3FUG8v-WdIJaSORQxJDtGGGQuMr5s",
+    "path": "Pancake/Textures/Pancake_Purple.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1jcCzuOSL9LYZPlu5MmE69Chme0BM6Z_M",
+    "path": "Pancake/Textures/Pancake_Red.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1KhkkMvbIGc_OJCu2O09VGJD7D3LlEKMF",
+    "path": "Spitfire/Blend/Spitfire.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1V-REA5ggCjezNZvwk936euioPF7z5ZKN",
+    "path": "Spitfire/Blend/Spitfire.blend1"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1gWy7KQ6pY1G6_ZPfLyG8IkEVtreUunlK",
+    "path": "Spitfire/FBX/Spitfire.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=190E7T13jvAH8rVzD3dd484gPfN5fV8X3",
+    "path": "Spitfire/glTF/Spitfire.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1ozsoKEvuj3iFNwEdRIagdSZnU64a2YhX",
+    "path": "Spitfire/OBJ/Spitfire.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1DDwAA8q2qlFQtDV9XKtR-mqcmIZpFyo-",
+    "path": "Spitfire/OBJ/Spitfire.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1LM7mPH8IevKEeKI7_MnvA1ysmzzfupxU",
+    "path": "Spitfire/Textures/Spitfire_Blue.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=13hv_xVb5rKfcDpNbnLq_vsN1BgiYkWFY",
+    "path": "Spitfire/Textures/Spitfire_Green.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1NilDSuZDNqAm31juFtQpMc8GsAChE-9i",
+    "path": "Spitfire/Textures/Spitfire_Orange.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1NRwP8QxEUAa6d6Q9Zyd7Wf4FlOJlSVqo",
+    "path": "Spitfire/Textures/Spitfire_Purple.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1XhIR2mGfLlGBw9EVueg3SZmrggwhpBtu",
+    "path": "Spitfire/Textures/Spitfire_Red.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1GR9oOK0Pv5iCWh4odKl7xyRBMeE6hhq4",
+    "path": "Striker/Blend/Striker.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1_OM9UGqp_e5cEEPxvqMHXZJkJ-IbIzvD",
+    "path": "Striker/Blend/Striker.blend1"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1fh9v-znLF200nJx6jS4hCPPolBSmlx86",
+    "path": "Striker/FBX/Striker.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1TmKsBDmZnMIHHZL1ec5WD2Yq1FVwu3Ai",
+    "path": "Striker/glTF/Striker.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1JICkMQe1aNk9S2hGOHiJGuLGF-8C_pMA",
+    "path": "Striker/OBJ/Striker.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1gLirpXU7onh4P1LnlzrD7UUrI2MulBSC",
+    "path": "Striker/OBJ/Striker.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1sfSYEicDsLp538WJn0ks4pei21oOD7su",
+    "path": "Striker/Textures/Striker_Blue.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1km1rDDxm-fcpG5dWtmhaIYCO-fm_qHsm",
+    "path": "Striker/Textures/Striker_Green.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1KIy_HLQAB_M7wxKuBdQTzddyyaTrAw0D",
+    "path": "Striker/Textures/Striker_Orange.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1MhSOMBhpDVAIhfVIdZdIDYwNfTtWJ8dj",
+    "path": "Striker/Textures/Striker_Purple.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1PF7wvd9GFHBvjcjmxFgLcHZo6x_s1TF_",
+    "path": "Striker/Textures/Striker_Red.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=10hK-PvVHqQYbkgcgSJ_gQXF_kjJG1p9I",
+    "path": "Zenith/Blend/Zenith.blend"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=170BmpGFfKvBYOifTAtGMw80fMYKGrIFh",
+    "path": "Zenith/Blend/Zenith.blend1"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1SA6mzxpOaJT7ttoi2XrPq0CSNHv5oTjV",
+    "path": "Zenith/FBX/Zenith.fbx"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1Am5ONtqLiu2FUboQ4t8EUxfGNW-HYrMG",
+    "path": "Zenith/glTF/Zenith.gltf"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1wHVIBkMqEMvjWaFnNZzMNFhoMpc6kX5t",
+    "path": "Zenith/OBJ/Zenith.mtl"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1P7FaL5mySX8svIpFgZwyC-p13eSkdXWG",
+    "path": "Zenith/OBJ/Zenith.obj"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1GSDRWcWgHFoE_HQZqkvTm_C9ILnKACSF",
+    "path": "Zenith/Textures/Zenith_Blue.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1K5X3xaNRYdIwnZSrPgOHdJKxp6NTpzLo",
+    "path": "Zenith/Textures/Zenith_Green.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1KAudZ2r6hfz0QtzflUNd_yR21CEm1Pw_",
+    "path": "Zenith/Textures/Zenith_Orange.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1gdEi304Q8dN8x8lXXVqON2bDeek1TCjt",
+    "path": "Zenith/Textures/Zenith_Purple.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1reyOOV4RVPgFYqZLrlfsIJXGCa0E5dUx",
+    "path": "Zenith/Textures/Zenith_Red.png"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=16iPJQOxZQgJB6UBiutO-PU35YROyGEL8",
+    "path": "License.txt"
+  },
+  {
+    "url": "https://drive.google.com/uc?id=1lfuKDDsiyIAqgP8mllvB2n6WNV8R61u-",
+    "path": "Preview.jpg"
+  }
+]
