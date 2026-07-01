@@ -55,7 +55,7 @@ const FACADE_GROUP_TINTS: Array[Color] = [
 	Color(0.72, 0.55, 0.38, 1.0),
 	Color(0.11, 0.12, 0.14, 1.0),
 ]
-const FACADE_GROUP_STRENGTHS: Array[float] = [0.30, 0.22, 0.30]
+const FACADE_GROUP_STRENGTHS: Array[float] = [0.82, 0.44, 0.64]
 var _facade_albedo_textures: Array[Texture2D] = []
 var _facade_normal_textures: Array[Texture2D] = []
 var _facade_roughness_textures: Array[Texture2D] = []
@@ -408,14 +408,14 @@ func _build_world() -> void:
 	# only the far skyline into the warm sky.
 	e.fog_enabled = true
 	e.fog_mode = Environment.FOG_MODE_EXPONENTIAL
-	e.fog_density = 0.00085
-	e.fog_light_color = Color(0.74, 0.58, 0.44, 1.0)
-	e.fog_light_energy = 1.0
-	e.fog_sky_affect = 0.18
-	e.fog_aerial_perspective = 0.42
+	e.fog_density = 0.00105
+	e.fog_light_color = Color(0.08, 0.12, 0.14, 1.0)
+	e.fog_light_energy = 0.82
+	e.fog_sky_affect = 0.26
+	e.fog_aerial_perspective = 0.58
 	# A gentle warm ground-level haze; nothing pools thickly enough to read as murk.
 	e.fog_height = 22.0
-	e.fog_height_density = 0.009
+	e.fog_height_density = 0.007
 	# No coloured volumetric fog — the flat distance fog carries the golden depth.
 	e.volumetric_fog_enabled = false
 	# Subtle bloom for the sun disc and the bright warm highlights skating off glass
@@ -1919,8 +1919,10 @@ func _city_facade_material(h: float, x: int, z: int, width: float, depth: float,
 	mat.set_shader_parameter("glass_sky_tint", Color(0.05, 0.16, 0.17, 1.0))
 	mat.set_shader_parameter("group_tint", group_tint_col)
 	mat.set_shader_parameter("group_tint_strength", group_strength)
+	mat.set_shader_parameter("group_tint_lift", 0.08)
 	mat.set_shader_parameter("crown_boost", 2.5 if h > 42.0 else 1.0)
 	mat.set_shader_parameter("crown_frac", 0.25)
+	mat.set_shader_parameter("crown_window_fill", 0.18)
 	# Mullion frames in dark warm grey; unlit panes as dark neutral glass. The lit
 	# palette is all warm interior tones — the cyan office glow is gone.
 	mat.set_shader_parameter("frame_color", Color(0.06, 0.06, 0.065, 1.0))
@@ -3853,8 +3855,10 @@ func _apply_facade_texture_overlay(holder: Node3D, building_seed: int, texture_i
 		mat.set_shader_parameter("glass_sky_tint", Color(0.05, 0.16, 0.17, 1.0))
 		mat.set_shader_parameter("group_tint", group_tint_col)
 		mat.set_shader_parameter("group_tint_strength", group_strength)
+		mat.set_shader_parameter("group_tint_lift", 0.08)
 		mat.set_shader_parameter("crown_boost", crown_boost_val)
 		mat.set_shader_parameter("crown_frac", 0.25)
+		mat.set_shader_parameter("crown_window_fill", 0.18)
 		panel.material_override = mat
 		holder.add_child(panel)
 	_add_building_greebles(holder, bmin, bmax, building_seed)

@@ -21,6 +21,7 @@ uniform float capture_detail_frequency_boost = 1.0;
 // (teal glass / warm concrete / dark metal). Default strength 0.0 = no shift.
 uniform vec3 group_tint : source_color = vec3(1.0, 1.0, 1.0);
 uniform float group_tint_strength = 0.0;
+uniform float group_tint_lift = 0.0;
 
 group_uniforms pbr;
 uniform float roughness_base = 0.42;
@@ -49,6 +50,7 @@ uniform float uv_scale = 1.0;
 // Default crown_boost 1.0 = no effect (used by non-capture callers).
 uniform float crown_boost = 1.0;
 uniform float crown_frac = 0.25;
+uniform float crown_window_fill = 0.0;
 
 group_uniforms colors;
 uniform vec3 warm_white = vec3(1.0, 0.92, 0.78);
@@ -92,9 +94,13 @@ void fragment() {
 	vec4 albedo_sample = texture(albedo_tex, base_uv);
 	vec4 albedo_detail = texture(albedo_tex_2, detail_uv);
 	vec3 albedo = mix(albedo_sample.rgb, albedo_detail.rgb, detail_blend) * albedo_tint.rgb;
+	// Coarse secondary variation interrupts large repeated PBR tiles in wide shots.
+	float broad_variation = texture(albedo_tex_2, detail_uv * 0.37 + vec2(0.17, 0.29)).r;
+	albedo *= mix(vec3(1.0), vec3(0.74 + broad_variation * 0.55), clamp(detail_blend * 0.38, 0.0, 0.38));
 	// Colour-group modulation: shift the whole facade toward its assigned group hue so
 	// the skyline reads as distinct teal/concrete/metal bands instead of one brown mass.
-	albedo = mix(albedo, group_tint, group_tint_strength);
+	vec3 lifted = mix(albedo, vec3(0.34, 0.36, 0.34), clamp(group_tint_lift, 0.0, 1.0));
+	albedo = mix(lifted, group_tint, group_tint_strength);
 
 	float rough_sample = texture(roughness_tex, base_uv).r;
 	float rough_detail = texture(roughness_tex, detail_uv).r;
@@ -173,11 +179,18 @@ void fragment() {
 		float eff_depth = window_depth * capture_depth_multiplier;
 		float eff_refl = glass_reflectivity * capture_reflectivity_multiplier;
 		// Darken the pane centre so the recessed glass reads as a dark rectangle at distance.
-		float dark_amount = clamp(0.15 + recess * eff_depth * 0.55, 0.0, 0.85);
+		float dark_amount = clamp(0.22 + recess * eff_depth * 0.68, 0.0, 0.92);
 		albedo = mix(albedo, dark_window, dark_amount);
 		// Sky reflection pooling toward the pane centre (teal-tinted for the capture pass).
-		albedo = mix(albedo, glass_sky_tint, recess * eff_refl);
-		roughness = mix(roughness, 0.15, recess * eff_refl); // glass is smoother
+		albedo = mix(albedo, glass_sky_tint, clamp(recess * eff_refl, 0.0, 0.85));
+		float glint = smoothstep(0.94, 1.0, 1.0 - abs((local.x + local.y * 0.55) - 0.82) * 7.0) * recess;
+		albedo = mix(albedo, glass_sky_tint + vec3(0.04, 0.08, 0.06), clamp(glint * eff_refl * 0.45, 0.0, 0.42));
+		if (grid_uv.y < crown_frac && crown_boost > 1.0) {
+			float crown_fill = crown_window_fill * (crown_boost - 1.0) * recess;
+			final_emission += warm_amber * crown_fill;
+			albedo = mix(albedo, warm_amber, clamp(crown_fill * 0.20, 0.0, 0.18));
+		}
+		roughness = mix(roughness, 0.08, clamp(recess * eff_refl, 0.0, 0.8)); // glass is smoother
 	}
 
 	// Add only a tiny amount of any emission texture contribution so legacy maps no
