@@ -12,6 +12,15 @@ uniform sampler2D albedo_tex_2 : source_color, hint_default_white; // second mat
 uniform vec4 albedo_tint : source_color = vec4(0.92, 0.90, 0.84, 1.0);
 uniform vec2 uv_offset = vec2(0.0, 0.0); // per-building UV offset to break grid tiling
 uniform float uv_scale_2 = 1.0;          // second detail layer scale
+// Capture-distance tiling break: detail_blend raises how much the second layer shows
+// (default 0.3 = legacy), and capture_detail_frequency_boost multiplies the *effective*
+// detail frequency above the tested uv_scale_2 ratio without changing that public value.
+uniform float detail_blend = 0.3;
+uniform float capture_detail_frequency_boost = 1.0;
+// Colour-group modulation: nudge the whole facade toward an assigned group hue
+// (teal glass / warm concrete / dark metal). Default strength 0.0 = no shift.
+uniform vec3 group_tint : source_color = vec3(1.0, 1.0, 1.0);
+uniform float group_tint_strength = 0.0;
 
 group_uniforms pbr;
 uniform float roughness_base = 0.42;
@@ -35,6 +44,11 @@ uniform float flicker_speed = 3.0;
 uniform int building_seed = 0;
 uniform float emission_energy = 0.08;
 uniform float uv_scale = 1.0;
+// High-rise "crown": lit windows in the top crown_frac of the facade get their
+// emission multiplied by crown_boost so upper floors read brighter than the base.
+// Default crown_boost 1.0 = no effect (used by non-capture callers).
+uniform float crown_boost = 1.0;
+uniform float crown_frac = 0.25;
 
 group_uniforms colors;
 uniform vec3 warm_white = vec3(1.0, 0.92, 0.78);
@@ -46,6 +60,12 @@ uniform vec3 dark_window = vec3(0.015, 0.03, 0.045);
 group_uniforms glass;
 uniform float window_depth = 0.0;        // how recessed dark windows appear
 uniform float glass_reflectivity = 0.15; // base reflectivity for unlit glass
+// Capture-distance multipliers scale the *effective* recess/reflection so windows
+// read at play distance, while window_depth/glass_reflectivity keep their tested
+// public values. Defaults of 1.0 preserve the legacy close-up look.
+uniform float capture_depth_multiplier = 1.0;
+uniform float capture_reflectivity_multiplier = 1.0;
+uniform vec3 glass_sky_tint : source_color = vec3(0.15, 0.12, 0.10); // pane reflection tint
 
 // ---- Hash function: integer → [0, 1) ----
 float hash21(int x, int y) {
@@ -66,23 +86,26 @@ void fragment() {
 	// Base layer plus a second detail layer at a different scale/offset so large facades
 	// no longer show an obvious repeating grid. The offset is unique per building.
 	vec2 base_uv = UV * uv_scale + uv_offset;
-	vec2 detail_uv = UV * uv_scale_2 + uv_offset * 1.3;
+	vec2 detail_uv = UV * uv_scale_2 * capture_detail_frequency_boost + uv_offset * 1.3;
 
 	// Sample PBR textures (defaults when not set: white albedo, white roughness)
 	vec4 albedo_sample = texture(albedo_tex, base_uv);
 	vec4 albedo_detail = texture(albedo_tex_2, detail_uv);
-	vec3 albedo = mix(albedo_sample.rgb, albedo_detail.rgb, 0.3) * albedo_tint.rgb;
+	vec3 albedo = mix(albedo_sample.rgb, albedo_detail.rgb, detail_blend) * albedo_tint.rgb;
+	// Colour-group modulation: shift the whole facade toward its assigned group hue so
+	// the skyline reads as distinct teal/concrete/metal bands instead of one brown mass.
+	albedo = mix(albedo, group_tint, group_tint_strength);
 
 	float rough_sample = texture(roughness_tex, base_uv).r;
 	float rough_detail = texture(roughness_tex, detail_uv).r;
-	float rough_blend = mix(rough_sample, rough_detail, 0.3);
+	float rough_blend = mix(rough_sample, rough_detail, detail_blend);
 	float roughness = mix(roughness_base, rough_blend, roughness_tex_weight);
 
 	// Normal map — only applied when use_normal_map is true
 	if (use_normal_map) {
 		vec3 nmap = texture(normal_tex, base_uv).rgb;
 		vec3 nmap_detail = texture(normal_tex, detail_uv).rgb;
-		nmap = mix(nmap, nmap_detail, 0.3);
+		nmap = mix(nmap, nmap_detail, detail_blend);
 		// Scale normal map intensity: blend toward flat normal (0.5, 0.5, 1.0)
 		vec3 flat_normal = vec3(0.5, 0.5, 1.0);
 		NORMAL_MAP = mix(flat_normal, nmap, normal_map_scale);
@@ -124,7 +147,10 @@ void fragment() {
 
 	float window_intensity = 0.0;
 	if (is_lit) {
-		window_intensity = emission_energy * flicker_factor;
+		// Crown effect: lit windows in the top crown_frac of the facade burn brighter so
+		// high-rises read as lit upper floors. grid_uv.y == 0 is the top of the face.
+		float crown_factor = (grid_uv.y < crown_frac) ? crown_boost : 1.0;
+		window_intensity = emission_energy * flicker_factor * crown_factor;
 	}
 
 	// Combine: frame line → dark frame; lit window → very low warm interior glow;
@@ -139,13 +165,19 @@ void fragment() {
 		final_emission = window_emission * window_intensity * window_glow;
 		albedo = mix(albedo, window_emission, 0.06 * window_glow);
 	} else {
-		// Dark window: recessed glass with a subtle sky reflection toward the centre.
+		// Dark window: recessed glass. The *_multiplier uniforms exaggerate the effective
+		// recess/reflection at capture distance so panes read as visibly dark centres with
+		// a subtle teal sky reflection — without changing the tested public uniform values.
 		float recess = smoothstep(frame_thickness, 0.5, local.x) * smoothstep(frame_thickness, 0.5, 1.0 - local.x)
 			* smoothstep(frame_thickness, 0.5, local.y) * smoothstep(frame_thickness, 0.5, 1.0 - local.y);
-		vec3 sky_tint = vec3(0.15, 0.12, 0.10) * (1.0 - recess * window_depth);
-		albedo = mix(albedo, dark_window, 0.15);
-		albedo = mix(albedo, sky_tint, recess * glass_reflectivity);
-		roughness = mix(roughness, 0.15, recess * glass_reflectivity); // glass is smoother
+		float eff_depth = window_depth * capture_depth_multiplier;
+		float eff_refl = glass_reflectivity * capture_reflectivity_multiplier;
+		// Darken the pane centre so the recessed glass reads as a dark rectangle at distance.
+		float dark_amount = clamp(0.15 + recess * eff_depth * 0.55, 0.0, 0.85);
+		albedo = mix(albedo, dark_window, dark_amount);
+		// Sky reflection pooling toward the pane centre (teal-tinted for the capture pass).
+		albedo = mix(albedo, glass_sky_tint, recess * eff_refl);
+		roughness = mix(roughness, 0.15, recess * eff_refl); // glass is smoother
 	}
 
 	// Add only a tiny amount of any emission texture contribution so legacy maps no

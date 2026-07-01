@@ -45,6 +45,17 @@ const FACADE_PBR_PROPS: Array[Dictionary] = [
 	{"roughness": 0.42, "metallic": 0.45, "emission_energy": 0.04},
 	{"roughness": 0.48, "metallic": 0.35, "emission_energy": 0.06},
 ]
+# Capture-distance colour groups (spec P0.3): teal glass, warm concrete, dark metal.
+# Each capture building is bucketed deterministically (building_seed % 3) and the facade
+# shader mixes the base albedo toward the group hue at the matching strength, so the
+# skyline reads as distinct colour bands instead of one uniform brown-orange mass.
+# Teal is the #00B4A0 identity teal (not cyan); metal is near-black cool (not charcoal).
+const FACADE_GROUP_TINTS: Array[Color] = [
+	Color(0.0, 0.706, 0.627, 1.0),
+	Color(0.72, 0.55, 0.38, 1.0),
+	Color(0.11, 0.12, 0.14, 1.0),
+]
+const FACADE_GROUP_STRENGTHS: Array[float] = [0.30, 0.22, 0.30]
 var _facade_albedo_textures: Array[Texture2D] = []
 var _facade_normal_textures: Array[Texture2D] = []
 var _facade_roughness_textures: Array[Texture2D] = []
@@ -3608,6 +3619,14 @@ func _apply_facade_texture_overlay(holder: Node3D, building_seed: int, texture_i
 	var tint_g: float = 0.87 + float(abs(building_seed / 7) % 4) * 0.015
 	var tint_b: float = 0.82 + float(abs(building_seed / 13) % 3) * 0.02
 	var albedo_tint := Color(tint_r, tint_g, tint_b, 1.0)
+	# Capture-distance colour group (P0.3): bucket into teal-glass / warm-concrete /
+	# dark-metal so adjacent towers don't all read the same brown. building_seed is the
+	# node-name hash, so neighbours (different names) land in different buckets.
+	var color_group: int = abs(building_seed) % 3
+	var group_tint_col: Color = FACADE_GROUP_TINTS[color_group]
+	var group_strength: float = FACADE_GROUP_STRENGTHS[color_group]
+	# High-rise crown (P1.3): only tall towers get brighter top-floor window emission.
+	var crown_boost_val: float = 2.5 if size.y > 20.0 else 1.0
 	# Panels are slightly shorter than the full height and dropped a touch so they cover the
 	# facade glass without overlapping the roof cap, doors or awnings at the very edges.
 	var thickness := 0.04
@@ -3655,6 +3674,21 @@ func _apply_facade_texture_overlay(holder: Node3D, building_seed: int, texture_i
 		mat.set_shader_parameter("use_normal_map", true)
 		mat.set_shader_parameter("roughness_tex_weight", 0.8)
 		mat.set_shader_parameter("normal_map_scale", 0.8)
+		# Capture-distance polish (P0.1/P0.2/P0.3/P1.3). The tested public uniforms above
+		# (uv_scale, uv_scale_2, window_depth, glass_reflectivity) keep their locked values;
+		# these multipliers/uniforms scale the *effective* read at play distance:
+		#  - detail_blend 0.55 + freq boost 3.5/2.7 → effective 3.5x detail to break tiling
+		#  - depth x2.5 → effective window recess ~0.75-1.5; reflectivity x1.6 → ~0.4 glass
+		#  - group_tint → teal/concrete/metal colour banding; crown_boost → lit high-rise tops
+		mat.set_shader_parameter("detail_blend", 0.55)
+		mat.set_shader_parameter("capture_detail_frequency_boost", 3.5 / 2.7)
+		mat.set_shader_parameter("capture_depth_multiplier", 2.5)
+		mat.set_shader_parameter("capture_reflectivity_multiplier", 1.6)
+		mat.set_shader_parameter("glass_sky_tint", Color(0.05, 0.16, 0.17, 1.0))
+		mat.set_shader_parameter("group_tint", group_tint_col)
+		mat.set_shader_parameter("group_tint_strength", group_strength)
+		mat.set_shader_parameter("crown_boost", crown_boost_val)
+		mat.set_shader_parameter("crown_frac", 0.25)
 		panel.material_override = mat
 		holder.add_child(panel)
 	_add_building_greebles(holder, bmin, bmax, building_seed)
@@ -3672,7 +3706,9 @@ func _add_building_greebles(holder: Node3D, bmin: Vector3, bmax: Vector3, buildi
 	var seed: int = abs(building_seed)
 	var floors_est: int = int(size.y / 3.5)
 	var ledge_mat := _matte(Color(0.15, 0.15, 0.16, 1.0), 0.7, 0.3)
-	# 1. Horizontal floor ledges across the front face for taller buildings.
+	# 1. Horizontal floor ledges across the front face for taller buildings. Sized for
+	# capture-distance visibility (P0.4): a bold ~0.4 m band protruding ~0.6 m so it casts
+	# a readable shadow line, not the sub-pixel 0.15/0.12 close-up ledge.
 	if floors_est >= 6:
 		var fracs := [0.25, 0.5, 0.75]
 		for li in range(fracs.size()):
@@ -3681,43 +3717,67 @@ func _add_building_greebles(holder: Node3D, bmin: Vector3, bmax: Vector3, buildi
 				continue
 			var ly: float = bmin.y + size.y * float(fracs[li])
 			_add_box(holder, "Greeble_Ledge_%d" % li,
-				Vector3(size.x * 0.96, 0.15, 0.12),
-				Vector3(center.x, ly, bmax.z + 0.06), ledge_mat)
-	# 2. Roof HVAC units — 1-2 small boxes on top.
+				Vector3(size.x * 0.98, 0.4, 0.6),
+				Vector3(center.x, ly, bmax.z + 0.3), ledge_mat)
+	# 1b. Gold accent light strips at 1/3 and 2/3 height on mid/high-rise buildings (P1.1).
+	# A warm-gold emissive band wrapping all four faces gives the skyline horizontal rhythm
+	# and ties the city to the hero's gold contrails. Gold is #E8A828 (warm, not yellow).
+	if floors_est >= 6:
+		var gold_mat := _mat(Color(0.909, 0.658, 0.157, 1.0), Color(0.909, 0.658, 0.157, 1.0), 0.6)
+		var strip_fracs := [0.33, 0.66]
+		for si in range(strip_fracs.size()):
+			var gy: float = bmin.y + size.y * float(strip_fracs[si])
+			_add_box(holder, "Greeble_GoldStrip_%d_F" % si,
+				Vector3(size.x * 0.99, 0.4, 0.14), Vector3(center.x, gy, bmax.z + 0.07), gold_mat)
+			_add_box(holder, "Greeble_GoldStrip_%d_B" % si,
+				Vector3(size.x * 0.99, 0.4, 0.14), Vector3(center.x, gy, bmin.z - 0.07), gold_mat)
+			_add_box(holder, "Greeble_GoldStrip_%d_R" % si,
+				Vector3(0.14, 0.4, size.z * 0.99), Vector3(bmax.x + 0.07, gy, center.z), gold_mat)
+			_add_box(holder, "Greeble_GoldStrip_%d_L" % si,
+				Vector3(0.14, 0.4, size.z * 0.99), Vector3(bmin.x - 0.07, gy, center.z), gold_mat)
+	# 2. Roof HVAC units — 1-2 boxes on top, ~1.5x the close-up size for roof silhouette (P0.4).
 	var roof_units: int = 1 + (seed % 2)
 	var hvac_mat := _matte(Color(0.25, 0.24, 0.22, 1.0), 0.8, 0.4)
 	for ui in range(roof_units):
 		var ox: float = (float((seed / (ui + 3)) % 100) / 100.0 - 0.5) * size.x * 0.4
 		var oz: float = (float((seed / (ui + 5)) % 100) / 100.0 - 0.5) * size.z * 0.4
 		_add_box(holder, "Greeble_RoofUnit_%d" % ui,
-			Vector3(size.x * 0.2, 0.4, size.z * 0.2),
-			Vector3(center.x + ox, bmax.y + 0.2, center.z + oz), hvac_mat)
-	# 3. Roof edge parapet around the perimeter.
+			Vector3(size.x * 0.3, 0.6, size.z * 0.3),
+			Vector3(center.x + ox, bmax.y + 0.3, center.z + oz), hvac_mat)
+	# 3. Roof edge parapet around the perimeter — a ~1.0 m low wall so the roofline reads as
+	# a crisp notched silhouette at capture distance rather than a smooth box edge (P0.4).
 	_add_box(holder, "Greeble_Parapet_0",
-		Vector3(size.x * 0.98, 0.3, 0.08),
-		Vector3(center.x, bmax.y + 0.15, bmax.z + 0.02), ledge_mat)
+		Vector3(size.x * 0.98, 1.0, 0.25),
+		Vector3(center.x, bmax.y + 0.5, bmax.z + 0.02), ledge_mat)
 	_add_box(holder, "Greeble_Parapet_1",
-		Vector3(size.x * 0.98, 0.3, 0.08),
-		Vector3(center.x, bmax.y + 0.15, bmin.z - 0.02), ledge_mat)
+		Vector3(size.x * 0.98, 1.0, 0.25),
+		Vector3(center.x, bmax.y + 0.5, bmin.z - 0.02), ledge_mat)
 	_add_box(holder, "Greeble_Parapet_2",
-		Vector3(0.08, 0.3, size.z * 0.98),
-		Vector3(bmax.x + 0.02, bmax.y + 0.15, center.z), ledge_mat)
+		Vector3(0.25, 1.0, size.z * 0.98),
+		Vector3(bmax.x + 0.02, bmax.y + 0.5, center.z), ledge_mat)
 	_add_box(holder, "Greeble_Parapet_3",
-		Vector3(0.08, 0.3, size.z * 0.98),
-		Vector3(bmin.x - 0.02, bmax.y + 0.15, center.z), ledge_mat)
-	# 4. Antenna/spire on tall buildings.
+		Vector3(0.25, 1.0, size.z * 0.98),
+		Vector3(bmin.x - 0.02, bmax.y + 0.5, center.z), ledge_mat)
+	# 4. Antenna/spire on tall buildings — thicker/taller so it resolves as a vertical
+	# silhouette line at capture distance (P0.4).
 	if size.y > 20.0:
 		var ax: float = (float(seed % 100) / 100.0 - 0.5) * size.x * 0.3
 		_add_box(holder, "Greeble_Antenna",
-			Vector3(0.08, 2.0, 0.08),
-			Vector3(center.x + ax, bmax.y + 1.0, center.z),
+			Vector3(0.3, 3.0, 0.3),
+			Vector3(center.x + ax, bmax.y + 1.5, center.z),
 			_matte(Color(0.1, 0.1, 0.1, 1.0), 0.4, 0.6))
-	# 5. Entrance canopy on the front face at ground level (most buildings).
+	# 5. Entrance canopy on the front face at ground level (most buildings). The dark canopy
+	# gets a warm-gold emissive light strip on its underside (P1.4) so street level reads as
+	# an inhabited, gold-lit entrance — matching the hero's gold accent language.
 	if seed % 3 != 0:
 		_add_box(holder, "Greeble_Canopy",
-			Vector3(size.x * 0.3, 0.08, 0.6),
-			Vector3(center.x, bmin.y + 1.5, bmin.z - 0.3),
+			Vector3(size.x * 0.3, 0.12, 0.7),
+			Vector3(center.x, bmin.y + 1.5, bmin.z - 0.35),
 			_matte(Color(0.12, 0.12, 0.13, 1.0), 0.6, 0.5))
+		_add_box(holder, "Greeble_CanopyLight",
+			Vector3(size.x * 0.27, 0.05, 0.6),
+			Vector3(center.x, bmin.y + 1.42, bmin.z - 0.35),
+			_mat(Color(0.909, 0.658, 0.157, 1.0), Color(0.909, 0.658, 0.157, 1.0), 0.5))
 
 # Deterministic facade texture set index for a building, derived from its node name so
 # different buildings get different PBR sets (glass/concrete/brick/metal/commercial).
