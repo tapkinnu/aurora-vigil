@@ -683,6 +683,12 @@ func _add_building_segment(parent: StaticBody3D, seg_name: String, size: Vector3
 	col.shape = col_shape
 	col.position = center
 	parent.add_child(col)
+	# Screenshot/capture readability pass for the procedural gameplay towers. The
+	# imported-city facade overlay only affects the curated `city` postcard; gameplay
+	# and drone captures use these code-built BoxMesh towers, so add deterministic,
+	# physical strips on each actual segment (not a floating whole-building overlay).
+	if OS.get_environment("AURORA_CAPTURE_MODE") != "":
+		_add_floor_strips(parent, seg_name, size, center)
 
 func _build_simple_box(parent: StaticBody3D, width: float, depth: float, h: float, mat: Material) -> Dictionary:
 	_add_building_segment(parent, "MainBox", Vector3(width, h, depth), Vector3(0, h * 0.5, 0), mat)
@@ -1027,21 +1033,88 @@ func _add_crosswalk(parent: Node3D, avenue_z: float, east_west: bool) -> void:
 		stripe.material_override = stripe_mat
 		parent.add_child(stripe)
 
-func _add_floor_strips(parent: Node3D, width: float, depth: float, h: float) -> void:
-	var rows := int(clamp(h / 4.2, 5.0, 11.0))
-	var window_mat := _matte(Color(0.12, 0.14, 0.16, 1.0), 0.55, 0.15)
-	var pod_mat := _matte(Color(0.28, 0.29, 0.30, 1.0), 0.7, 0.2)
+func _add_floor_strips(parent: Node3D, seg_name: String, size: Vector3, center: Vector3) -> void:
+	if size.y < 7.0:
+		return
+	var rows: int = int(clamp(size.y / 4.2, 5.0, 12.0))
+	var window_mat := _matte(Color(0.012, 0.018, 0.026, 1.0), 0.32, 0.25)
+	var pod_mat := _matte(Color(0.22, 0.23, 0.24, 1.0), 0.7, 0.2)
+	var gold_mat := _mat(Color(0.909, 0.658, 0.157, 1.0), Color(0.909, 0.658, 0.157, 1.0), 0.55)
+	var teal_panel_mat := _matte(Color(0.02, 0.31, 0.27, 1.0), 0.58, 0.15)
+	var warm_panel_mat := _matte(Color(0.54, 0.40, 0.25, 1.0), 0.78, 0.05)
+	var dark_panel_mat := _matte(Color(0.055, 0.065, 0.075, 1.0), 0.45, 0.28)
+	var strip_h: float = clampf(size.y / float(rows) * 0.18, 0.28, 0.58)
+	var z_front: float = center.z + size.z * 0.5 + 0.09
+	var z_back: float = center.z - size.z * 0.5 - 0.09
+	var x_left: float = center.x - size.x * 0.5 - 0.09
+	var x_right: float = center.x + size.x * 0.5 + 0.09
 	for r in range(rows):
-		var y := -h * 0.45 + (float(r) + 0.5) * h / float(rows)
-		_add_box(parent, "WindowStripFront_%d" % r, Vector3(width + 0.08, 0.07, 0.13), Vector3(0, y, depth * 0.5 + 0.08), window_mat)
-		_add_box(parent, "WindowStripBack_%d" % r, Vector3(width + 0.08, 0.07, 0.13), Vector3(0, y, -depth * 0.5 - 0.08), window_mat)
-		if width >= depth:
-			_add_box(parent, "WindowStripLeft_%d" % r, Vector3(0.13, 0.07, depth + 0.08), Vector3(-width * 0.5 - 0.08, y, 0), window_mat)
-			_add_box(parent, "WindowStripRight_%d" % r, Vector3(0.13, 0.07, depth + 0.08), Vector3(width * 0.5 + 0.08, y, 0), window_mat)
+		var y: float = center.y - size.y * 0.5 + (float(r) + 0.5) * size.y / float(rows)
+		_add_box(parent, "%s_WindowStripFront_%d" % [seg_name, r],
+			Vector3(size.x * 0.88, strip_h, 0.18), Vector3(center.x, y, z_front), window_mat)
+		_add_box(parent, "%s_WindowStripBack_%d" % [seg_name, r],
+			Vector3(size.x * 0.88, strip_h, 0.18), Vector3(center.x, y, z_back), window_mat)
+		_add_box(parent, "%s_WindowStripLeft_%d" % [seg_name, r],
+			Vector3(0.18, strip_h, size.z * 0.88), Vector3(x_left, y, center.z), window_mat)
+		_add_box(parent, "%s_WindowStripRight_%d" % [seg_name, r],
+			Vector3(0.18, strip_h, size.z * 0.88), Vector3(x_right, y, center.z), window_mat)
+	var mullion_h: float = maxf(2.0, size.y * 0.78)
+	var mullion_y: float = center.y
+	var x_cols: int = int(clamp(size.x / 3.0, 2.0, 5.0))
+	for c in range(1, x_cols):
+		var mx: float = center.x - size.x * 0.5 + size.x * float(c) / float(x_cols)
+		_add_box(parent, "%s_MullionFront_%d" % [seg_name, c],
+			Vector3(0.16, mullion_h, 0.20), Vector3(mx, mullion_y, z_front + 0.02), window_mat)
+		_add_box(parent, "%s_MullionBack_%d" % [seg_name, c],
+			Vector3(0.16, mullion_h, 0.20), Vector3(mx, mullion_y, z_back - 0.02), window_mat)
+	var z_cols: int = int(clamp(size.z / 3.0, 2.0, 5.0))
+	for c in range(1, z_cols):
+		var mz: float = center.z - size.z * 0.5 + size.z * float(c) / float(z_cols)
+		_add_box(parent, "%s_MullionLeft_%d" % [seg_name, c],
+			Vector3(0.20, mullion_h, 0.16), Vector3(x_left - 0.02, mullion_y, mz), window_mat)
+		_add_box(parent, "%s_MullionRight_%d" % [seg_name, c],
+			Vector3(0.20, mullion_h, 0.16), Vector3(x_right + 0.02, mullion_y, mz), window_mat)
+	if size.y >= 12.0:
+		var group_hint: int = absi(int(center.x * 10.0) + int(center.z * 17.0) + int(size.y)) % 3
+		var panel_mat: Material = teal_panel_mat
+		match group_hint:
+			1:
+				panel_mat = warm_panel_mat
+			2:
+				panel_mat = dark_panel_mat
+			_:
+				panel_mat = teal_panel_mat
+		var panel_w: float = clampf(size.x * 0.24, 1.3, 3.1)
+		var panel_d: float = clampf(size.z * 0.24, 1.3, 3.1)
+		var panel_h: float = clampf(size.y * 0.18, 1.8, 4.8)
+		var py1: float = center.y - size.y * 0.18
+		var py2: float = center.y + size.y * 0.16
+		_add_box(parent, "%s_FacadePatchFrontA" % seg_name,
+			Vector3(panel_w, panel_h, 0.12), Vector3(center.x - size.x * 0.22, py1, z_front + 0.04), panel_mat)
+		_add_box(parent, "%s_FacadePatchBackA" % seg_name,
+			Vector3(panel_w, panel_h, 0.12), Vector3(center.x + size.x * 0.18, py2, z_back - 0.04), panel_mat)
+		_add_box(parent, "%s_FacadePatchLeftA" % seg_name,
+			Vector3(0.12, panel_h, panel_d), Vector3(x_left - 0.04, py2, center.z - size.z * 0.18), panel_mat)
+		_add_box(parent, "%s_FacadePatchRightA" % seg_name,
+			Vector3(0.12, panel_h, panel_d), Vector3(x_right + 0.04, py1, center.z + size.z * 0.22), panel_mat)
 	for r in range(2, max(3, rows - 1), 3):
-		var y := -h * 0.32 + float(r) * h / float(rows)
-		_add_box(parent, "FrontServicePod_%d" % r, Vector3(2.4, 0.75, 1.15), Vector3(-width * 0.22, y, depth * 0.5 + 0.48), pod_mat)
-		_add_box(parent, "BackServicePod_%d" % r, Vector3(2.4, 0.75, 1.15), Vector3(width * 0.22, y, -depth * 0.5 - 0.48), pod_mat)
+		var pod_y: float = center.y - size.y * 0.42 + float(r) * size.y / float(rows)
+		_add_box(parent, "%s_FrontServicePod_%d" % [seg_name, r],
+			Vector3(minf(2.4, size.x * 0.4), 0.75, 1.15), Vector3(center.x - size.x * 0.22, pod_y, z_front + 0.35), pod_mat)
+		_add_box(parent, "%s_BackServicePod_%d" % [seg_name, r],
+			Vector3(minf(2.4, size.x * 0.4), 0.75, 1.15), Vector3(center.x + size.x * 0.22, pod_y, z_back - 0.35), pod_mat)
+	if size.y >= 14.0:
+		var strip_fracs := [0.34, 0.67]
+		for si in range(strip_fracs.size()):
+			var gy: float = center.y - size.y * 0.5 + size.y * float(strip_fracs[si])
+			_add_box(parent, "%s_GoldStrip_%d_F" % [seg_name, si],
+				Vector3(size.x * 0.94, 0.32, 0.14), Vector3(center.x, gy, z_front + 0.02), gold_mat)
+			_add_box(parent, "%s_GoldStrip_%d_B" % [seg_name, si],
+				Vector3(size.x * 0.94, 0.32, 0.14), Vector3(center.x, gy, z_back - 0.02), gold_mat)
+			_add_box(parent, "%s_GoldStrip_%d_L" % [seg_name, si],
+				Vector3(0.14, 0.32, size.z * 0.94), Vector3(x_left - 0.02, gy, center.z), gold_mat)
+			_add_box(parent, "%s_GoldStrip_%d_R" % [seg_name, si],
+				Vector3(0.14, 0.32, size.z * 0.94), Vector3(x_right + 0.02, gy, center.z), gold_mat)
 
 func _add_cornice(parent: Node3D, width: float, depth: float, top_y: float) -> void:
 	# A projecting stone/concrete cornice at the parapet line — the horizontal cap
@@ -1124,6 +1197,23 @@ func _add_roof_detail(parent: Node3D, width: float, depth: float, top_y: float, 
 		antenna.position = Vector3(-width * 0.28, top_y + 2.1, -depth * 0.28)
 		antenna.material_override = mech_mat
 		parent.add_child(antenna)
+	if OS.get_environment("AURORA_CAPTURE_MODE") != "":
+		# Capture-distance skyline breakers: oversized but mundane roof service frames
+		# and billboards so drone/gameplay screenshots read as dressed architecture,
+		# not just vertical boxes with painted lines.
+		var frame_mat := _matte(Color(0.09, 0.095, 0.10, 1.0), 0.6, 0.35)
+		var sign_mat := _mat(Color(0.20, 0.16, 0.09, 1.0), Color(0.909, 0.658, 0.157, 1.0), 0.22)
+		var frame_w: float = clampf(width * 0.58, 3.0, 7.0)
+		var frame_z: float = depth * 0.5 + 0.35
+		var frame_y: float = top_y + 3.0
+		_add_box(parent, "CaptureRoofGantryPostL", Vector3(0.22, 3.8, 0.22), Vector3(-frame_w * 0.5, frame_y, frame_z), frame_mat)
+		_add_box(parent, "CaptureRoofGantryPostR", Vector3(0.22, 3.8, 0.22), Vector3(frame_w * 0.5, frame_y, frame_z), frame_mat)
+		_add_box(parent, "CaptureRoofGantryTop", Vector3(frame_w + 0.5, 0.22, 0.22), Vector3(0, frame_y + 1.9, frame_z), frame_mat)
+		_add_box(parent, "CaptureRoofSign", Vector3(frame_w * 0.72, 1.0, 0.18), Vector3(0, frame_y + 0.55, frame_z + 0.06), sign_mat)
+		_add_box(parent, "CaptureRoofMegaHVAC", Vector3(clampf(width * 0.32, 2.2, 4.2), 1.15, clampf(depth * 0.22, 1.5, 3.2)), Vector3(width * 0.22, top_y + 1.15, depth * 0.24), mech_mat)
+		if width > 8.0:
+			_add_box(parent, "CaptureSideServiceRailF", Vector3(width * 0.52, 0.22, 0.20), Vector3(0, top_y * 0.64, depth * 0.5 + 0.22), frame_mat)
+			_add_box(parent, "CaptureSideServiceRailB", Vector3(width * 0.52, 0.22, 0.20), Vector3(0, top_y * 0.42, -depth * 0.5 - 0.22), frame_mat)
 	# Landmark collectors keep a taller masonry crown + a metal finial (no neon).
 	if collector:
 		_add_box(parent, "CollectorCrown", Vector3(width * 0.6, 3.0, depth * 0.6), Vector3(0, top_y + 2.0, 0), brick_mat)
@@ -1745,22 +1835,35 @@ func _city_facade_material(h: float, x: int, z: int, width: float, depth: float,
 	var lit_prob := 0.08 if not collector else 0.12
 	var em_energy := 0.45 if not collector else 0.7
 	# UV scale variation per building — real PBR textures need higher tiling for visible detail
-	var uv_s := 4.0 + float(abs(x + z) % 3) * 0.5
+	var uv_s: float = 4.0 + float(abs(x + z) % 3) * 0.5
 	if h > 42.0:
 		uv_s += 0.5
 	if collector:
 		uv_s += 0.3
+	var uv_s2: float = uv_s * 2.7
+	var off_x: float = float(abs(seed_val) % 100) / 100.0
+	var off_y: float = float((abs(seed_val) / 100) % 100) / 100.0
 	# Albedo tint variation — warm neutral stone/brick tones (not the old cool blue
 	# cast). Lets the real PBR brick/concrete textures show their own colour.
-	var tint_r := 0.90 + float(abs(x) % 5) * 0.018
-	var tint_g := 0.88 + float(abs(z) % 4) * 0.015
-	var tint_b := 0.82 + float(abs(x + z) % 3) * 0.02
+	var tint_r: float = 0.90 + float(abs(x) % 5) * 0.018
+	var tint_g: float = 0.88 + float(abs(z) % 4) * 0.015
+	var tint_b: float = 0.82 + float(abs(x + z) % 3) * 0.02
 	if collector:
 		tint_r = 0.86
 		tint_g = 0.89
 		tint_b = 0.94  # commercial curtain-wall glass reads a touch cooler
 	# Cycle through PBR texture sets (collectors → commercial facade = index 4)
 	var mat_idx: int = 4 if collector else abs(x * 3 + z * 7) % 5
+	var color_group: int = abs(x * 31 + z * 17) % 3
+	var group_tint_col: Color = FACADE_GROUP_TINTS[color_group]
+	var group_strength: float = 0.52
+	match color_group:
+		0:
+			group_strength = 0.56
+		1:
+			group_strength = 0.40
+		_:
+			group_strength = 0.52
 	var mat := ShaderMaterial.new()
 	mat.shader = FACADE_SHADER
 	mat.set_shader_parameter("building_seed", seed_val)
@@ -1769,8 +1872,21 @@ func _city_facade_material(h: float, x: int, z: int, width: float, depth: float,
 	mat.set_shader_parameter("lit_probability", lit_prob)
 	mat.set_shader_parameter("emission_energy", em_energy)
 	mat.set_shader_parameter("uv_scale", uv_s)
+	mat.set_shader_parameter("uv_scale_2", uv_s2)
+	mat.set_shader_parameter("uv_offset", Vector2(off_x, off_y))
+	mat.set_shader_parameter("window_depth", clampf(0.35 + h / 90.0, 0.35, 0.6))
+	mat.set_shader_parameter("glass_reflectivity", 0.22 if mat_idx == 0 else 0.16)
 	mat.set_shader_parameter("albedo_tint", Color(tint_r, tint_g, tint_b, 1.0))
 	mat.set_shader_parameter("flicker_speed", 2.5 + float(abs(x * 3 + z) % 5) * 0.5)
+	mat.set_shader_parameter("detail_blend", 0.55)
+	mat.set_shader_parameter("capture_detail_frequency_boost", 3.5 / 2.7)
+	mat.set_shader_parameter("capture_depth_multiplier", 2.5)
+	mat.set_shader_parameter("capture_reflectivity_multiplier", 1.6)
+	mat.set_shader_parameter("glass_sky_tint", Color(0.05, 0.16, 0.17, 1.0))
+	mat.set_shader_parameter("group_tint", group_tint_col)
+	mat.set_shader_parameter("group_tint_strength", group_strength)
+	mat.set_shader_parameter("crown_boost", 2.5 if h > 42.0 else 1.0)
+	mat.set_shader_parameter("crown_frac", 0.25)
 	# Mullion frames in dark warm grey; unlit panes as dark neutral glass. The lit
 	# palette is all warm interior tones — the cyan office glow is gone.
 	mat.set_shader_parameter("frame_color", Color(0.06, 0.06, 0.065, 1.0))
@@ -1786,6 +1902,8 @@ func _city_facade_material(h: float, x: int, z: int, width: float, depth: float,
 		mat.set_shader_parameter("normal_tex", _facade_normal_textures[idx])
 		mat.set_shader_parameter("roughness_tex", _facade_roughness_textures[idx])
 		mat.set_shader_parameter("emission_tex", _facade_emission_textures[idx])
+		var idx2: int = (idx + 1) % _facade_albedo_textures.size()
+		mat.set_shader_parameter("albedo_tex_2", _facade_albedo_textures[idx2])
 		mat.set_shader_parameter("roughness_base", float(pbr.get("roughness", 0.5)))
 		mat.set_shader_parameter("metallic_val", float(pbr.get("metallic", 0.14)))
 		mat.set_shader_parameter("use_normal_map", true)
