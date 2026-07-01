@@ -1037,13 +1037,20 @@ func _add_floor_strips(parent: Node3D, seg_name: String, size: Vector3, center: 
 	if size.y < 7.0:
 		return
 	var rows: int = int(clamp(size.y / 4.2, 5.0, 12.0))
-	var window_mat := _matte(Color(0.012, 0.018, 0.026, 1.0), 0.32, 0.25)
+	# Capture/drone views flatten subtle shader detail, so these physical bands are
+	# intentionally high-contrast and slightly emissive: dark teal glass panes against
+	# warm/gold trims read as windows from altitude instead of disappearing into the
+	# sunset haze.
+	var window_mat := _mat(Color(0.006, 0.026, 0.033, 1.0), Color(0.0, 0.10, 0.09, 1.0), 0.08)
+	window_mat.roughness = 0.22
+	window_mat.metallic = 0.28
 	var pod_mat := _matte(Color(0.22, 0.23, 0.24, 1.0), 0.7, 0.2)
-	var gold_mat := _mat(Color(0.909, 0.658, 0.157, 1.0), Color(0.909, 0.658, 0.157, 1.0), 0.55)
-	var teal_panel_mat := _matte(Color(0.02, 0.31, 0.27, 1.0), 0.58, 0.15)
-	var warm_panel_mat := _matte(Color(0.54, 0.40, 0.25, 1.0), 0.78, 0.05)
-	var dark_panel_mat := _matte(Color(0.055, 0.065, 0.075, 1.0), 0.45, 0.28)
-	var strip_h: float = clampf(size.y / float(rows) * 0.18, 0.28, 0.58)
+	var gold_mat := _mat(Color(0.909, 0.658, 0.157, 1.0), Color(0.909, 0.658, 0.157, 1.0), 0.95)
+	var teal_panel_mat := _mat(Color(0.0, 0.40, 0.35, 1.0), Color(0.0, 0.18, 0.15, 1.0), 0.10)
+	teal_panel_mat.roughness = 0.50
+	var warm_panel_mat := _matte(Color(0.62, 0.45, 0.27, 1.0), 0.76, 0.05)
+	var dark_panel_mat := _matte(Color(0.035, 0.045, 0.055, 1.0), 0.38, 0.34)
+	var strip_h: float = clampf(size.y / float(rows) * 0.24, 0.44, 0.82)
 	var z_front: float = center.z + size.z * 0.5 + 0.09
 	var z_back: float = center.z - size.z * 0.5 - 0.09
 	var x_left: float = center.x - size.x * 0.5 - 0.09
@@ -1051,13 +1058,13 @@ func _add_floor_strips(parent: Node3D, seg_name: String, size: Vector3, center: 
 	for r in range(rows):
 		var y: float = center.y - size.y * 0.5 + (float(r) + 0.5) * size.y / float(rows)
 		_add_box(parent, "%s_WindowStripFront_%d" % [seg_name, r],
-			Vector3(size.x * 0.88, strip_h, 0.18), Vector3(center.x, y, z_front), window_mat)
+			Vector3(size.x * 0.92, strip_h, 0.24), Vector3(center.x, y, z_front), window_mat)
 		_add_box(parent, "%s_WindowStripBack_%d" % [seg_name, r],
-			Vector3(size.x * 0.88, strip_h, 0.18), Vector3(center.x, y, z_back), window_mat)
+			Vector3(size.x * 0.92, strip_h, 0.24), Vector3(center.x, y, z_back), window_mat)
 		_add_box(parent, "%s_WindowStripLeft_%d" % [seg_name, r],
-			Vector3(0.18, strip_h, size.z * 0.88), Vector3(x_left, y, center.z), window_mat)
+			Vector3(0.24, strip_h, size.z * 0.92), Vector3(x_left, y, center.z), window_mat)
 		_add_box(parent, "%s_WindowStripRight_%d" % [seg_name, r],
-			Vector3(0.18, strip_h, size.z * 0.88), Vector3(x_right, y, center.z), window_mat)
+			Vector3(0.24, strip_h, size.z * 0.92), Vector3(x_right, y, center.z), window_mat)
 	var mullion_h: float = maxf(2.0, size.y * 0.78)
 	var mullion_y: float = center.y
 	var x_cols: int = int(clamp(size.x / 3.0, 2.0, 5.0))
@@ -1108,13 +1115,20 @@ func _add_floor_strips(parent: Node3D, seg_name: String, size: Vector3, center: 
 		for si in range(strip_fracs.size()):
 			var gy: float = center.y - size.y * 0.5 + size.y * float(strip_fracs[si])
 			_add_box(parent, "%s_GoldStrip_%d_F" % [seg_name, si],
-				Vector3(size.x * 0.94, 0.32, 0.14), Vector3(center.x, gy, z_front + 0.02), gold_mat)
+				Vector3(size.x * 0.98, 0.50, 0.22), Vector3(center.x, gy, z_front + 0.04), gold_mat)
 			_add_box(parent, "%s_GoldStrip_%d_B" % [seg_name, si],
-				Vector3(size.x * 0.94, 0.32, 0.14), Vector3(center.x, gy, z_back - 0.02), gold_mat)
+				Vector3(size.x * 0.98, 0.50, 0.22), Vector3(center.x, gy, z_back - 0.04), gold_mat)
 			_add_box(parent, "%s_GoldStrip_%d_L" % [seg_name, si],
-				Vector3(0.14, 0.32, size.z * 0.94), Vector3(x_left - 0.02, gy, center.z), gold_mat)
+				Vector3(0.22, 0.50, size.z * 0.98), Vector3(x_left - 0.04, gy, center.z), gold_mat)
 			_add_box(parent, "%s_GoldStrip_%d_R" % [seg_name, si],
-				Vector3(0.14, 0.32, size.z * 0.94), Vector3(x_right + 0.02, gy, center.z), gold_mat)
+				Vector3(0.22, 0.50, size.z * 0.98), Vector3(x_right + 0.04, gy, center.z), gold_mat)
+	if size.y >= 24.0:
+		# Two extra crown-light bands near the top give high-rises a readable upper-floor
+		# activity pattern in drone screenshots, where the shader-only crown is too subtle.
+		for si in range(2):
+			var gy_top: float = center.y + size.y * (0.30 + float(si) * 0.11)
+			_add_box(parent, "%s_CrownGoldBand_%d_F" % [seg_name, si], Vector3(size.x * 0.78, 0.40, 0.24), Vector3(center.x, gy_top, z_front + 0.07), gold_mat)
+			_add_box(parent, "%s_CrownGoldBand_%d_R" % [seg_name, si], Vector3(0.24, 0.40, size.z * 0.78), Vector3(x_right + 0.07, gy_top, center.z), gold_mat)
 
 func _add_cornice(parent: Node3D, width: float, depth: float, top_y: float) -> void:
 	# A projecting stone/concrete cornice at the parapet line — the horizontal cap
@@ -1202,18 +1216,38 @@ func _add_roof_detail(parent: Node3D, width: float, depth: float, top_y: float, 
 		# and billboards so drone/gameplay screenshots read as dressed architecture,
 		# not just vertical boxes with painted lines.
 		var frame_mat := _matte(Color(0.09, 0.095, 0.10, 1.0), 0.6, 0.35)
-		var sign_mat := _mat(Color(0.20, 0.16, 0.09, 1.0), Color(0.909, 0.658, 0.157, 1.0), 0.22)
-		var frame_w: float = clampf(width * 0.58, 3.0, 7.0)
+		var sign_mat := _mat(Color(0.22, 0.16, 0.07, 1.0), Color(0.909, 0.658, 0.157, 1.0), 0.55)
+		var teal_lamp := _mat(Color(0.0, 0.42, 0.36, 1.0), Color(0.0, 0.62, 0.52, 1.0), 0.20)
+		var frame_w: float = clampf(width * 0.72, 4.0, 8.5)
 		var frame_z: float = depth * 0.5 + 0.35
-		var frame_y: float = top_y + 3.0
-		_add_box(parent, "CaptureRoofGantryPostL", Vector3(0.22, 3.8, 0.22), Vector3(-frame_w * 0.5, frame_y, frame_z), frame_mat)
-		_add_box(parent, "CaptureRoofGantryPostR", Vector3(0.22, 3.8, 0.22), Vector3(frame_w * 0.5, frame_y, frame_z), frame_mat)
-		_add_box(parent, "CaptureRoofGantryTop", Vector3(frame_w + 0.5, 0.22, 0.22), Vector3(0, frame_y + 1.9, frame_z), frame_mat)
-		_add_box(parent, "CaptureRoofSign", Vector3(frame_w * 0.72, 1.0, 0.18), Vector3(0, frame_y + 0.55, frame_z + 0.06), sign_mat)
-		_add_box(parent, "CaptureRoofMegaHVAC", Vector3(clampf(width * 0.32, 2.2, 4.2), 1.15, clampf(depth * 0.22, 1.5, 3.2)), Vector3(width * 0.22, top_y + 1.15, depth * 0.24), mech_mat)
+		var frame_y: float = top_y + 3.6
+		_add_box(parent, "CaptureRoofGantryPostL", Vector3(0.46, 5.2, 0.46), Vector3(-frame_w * 0.5, frame_y, frame_z), frame_mat)
+		_add_box(parent, "CaptureRoofGantryPostR", Vector3(0.46, 5.2, 0.46), Vector3(frame_w * 0.5, frame_y, frame_z), frame_mat)
+		_add_box(parent, "CaptureRoofGantryTop", Vector3(frame_w + 0.8, 0.42, 0.42), Vector3(0, frame_y + 2.6, frame_z), frame_mat)
+		_add_box(parent, "CaptureRoofGantryBrace", Vector3(0.42, 4.4, 0.42), Vector3(0, frame_y + 0.2, frame_z), frame_mat)
+		_add_box(parent, "CaptureRoofSign", Vector3(frame_w * 0.86, 1.7, 0.26), Vector3(0, frame_y + 0.65, frame_z + 0.08), sign_mat)
+		_add_box(parent, "CaptureRoofTealLamp", Vector3(frame_w * 0.42, 0.34, 0.32), Vector3(0, frame_y + 1.70, frame_z + 0.12), teal_lamp)
+		_add_box(parent, "CaptureRoofMegaHVAC", Vector3(clampf(width * 0.54, 3.2, 6.2), 2.25, clampf(depth * 0.42, 2.6, 5.0)), Vector3(width * 0.22, top_y + 1.85, depth * 0.24), mech_mat)
+		# Top-facing roof language for the high drone camera: large service pads and
+		# maintenance-light bars are visible from above, unlike side-only window strips.
+		var roof_accent: Material = teal_lamp
+		if seed % 3 == 1:
+			roof_accent = sign_mat
+		elif seed % 3 == 2:
+			roof_accent = frame_mat
+		_add_box(parent, "CaptureRoofAccessPad", Vector3(width * 0.86, 0.14, depth * 0.68), Vector3(0, top_y + 0.50, -depth * 0.06), roof_accent)
+		_add_box(parent, "CaptureRoofGoldAccessLineA", Vector3(width * 0.92, 0.15, 0.46), Vector3(0, top_y + 0.63, depth * 0.30), sign_mat)
+		_add_box(parent, "CaptureRoofGoldAccessLineB", Vector3(0.46, 0.15, depth * 0.78), Vector3(-width * 0.32, top_y + 0.64, 0), sign_mat)
+		_add_box(parent, "CaptureRoofGoldAccessLineC", Vector3(0.40, 0.15, depth * 0.66), Vector3(width * 0.32, top_y + 0.65, 0), sign_mat)
+		var roof_cross := _add_box(parent, "CaptureRoofDiagonalDeck", Vector3(width * 0.92, 0.14, 0.38), Vector3(0, top_y + 0.69, 0), roof_accent)
+		roof_cross.rotation_degrees = Vector3(0.0, 32.0, 0.0)
 		if width > 8.0:
-			_add_box(parent, "CaptureSideServiceRailF", Vector3(width * 0.52, 0.22, 0.20), Vector3(0, top_y * 0.64, depth * 0.5 + 0.22), frame_mat)
-			_add_box(parent, "CaptureSideServiceRailB", Vector3(width * 0.52, 0.22, 0.20), Vector3(0, top_y * 0.42, -depth * 0.5 - 0.22), frame_mat)
+			_add_box(parent, "CaptureSideServiceRailF", Vector3(width * 0.66, 0.36, 0.32), Vector3(0, top_y * 0.64, depth * 0.5 + 0.26), frame_mat)
+			_add_box(parent, "CaptureSideServiceRailB", Vector3(width * 0.66, 0.36, 0.32), Vector3(0, top_y * 0.42, -depth * 0.5 - 0.26), frame_mat)
+		if top_y > 44.0:
+			# Landmark-scale roof masts keep taller towers distinct in the high drone shot.
+			_add_box(parent, "CaptureRoofMast", Vector3(0.90, 13.0, 0.90), Vector3(-width * 0.30, top_y + 7.0, -depth * 0.18), frame_mat)
+			_add_box(parent, "CaptureRoofMastLamp", Vector3(2.2, 0.75, 2.2), Vector3(-width * 0.30, top_y + 13.85, -depth * 0.18), sign_mat)
 	# Landmark collectors keep a taller masonry crown + a metal finial (no neon).
 	if collector:
 		_add_box(parent, "CollectorCrown", Vector3(width * 0.6, 3.0, depth * 0.6), Vector3(0, top_y + 2.0, 0), brick_mat)
@@ -3281,9 +3315,10 @@ func _add_hero_tower(parent: Node3D) -> void:
 	col.shape = cyl
 	col.position = Vector3(0, h * 0.5, 0)
 	body.add_child(col)
-	# Horizontal floor bands — thin darker mullion rings that give the cylinder the
-	# stacked-glass-floor read instead of a smooth tube.
-	var band_mat := _matte(Color(0.05, 0.06, 0.08, 1.0), 0.5, 0.4)
+	# Horizontal floor bands — dark teal mullion rings that give the cylinder a
+	# stacked-glass-floor read instead of a smooth tube, still visible from drone view.
+	var band_mat := _matte(Color(0.035, 0.05, 0.065, 1.0), 0.42, 0.45)
+	var crown_gold := _mat(Color(0.909, 0.658, 0.157, 1.0), Color(0.909, 0.658, 0.157, 1.0), 0.85)
 	var bands := int(h / 4.4)
 	for i in range(1, bands):
 		var ring := MeshInstance3D.new()
@@ -3312,6 +3347,12 @@ func _add_hero_tower(parent: Node3D) -> void:
 	crown.position = Vector3(0, h + 1.6, 0)
 	crown.material_override = crown_mat
 	body.add_child(crown)
+	# Tall warm-gold crown fins make the landmark read from drone altitude without
+	# copying shield/cape silhouettes; they echo the hero's ion-mantle palette.
+	for fi in range(4):
+		var ang := float(fi) * TAU / 4.0
+		var fin := _add_box(body, "VigilCrownFin_%d" % fi, Vector3(0.38, 8.0, 0.38), Vector3(cos(ang) * rad * 0.72, h + 5.2, sin(ang) * rad * 0.72), crown_gold)
+		fin.rotation_degrees = Vector3(0.0, -rad_to_deg(ang), 0.0)
 	var mast := _add_box(body, "VigilMast", Vector3(0.5, 12.0, 0.5), Vector3(0, h + 9.0, 0), crown_mat)
 	mast.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	_add_rooftop_beacon(body, Vector3(0, h + 15.5, 0), true)
@@ -3342,12 +3383,15 @@ func _add_landmark_grid_tower(parent: Node3D) -> void:
 	facade.set_shader_parameter("lit_probability", 0.07)
 	facade.set_shader_parameter("albedo_tint", Color(0.80, 0.84, 0.92, 1.0))
 	_add_building_segment(body, "GridMain", Vector3(w, h, d), Vector3(0, h * 0.5, 0), facade)
-	# Muted vertical accent stripe up the front-left corner (brushed metal mullion).
-	var stripe_mat := _matte(Color(0.40, 0.42, 0.46, 1.0), 0.45, 0.6)
+	# Teal-lit vertical accent stripe up the front-left corner (brushed metal/glass mullion).
+	var stripe_mat := _mat(Color(0.0, 0.36, 0.31, 1.0), Color(0.0, 0.22, 0.18, 1.0), 0.10)
+	stripe_mat.roughness = 0.44
+	stripe_mat.metallic = 0.35
 	_add_box(body, "GridStripe", Vector3(1.4, h, 0.5), Vector3(-w * 0.5 + 0.7, h * 0.5, d * 0.5 + 0.26), stripe_mat)
 	_add_box(body, "GridStripeSide", Vector3(0.5, h, 1.4), Vector3(-w * 0.5 - 0.26, h * 0.5, d * 0.5 - 0.7), stripe_mat)
 	# Spandrel bands every few floors break the glass into bold horizontal panels.
-	var spandrel_mat := _matte(Color(0.18, 0.19, 0.22, 1.0), 0.6, 0.3)
+	var spandrel_mat := _matte(Color(0.12, 0.135, 0.16, 1.0), 0.55, 0.34)
+	var grid_gold := _mat(Color(0.909, 0.658, 0.157, 1.0), Color(0.909, 0.658, 0.157, 1.0), 0.75)
 	var floor_h := h / 20.0
 	for fi in range(1, 20):
 		var sy := float(fi) * floor_h
@@ -3355,10 +3399,14 @@ func _add_landmark_grid_tower(parent: Node3D) -> void:
 		_add_box(body, "GridSpandrelB_%d" % fi, Vector3(w + 0.12, 0.7, 0.18), Vector3(0, sy, -d * 0.5 - 0.1), spandrel_mat)
 		_add_box(body, "GridSpandrelL_%d" % fi, Vector3(0.18, 0.7, d + 0.12), Vector3(-w * 0.5 - 0.1, sy, 0), spandrel_mat)
 		_add_box(body, "GridSpandrelR_%d" % fi, Vector3(0.18, 0.7, d + 0.12), Vector3(w * 0.5 + 0.1, sy, 0), spandrel_mat)
+		if fi % 5 == 0:
+			_add_box(body, "GridGoldBeltF_%d" % fi, Vector3(w + 0.25, 0.48, 0.22), Vector3(0, sy + 0.18, d * 0.5 + 0.22), grid_gold)
+			_add_box(body, "GridGoldBeltR_%d" % fi, Vector3(0.22, 0.48, d + 0.25), Vector3(w * 0.5 + 0.22, sy + 0.18, 0), grid_gold)
 	# Flat parapet crown + rooftop mechanical block.
 	var crown_mat := _matte(Color(0.22, 0.23, 0.26, 1.0), 0.7)
 	_add_box(body, "GridParapet", Vector3(w + 0.6, 1.6, d + 0.6), Vector3(0, h + 0.8, 0), crown_mat)
 	_add_box(body, "GridMech", Vector3(w * 0.5, 4.0, d * 0.5), Vector3(0, h + 3.6, 0), crown_mat)
+	_add_box(body, "GridCrownBeaconBar", Vector3(w * 0.70, 0.55, d * 0.16), Vector3(0, h + 5.8, d * 0.18), grid_gold)
 	_add_rooftop_beacon(body, Vector3(0, h + 6.5, 0), true)
 
 func _highway_concrete_material() -> StandardMaterial3D:
