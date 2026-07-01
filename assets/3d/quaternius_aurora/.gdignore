@@ -1,0 +1,3 @@
+# Quaternius Aurora selections are provenance/staging references only.
+# They are not runtime resources yet; do not import this subtree until a
+# focused integration pass curates and converts selected assets.

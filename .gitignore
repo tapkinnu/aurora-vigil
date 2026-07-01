@@ -12,3 +12,9 @@ __pycache__/
 
 # Desktop export build outputs
 build/
+
+# Local-only asset scouting dumps. Keep these out of Git and Godot import until a
+# focused integration card curates specific files into tracked runtime paths.
+assets/3d/quaternius_iconic/
+assets/fonts/
+assets/graphics/
