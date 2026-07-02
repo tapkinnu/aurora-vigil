@@ -5,7 +5,7 @@ ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 OUT=${1:-$ROOT/artifacts/screenshots}
 mkdir -p "$OUT"
 cd "$ROOT"
-for mode in gameplay city drone closeup; do
+for mode in gameplay city drone closeup flats; do
   LOG="$OUT/${mode}.log"
   PNG="$OUT/${mode}.png"
   # Forward+ renderer requires Vulkan. lavapipe (llvmpipe) provides software

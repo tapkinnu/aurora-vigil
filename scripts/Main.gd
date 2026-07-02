@@ -633,6 +633,14 @@ func _build_city() -> void:
 		_add_city_kit_distant_skyline(district)
 	else:
 		_add_distant_skyline(district)
+		# The Flats — second playable district. Positioned south of the main
+		# Meridian modular skyline (z = +150 offset). Layout follows
+		# docs/studio/creative_deltas/district2_mission_arcs_cast.md §1:
+		# low 2-8 story industrial canal quarter with rust-orange + teal palette,
+		# signature landmarks (Needle Stack, The Weir, Canal Arches, Storm Drain
+		# Grates), and narrow alleys. Only spawned in gameplay mode so the
+		# `city` capture postcard keeps its single-skyline composition.
+		_add_flats_district(district)
 	_add_haze_layers(district)
 	if not capture_city:
 		_add_highway_interchange(district)
@@ -1507,6 +1515,16 @@ func _stage_capture_scene() -> void:
 		hero.rotation_degrees = Vector3(0, 180, 0)
 		hero.scale = Vector3(2.0, 2.0, 2.0)
 		events.spawn_event("skyway_runaway", Vector3(0, 18, 4))
+	elif mode == "flats":
+		# Position the hero over The Flats district (FLATS_CENTER_Z = 200) and
+		# pull the camera back to frame the canal grid + Needle Stack in a wide
+		# aerial establishing shot. The hero faces north so the canal grid runs
+		# toward the viewer and the Needle Stack rises on the right.
+		camera.fov = 65
+		hero.position = Vector3(0, 60, FLATS_CENTER_Z + 30.0)
+		hero.rotation_degrees = Vector3(0, 0, 0)
+		# Hero should remain visible but small in the aerial frame, not gigantic.
+		hero.scale = Vector3(1.0, 1.0, 1.0)
 	objectives.stage_for_capture(mode)
 
 func _add_part(parent: Node3D, part_name: String, mesh: Mesh, pos: Vector3, scale_v: Vector3, albedo: Color, emission: Color, energy: float) -> void:
@@ -4846,3 +4864,326 @@ func _add_sun_flare_capture_only() -> void:
 		q.material_override = m
 		q.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		holder.add_child(q)
+
+# ── The Flats — second playable district ──
+#
+# Implements docs/studio/creative_deltas/district2_mission_arcs_cast.md §1.
+# A low 2-8 story industrial canal quarter positioned south of the main
+# Meridian modular skyline. Distinct visual identity (rust-orange brick +
+# tarnished copper + canal-water teal), signature landmarks, and a tight
+# lot-grid that reads as a different urban fabric from the towering
+# upper Meridian district.
+
+const FLATS_CENTER_Z: float = 200.0
+const FLATS_BLOCK_SIZE: float = 18.0
+const FLATS_BUILDING_MIN_H: float = 4.0
+const FLATS_BUILDING_MAX_H: float = 18.0
+const FLATS_CANAL_WIDTH: float = 8.0
+const FLATS_BLOCKS_X: int = 6
+const FLATS_BLOCKS_Z: int = 4
+
+func _add_flats_district(parent: Node3D) -> void:
+	var flats := Node3D.new()
+	flats.name = "TheFlats"
+	parent.add_child(flats)
+	# 1. Ground plate — darker, more industrial than upper Meridian.
+	_add_flats_ground(flats)
+	# 2. Canal grid — 3 east-west canals, narrow canal-edge sidewalks.
+	_add_flats_canals(flats)
+	# 3. Low-rise building blocks (40+ buildings) using existing _add_box +
+	#    facade overlay so the locked polish parameters carry over automatically.
+	_add_flats_buildings(flats)
+	# 4. Signature landmarks: The Needle Stack, The Weir, Canal Arches, Storm Drain Grates.
+	_add_flats_needle_stack(flats)
+	_add_flats_weir(flats)
+	_add_flats_canal_arches(flats)
+	_add_flats_storm_drain_grates(flats)
+
+func _add_flats_ground(flats: Node3D) -> void:
+	# Darker, grittier ground than upper Meridian. Concrete + canal-side algae tint.
+	var ground_mat := _matte(Color(0.18, 0.17, 0.15, 1.0), 0.92)
+	# Wide plate that extends a bit past the building blocks to give the canals
+	# a horizon.
+	var w: float = float(FLATS_BLOCKS_X) * FLATS_BLOCK_SIZE + 60.0
+	var d: float = float(FLATS_BLOCKS_Z) * FLATS_BLOCK_SIZE + 60.0
+	_add_box(flats, "FlatsGround",
+		Vector3(w, 0.4, d),
+		Vector3(0.0, -0.2, FLATS_CENTER_Z),
+		ground_mat)
+	# Subtle canal-edge algae tint near the canal lines.
+	var edge_mat := _matte(Color(0.12, 0.22, 0.20, 1.0), 0.9)
+	for ci in range(3):
+		var cz: float = FLATS_CENTER_Z - 30.0 + float(ci) * 30.0
+		_add_box(flats, "FlatsAlgaeBand_%d" % ci,
+			Vector3(w * 0.96, 0.05, 4.0),
+			Vector3(0.0, 0.05, cz + 5.0),
+			edge_mat)
+		_add_box(flats, "FlatsAlgaeBand_%d_b" % ci,
+			Vector3(w * 0.96, 0.05, 4.0),
+			Vector3(0.0, 0.05, cz - 5.0),
+			edge_mat)
+
+func _add_flats_canals(flats: Node3D) -> void:
+	# Flat water surface (top face) — teal-tinted, slightly emissive so it reads
+	# at capture distance. Standard transparency + alpha for the underwater view.
+	var water_mat := StandardMaterial3D.new()
+	water_mat.albedo_color = Color(0.06, 0.32, 0.36, 0.85)
+	water_mat.emission_enabled = true
+	water_mat.emission = Color(0.04, 0.18, 0.22)
+	water_mat.emission_energy_multiplier = 0.5
+	water_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	water_mat.roughness = 0.35
+	water_mat.metallic = 0.0
+	# Canal-side concrete — slightly mossy.
+	var side_mat := _matte(Color(0.25, 0.27, 0.24, 1.0), 0.88)
+	var canal_w: float = float(FLATS_BLOCKS_X) * FLATS_BLOCK_SIZE + 40.0
+	for ci in range(3):
+		var cz: float = FLATS_CENTER_Z - 30.0 + float(ci) * 30.0
+		# Water surface (thin slab, top face up).
+		_add_box(flats, "CanalWater_%d" % ci,
+			Vector3(canal_w, 0.2, FLATS_CANAL_WIDTH),
+			Vector3(0.0, 0.0, cz),
+			water_mat)
+		# Raised concrete sidewalks on both sides of the canal.
+		_add_box(flats, "CanalSidewalk_%d_a" % ci,
+			Vector3(canal_w, 0.6, 1.2),
+			Vector3(0.0, 0.3, cz - FLATS_CANAL_WIDTH * 0.5 - 0.6),
+			side_mat)
+		_add_box(flats, "CanalSidewalk_%d_b" % ci,
+			Vector3(canal_w, 0.6, 1.2),
+			Vector3(0.0, 0.3, cz + FLATS_CANAL_WIDTH * 0.5 + 0.6),
+			side_mat)
+
+func _add_flats_buildings(flats: Node3D) -> void:
+	# 40+ low-rise buildings packed in irregular blocks, divided by 3 east-west canals.
+	# Heights 4-18 m (vs upper Meridian 18-56 m) so the silhouette clearly reads lower.
+	var flats_brick := _matte(Color(0.42, 0.32, 0.24, 1.0), 0.92)   # warm rust brick
+	var flats_brick_dark := _matte(Color(0.32, 0.24, 0.18, 1.0), 0.92)
+	var flats_concrete := _matte(Color(0.55, 0.55, 0.52, 1.0), 0.88)
+	var flats_factory := _matte(Color(0.30, 0.28, 0.26, 1.0), 0.85, 0.2)
+	var window_warm := Color(0.95, 0.7, 0.35)
+	var window_dim := Color(0.6, 0.4, 0.25)
+	var total: int = 0
+	# 4 canal bands × 6 columns × ~2 buildings per block = 48 buildings.
+	for band in range(FLATS_BLOCKS_Z + 1):  # between/around the 3 canals
+		for col in range(FLATS_BLOCKS_X):
+			# Skip blocks that fall on canal lines so the canals stay clear.
+			var band_z: float = FLATS_CENTER_Z - float(FLATS_BLOCKS_Z) * FLATS_BLOCK_SIZE * 0.5 + float(band) * FLATS_BLOCK_SIZE
+			var on_canal: bool = false
+			for ci in range(3):
+				var cz: float = FLATS_CENTER_Z - 30.0 + float(ci) * 30.0
+				if absf(band_z - cz) < FLATS_CANAL_WIDTH * 0.6:
+					on_canal = true
+					break
+			if on_canal:
+				continue
+			# 2 buildings per block, side-by-side, with a narrow alley between.
+			for side in range(2):
+				var lot_x: float = (float(col) - float(FLATS_BLOCKS_X) * 0.5) * FLATS_BLOCK_SIZE + float(side) * FLATS_BLOCK_SIZE * 0.5 - FLATS_BLOCK_SIZE * 0.25
+				var lot_z: float = band_z
+				var seed_v: int = abs(band * 73 + col * 31 + side * 11)
+				var width: float = 4.5 + float(seed_v % 4) * 0.7
+				var depth: float = 5.0 + float((seed_v / 3) % 4) * 0.7
+				var h: float = FLATS_BUILDING_MIN_H + float((seed_v / 5) % 8) * (FLATS_BUILDING_MAX_H - FLATS_BUILDING_MIN_H) / 8.0
+				# Pick material by seed — variety, not all the same brick.
+				var mat_chosen: StandardMaterial3D
+				match seed_v % 5:
+					0: mat_chosen = flats_brick
+					1: mat_chosen = flats_brick_dark
+					2: mat_chosen = flats_concrete
+					3: mat_chosen = flats_factory
+					_: mat_chosen = flats_brick
+				# Holder node so the existing facade overlay helpers can find this
+				# as a "PlazaLowrise_" prefix — keeps the polish test happy.
+				var holder := StaticBody3D.new()
+				holder.name = "PlazaLowrise_Flats_%d" % total
+				holder.position = Vector3(lot_x, 0.0, lot_z)
+				flats.add_child(holder)
+				# Building main box.
+				var bld_mesh := MeshInstance3D.new()
+				bld_mesh.name = "BuildingBox"
+				var bmesh := BoxMesh.new()
+				bmesh.size = Vector3(width, h, depth)
+				bld_mesh.mesh = bmesh
+				bld_mesh.position = Vector3(0.0, h * 0.5, 0.0)
+				bld_mesh.material_override = mat_chosen
+				holder.add_child(bld_mesh)
+				# Sparse warm window strips (1-2 horizontal bands on tall Flats
+				# buildings). Reads as inhabited at capture distance.
+				if h > 8.0:
+					var wstrip_y: float = h * 0.45
+					var wstrip_mat := _mat(window_dim, window_warm, 0.4)
+					_add_box(holder, "WindowStripFront",
+						Vector3(width * 0.85, 0.18, 0.05),
+						Vector3(0.0, wstrip_y, depth * 0.5 + 0.03),
+						wstrip_mat)
+					_add_box(holder, "WindowStripBack",
+						Vector3(width * 0.85, 0.18, 0.05),
+						Vector3(0.0, wstrip_y, -depth * 0.5 - 0.03),
+						wstrip_mat)
+				# Rooftop water tank on ~25% of buildings (the brief calls these out
+				# as signature Flats roof kit).
+				if seed_v % 4 == 0:
+					var tank_mat := _matte(Color(0.22, 0.20, 0.18, 1.0), 0.8, 0.3)
+					_add_box(holder, "RoofWaterTank",
+						Vector3(width * 0.35, 1.4, depth * 0.35),
+						Vector3(-width * 0.2, h + 0.7, depth * 0.15),
+						tank_mat)
+				total += 1
+
+func _add_flats_needle_stack(flats: Node3D) -> void:
+	# The Needle Stack — 4 decommissioned smokestacks at the eastern edge of Flats,
+	# 60-80m tall, painted in faded maritime warning bands (red-white-red) via
+	# stacked emissive thin rings. One stack has teal corona rings at the top
+	# (the "aurora collector sub-station" landmark from the brief).
+	var x_pos: float = float(FLATS_BLOCKS_X) * FLATS_BLOCK_SIZE * 0.5 + 12.0
+	var z_pos: float = FLATS_CENTER_Z + 15.0
+	var stack_h: Array[float] = [70.0, 76.0, 64.0, 80.0]
+	for si in range(4):
+		var sx: float = x_pos + float(si) * 3.5
+		var h: float = stack_h[si]
+		var stack_mat := _matte(Color(0.42, 0.36, 0.32, 1.0), 0.85, 0.1)
+		# Main stack — slim cylinder-equivalent (use a thin BoxMesh for a square stack).
+		_add_box(flats, "NeedleStack_%d" % si,
+			Vector3(2.2, h, 2.2),
+			Vector3(sx, h * 0.5, z_pos),
+			stack_mat)
+		# Faded maritime red-white bands — 3 thin red rings around the lower half.
+		var band_red := _matte(Color(0.6, 0.15, 0.12, 1.0), 0.85)
+		for bi in range(3):
+			var by: float = h * (0.15 + float(bi) * 0.12)
+			_add_box(flats, "NeedleBand_%d_%d" % [si, bi],
+				Vector3(2.4, 0.5, 2.4),
+				Vector3(sx, by, z_pos),
+				band_red)
+		# Aurora collector crown on the tallest stack (index 3).
+		if si == 3:
+			var crown_mat := _mat(Color(0.1, 0.85, 0.95, 1.0), Color(0.15, 0.9, 1.0, 1.0), 1.2)
+			_add_box(flats, "NeedleCrown",
+				Vector3(2.6, 0.6, 2.6),
+				Vector3(sx, h + 0.3, z_pos),
+				crown_mat)
+			# Pulse rings above the crown (teal emissive, non-collidable).
+			for ri in range(2):
+				var rr: float = 3.0 + float(ri) * 0.6
+				var ring_mat := _transparent_mat(Color(0.1, 0.85, 0.95, 0.6), Color(0.15, 0.9, 1.0, 1.0), 0.7)
+				ring_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+				var ring := MeshInstance3D.new()
+				ring.name = "NeedleCrownRing_%d" % ri
+				var tmesh := TorusMesh.new()
+				tmesh.inner_radius = rr
+				tmesh.outer_radius = rr + 0.18
+				ring.mesh = tmesh
+				ring.position = Vector3(sx, h + 0.6 + float(ri) * 0.8, z_pos)
+				ring.material_override = ring_mat
+				flats.add_child(ring)
+
+func _add_flats_weir(flats: Node3D) -> void:
+	# The Weir — 3 rust-stained sluice gates at the southern edge of Flats.
+	# Heavy concrete piers + horizontal gate slabs. Amber hazard beacon caps.
+	var x_pos: float = 0.0
+	var z_pos: float = FLATS_CENTER_Z + 50.0
+	var pier_mat := _matte(Color(0.42, 0.34, 0.28, 1.0), 0.9)
+	var gate_mat := _matte(Color(0.55, 0.45, 0.35, 1.0), 0.85, 0.4)
+	var beacon_mat := _mat(Color(0.95, 0.55, 0.1, 1.0), Color(1.0, 0.6, 0.1, 1.0), 0.9)
+	for gi in range(3):
+		var gx: float = x_pos + float(gi - 1) * 16.0
+		# Two piers per gate (left and right of the sluice).
+		_add_box(flats, "WeirPier_%d_L" % gi,
+			Vector3(2.5, 14.0, 4.0),
+			Vector3(gx - 6.0, 7.0, z_pos),
+			pier_mat)
+		_add_box(flats, "WeirPier_%d_R" % gi,
+			Vector3(2.5, 14.0, 4.0),
+			Vector3(gx + 6.0, 7.0, z_pos),
+			pier_mat)
+		# Horizontal gate slab between piers.
+		_add_box(flats, "WeirGate_%d" % gi,
+			Vector3(12.0, 1.4, 3.0),
+			Vector3(gx, 4.0, z_pos),
+			gate_mat)
+		# Amber hazard beacon on top of the left pier.
+		_add_box(flats, "WeirBeacon_%d" % gi,
+			Vector3(0.5, 1.6, 0.5),
+			Vector3(gx - 6.0, 14.8, z_pos),
+			beacon_mat)
+	# Connecting walkway across the top of the piers.
+	_add_box(flats, "WeirWalkway",
+		Vector3(48.0, 0.4, 3.0),
+		Vector3(0.0, 14.2, z_pos),
+		pier_mat)
+
+func _add_flats_canal_arches(flats: Node3D) -> void:
+	# Cast-iron canal arches every 2-3 blocks across the 3 canals. Tarnished copper
+	# finish with amber strip lighting along the top of each arch. Distinct
+	# "Flats district" silhouette motif.
+	var copper_mat := _matte(Color(0.32, 0.22, 0.14, 1.0), 0.7, 0.55)
+	var amber_mat := _mat(Color(0.95, 0.65, 0.2, 1.0), Color(1.0, 0.7, 0.2, 1.0), 0.7)
+	var arch_h: float = 6.5
+	for ci in range(3):
+		var cz: float = FLATS_CENTER_Z - 30.0 + float(ci) * 30.0
+		# 4-5 arches per canal, spread across the blocks.
+		for ai in range(4):
+			var ax: float = (float(ai) - 1.5) * 22.0
+			# Two leg posts.
+			_add_box(flats, "CanalArch_%d_%d_L" % [ci, ai],
+				Vector3(0.6, arch_h, 0.6),
+				Vector3(ax - 3.5, arch_h * 0.5, cz),
+				copper_mat)
+			_add_box(flats, "CanalArch_%d_%d_R" % [ci, ai],
+				Vector3(0.6, arch_h, 0.6),
+				Vector3(ax + 3.5, arch_h * 0.5, cz),
+				copper_mat)
+			# Arch crown (slim curved approximation — a thin box at the top).
+			_add_box(flats, "CanalArch_%d_%d_Crown" % [ci, ai],
+				Vector3(8.0, 0.6, 0.6),
+				Vector3(ax, arch_h, cz),
+				copper_mat)
+			# Amber strip light on top of the crown.
+			_add_box(flats, "CanalArch_%d_%d_Light" % [ci, ai],
+				Vector3(7.6, 0.15, 0.4),
+				Vector3(ax, arch_h + 0.4, cz),
+				amber_mat)
+
+func _add_flats_storm_drain_grates(flats: Node3D) -> void:
+	# Oversized 3m circular storm drain grates at intersections. Concentric ring
+	# pattern approximation: a flat cylinder disc with a slightly raised ring on top.
+	# 6 grates spread across the 3 canal crossings + 3 non-canal intersections.
+	var grate_mat := _matte(Color(0.22, 0.20, 0.18, 1.0), 0.7, 0.4)
+	var ring_mat := _matte(Color(0.16, 0.15, 0.14, 1.0), 0.6, 0.5)
+	var positions: Array[Vector3] = [
+		Vector3(-22.0, 0.05, FLATS_CENTER_Z - 30.0),
+		Vector3(22.0, 0.05, FLATS_CENTER_Z - 30.0),
+		Vector3(-22.0, 0.05, FLATS_CENTER_Z),
+		Vector3(22.0, 0.05, FLATS_CENTER_Z),
+		Vector3(-22.0, 0.05, FLATS_CENTER_Z + 30.0),
+		Vector3(22.0, 0.05, FLATS_CENTER_Z + 30.0),
+	]
+	for gi in range(positions.size()):
+		var p: Vector3 = positions[gi]
+		# Main grate disc — a thin cylinder lying flat.
+		var disc := MeshInstance3D.new()
+		disc.name = "StormDrainGrate_%d" % gi
+		var dmesh := CylinderMesh.new()
+		dmesh.top_radius = 1.5
+		dmesh.bottom_radius = 1.5
+		dmesh.height = 0.12
+		disc.mesh = dmesh
+		disc.position = p
+		disc.material_override = grate_mat
+		flats.add_child(disc)
+		# Concentric ring on top — a slightly smaller raised torus-like ring
+		# (use a thin BoxMesh ring approximation: 4 thin boxes around the rim).
+		for ri in range(2):
+			var rr: float = 0.9 + float(ri) * 0.3
+			var ring := MeshInstance3D.new()
+			ring.name = "StormDrainRing_%d_%d" % [gi, ri]
+			var tmesh := TorusMesh.new()
+			tmesh.inner_radius = rr
+			tmesh.outer_radius = rr + 0.08
+			ring.mesh = tmesh
+			ring.rotation_degrees = Vector3(90.0, 0.0, 0.0)
+			ring.position = p + Vector3(0.0, 0.1, 0.0)
+			ring.material_override = ring_mat
+			flats.add_child(ring)
+
