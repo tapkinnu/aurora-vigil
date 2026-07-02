@@ -95,8 +95,12 @@ void fragment() {
 	vec4 albedo_detail = texture(albedo_tex_2, detail_uv);
 	vec3 albedo = mix(albedo_sample.rgb, albedo_detail.rgb, detail_blend) * albedo_tint.rgb;
 	// Coarse secondary variation interrupts large repeated PBR tiles in wide shots.
+	// Boosted for capture-distance readability: broader amplitude + third octave so
+	// adjacent facades read as different tones, not a uniform repeat.
 	float broad_variation = texture(albedo_tex_2, detail_uv * 0.37 + vec2(0.17, 0.29)).r;
-	albedo *= mix(vec3(1.0), vec3(0.74 + broad_variation * 0.55), clamp(detail_blend * 0.38, 0.0, 0.38));
+	float broad_variation2 = texture(albedo_tex_2, detail_uv * 0.21 + vec2(0.41, 0.13)).g;
+	float broad_amt = clamp(detail_blend * 0.55, 0.0, 0.52);
+	albedo *= mix(vec3(1.0), vec3(0.68 + broad_variation * 0.62 + broad_variation2 * 0.18), broad_amt);
 	// Colour-group modulation: shift the whole facade toward its assigned group hue so
 	// the skyline reads as distinct teal/concrete/metal bands instead of one brown mass.
 	vec3 lifted = mix(albedo, vec3(0.34, 0.36, 0.34), clamp(group_tint_lift, 0.0, 1.0));
@@ -179,18 +183,24 @@ void fragment() {
 		float eff_depth = window_depth * capture_depth_multiplier;
 		float eff_refl = glass_reflectivity * capture_reflectivity_multiplier;
 		// Darken the pane centre so the recessed glass reads as a dark rectangle at distance.
-		float dark_amount = clamp(0.22 + recess * eff_depth * 0.68, 0.0, 0.92);
+		// Deeper baseline darkening + stronger recess curve so the dark-to-frame gradient
+		// survives at 60+ unit capture distance.
+		float dark_amount = clamp(0.30 + recess * eff_depth * 0.72, 0.0, 0.94);
 		albedo = mix(albedo, dark_window, dark_amount);
 		// Sky reflection pooling toward the pane centre (teal-tinted for the capture pass).
-		albedo = mix(albedo, glass_sky_tint, clamp(recess * eff_refl, 0.0, 0.85));
-		float glint = smoothstep(0.94, 1.0, 1.0 - abs((local.x + local.y * 0.55) - 0.82) * 7.0) * recess;
-		albedo = mix(albedo, glass_sky_tint + vec3(0.04, 0.08, 0.06), clamp(glint * eff_refl * 0.45, 0.0, 0.42));
+		// Boosted: deeper sky-tint mix toward pane center + extra brightness lift so glass
+		// catches and reflects light at capture distance rather than reading as flat sticker.
+		float sky_mix = clamp(recess * eff_refl * 1.25, 0.0, 0.90);
+		albedo = mix(albedo, glass_sky_tint + vec3(0.06, 0.12, 0.08), sky_mix);
+		float glint = smoothstep(0.92, 1.0, 1.0 - abs((local.x + local.y * 0.55) - 0.82) * 6.5) * recess;
+		albedo = mix(albedo, glass_sky_tint + vec3(0.08, 0.14, 0.10), clamp(glint * eff_refl * 0.55, 0.0, 0.50));
 		if (grid_uv.y < crown_frac && crown_boost > 1.0) {
 			float crown_fill = crown_window_fill * (crown_boost - 1.0) * recess;
 			final_emission += warm_amber * crown_fill;
 			albedo = mix(albedo, warm_amber, clamp(crown_fill * 0.20, 0.0, 0.18));
 		}
-		roughness = mix(roughness, 0.08, clamp(recess * eff_refl, 0.0, 0.8)); // glass is smoother
+		// Lower roughness further in pane centres so glass catches specular light at distance.
+		roughness = mix(roughness, 0.04, clamp(recess * eff_refl * 1.15, 0.0, 0.85)); // glass is smoother
 	}
 
 	// Add only a tiny amount of any emission texture contribution so legacy maps no
