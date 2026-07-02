@@ -1402,7 +1402,41 @@ func _build_hero() -> void:
 	hero.position = Vector3(0, 28, 36)
 	hero.scale = Vector3(1.35, 1.35, 1.35)
 	_apply_actor_visibility_overrides(hero, Color(0.05, 0.9, 1.0, 1), Color(0.0, 0.75, 0.9, 1), 0.08)
+	_add_hero_aura(hero)
 	add_child(hero)
+
+# Capture-distance hero visibility anchor: a faint teal-gold ion aura around The Lumen so
+# the hero reads as a trackable glowing point against the dark city at gameplay/city camera
+# distance. Uses an unshaded billboard sphere + an OmniLight so it works from any angle.
+func _add_hero_aura(hero_node: Node3D) -> void:
+	var aura := MeshInstance3D.new()
+	aura.name = "HeroAura"
+	var aura_mesh := SphereMesh.new()
+	aura_mesh.radius = 2.2
+	aura_mesh.height = 4.4
+	aura.mesh = aura_mesh
+	# Teal-gold aurora: albedo teal, emission gold-teal blend, unshaded + transparent.
+	var aura_mat := StandardMaterial3D.new()
+	aura_mat.albedo_color = Color(0.1, 0.85, 0.95, 0.25)
+	aura_mat.emission_enabled = true
+	aura_mat.emission = Color(0.15, 0.9, 1.0)
+	aura_mat.emission_energy_multiplier = 3.5
+	aura_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	aura_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	aura_mat.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+	aura_mat.no_depth_test = true
+	aura_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	aura.material_override = aura_mat
+	aura.set_meta("hero_aura", true)
+	hero_node.add_child(aura)
+	# Gold-tinted point light so the aura also illuminates nearby geometry at close range.
+	var aura_light := OmniLight3D.new()
+	aura_light.name = "HeroAuraLight"
+	aura_light.light_color = Color(0.2, 0.9, 1.0)
+	aura_light.light_energy = 8.0
+	aura_light.omni_range = 12.0
+	aura_light.omni_attenuation = 1.5
+	hero_node.add_child(aura_light)
 
 func _apply_actor_visibility_overrides(actor: Node3D, albedo: Color, emission: Color, energy: float) -> void:
 	var mesh_count := 0
@@ -3775,6 +3809,8 @@ func _apply_facade_texture_overlay(holder: Node3D, building_seed: int, texture_i
 	var uv_s: float = clamp(2.0 + footprint * 0.18 + float(abs(building_seed) % 3) * 0.4, 2.0, 6.0)
 	var uv_s2: float = uv_s * 2.7
 	# Per-building UV offset breaks the visible grid repeat across neighbouring towers.
+	# Spread the offset across the full [0,1) range so adjacent buildings get visually
+	# distinct texture phases, not just a few texels of difference.
 	var off_x: float = float(building_seed % 100) / 100.0
 	var off_y: float = float((building_seed / 100) % 100) / 100.0
 	# Second material set (next in the cycle) is blended in as detail to defeat tiling.
@@ -3845,14 +3881,14 @@ func _apply_facade_texture_overlay(holder: Node3D, building_seed: int, texture_i
 		# Capture-distance polish (P0.1/P0.2/P0.3/P1.3). The tested public uniforms above
 		# (uv_scale, uv_scale_2, window_depth, glass_reflectivity) keep their locked values;
 		# these multipliers/uniforms scale the *effective* read at play distance:
-		#  - detail_blend 0.55 + freq boost 3.5/2.7 → effective 3.5x detail to break tiling
-		#  - depth x2.5 → effective window recess ~0.75-1.5; reflectivity x1.6 → ~0.4 glass
+		#  - detail_blend 0.6 + freq boost 4.2/2.7 → effective 4.2x detail to break tiling
+		#  - depth x3.0 → effective window recess ~0.9-1.8; reflectivity x2.0 → ~0.5 glass
 		#  - group_tint → teal/concrete/metal colour banding; crown_boost → lit high-rise tops
-		mat.set_shader_parameter("detail_blend", 0.55)
-		mat.set_shader_parameter("capture_detail_frequency_boost", 3.5 / 2.7)
-		mat.set_shader_parameter("capture_depth_multiplier", 2.5)
-		mat.set_shader_parameter("capture_reflectivity_multiplier", 1.6)
-		mat.set_shader_parameter("glass_sky_tint", Color(0.05, 0.16, 0.17, 1.0))
+		mat.set_shader_parameter("detail_blend", 0.6)
+		mat.set_shader_parameter("capture_detail_frequency_boost", 4.2 / 2.7)
+		mat.set_shader_parameter("capture_depth_multiplier", 3.0)
+		mat.set_shader_parameter("capture_reflectivity_multiplier", 2.0)
+		mat.set_shader_parameter("glass_sky_tint", Color(0.04, 0.20, 0.22, 1.0))
 		mat.set_shader_parameter("group_tint", group_tint_col)
 		mat.set_shader_parameter("group_tint_strength", group_strength)
 		mat.set_shader_parameter("group_tint_lift", 0.08)
@@ -3877,7 +3913,7 @@ func _add_building_greebles(holder: Node3D, bmin: Vector3, bmax: Vector3, buildi
 	var floors_est: int = int(size.y / 3.5)
 	var ledge_mat := _matte(Color(0.15, 0.15, 0.16, 1.0), 0.7, 0.3)
 	# 1. Horizontal floor ledges across the front face for taller buildings. Sized for
-	# capture-distance visibility (P0.4): a bold ~0.4 m band protruding ~0.6 m so it casts
+	# capture-distance visibility (P0.4): a bold ~0.5 m band protruding ~0.8 m so it casts
 	# a readable shadow line, not the sub-pixel 0.15/0.12 close-up ledge.
 	if floors_est >= 6:
 		var fracs := [0.25, 0.5, 0.75]
@@ -3887,66 +3923,70 @@ func _add_building_greebles(holder: Node3D, bmin: Vector3, bmax: Vector3, buildi
 				continue
 			var ly: float = bmin.y + size.y * float(fracs[li])
 			_add_box(holder, "Greeble_Ledge_%d" % li,
-				Vector3(size.x * 0.98, 0.4, 0.6),
-				Vector3(center.x, ly, bmax.z + 0.3), ledge_mat)
+				Vector3(size.x * 0.98, 0.5, 0.8),
+				Vector3(center.x, ly, bmax.z + 0.4), ledge_mat)
 	# 1b. Gold accent light strips at 1/3 and 2/3 height on mid/high-rise buildings (P1.1).
 	# A warm-gold emissive band wrapping all four faces gives the skyline horizontal rhythm
 	# and ties the city to the hero's gold contrails. Gold is #E8A828 (warm, not yellow).
+	# Scaled up (0.5m tall) so the gold band reads as a horizontal accent at capture distance.
 	if floors_est >= 6:
 		var gold_mat := _mat(Color(0.909, 0.658, 0.157, 1.0), Color(0.909, 0.658, 0.157, 1.0), 0.6)
 		var strip_fracs := [0.33, 0.66]
 		for si in range(strip_fracs.size()):
 			var gy: float = bmin.y + size.y * float(strip_fracs[si])
 			_add_box(holder, "Greeble_GoldStrip_%d_F" % si,
-				Vector3(size.x * 0.99, 0.4, 0.14), Vector3(center.x, gy, bmax.z + 0.07), gold_mat)
+				Vector3(size.x * 0.99, 0.5, 0.18), Vector3(center.x, gy, bmax.z + 0.09), gold_mat)
 			_add_box(holder, "Greeble_GoldStrip_%d_B" % si,
-				Vector3(size.x * 0.99, 0.4, 0.14), Vector3(center.x, gy, bmin.z - 0.07), gold_mat)
+				Vector3(size.x * 0.99, 0.5, 0.18), Vector3(center.x, gy, bmin.z - 0.09), gold_mat)
 			_add_box(holder, "Greeble_GoldStrip_%d_R" % si,
-				Vector3(0.14, 0.4, size.z * 0.99), Vector3(bmax.x + 0.07, gy, center.z), gold_mat)
+				Vector3(0.18, 0.5, size.z * 0.99), Vector3(bmax.x + 0.09, gy, center.z), gold_mat)
 			_add_box(holder, "Greeble_GoldStrip_%d_L" % si,
-				Vector3(0.14, 0.4, size.z * 0.99), Vector3(bmin.x - 0.07, gy, center.z), gold_mat)
-	# 2. Roof HVAC units — 1-2 boxes on top, ~1.5x the close-up size for roof silhouette (P0.4).
+				Vector3(0.18, 0.5, size.z * 0.99), Vector3(bmin.x - 0.09, gy, center.z), gold_mat)
+	# 2. Roof HVAC units — 1-2 boxes on top, scaled for capture-distance roof silhouette (P0.4).
+	# Larger footprint (0.35x building) and taller (1.0m) so the rooftop clutter reads at distance.
 	var roof_units: int = 1 + (seed % 2)
 	var hvac_mat := _matte(Color(0.25, 0.24, 0.22, 1.0), 0.8, 0.4)
 	for ui in range(roof_units):
 		var ox: float = (float((seed / (ui + 3)) % 100) / 100.0 - 0.5) * size.x * 0.4
 		var oz: float = (float((seed / (ui + 5)) % 100) / 100.0 - 0.5) * size.z * 0.4
 		_add_box(holder, "Greeble_RoofUnit_%d" % ui,
-			Vector3(size.x * 0.3, 0.6, size.z * 0.3),
-			Vector3(center.x + ox, bmax.y + 0.3, center.z + oz), hvac_mat)
-	# 3. Roof edge parapet around the perimeter — a ~1.0 m low wall so the roofline reads as
+			Vector3(size.x * 0.35, 1.0, size.z * 0.35),
+			Vector3(center.x + ox, bmax.y + 0.5, center.z + oz), hvac_mat)
+	# 3. Roof edge parapet around the perimeter — a ~1.5 m low wall so the roofline reads as
 	# a crisp notched silhouette at capture distance rather than a smooth box edge (P0.4).
+	# Taller and thicker than the legacy 1.0m parapet so it casts a visible shadow lip.
 	_add_box(holder, "Greeble_Parapet_0",
-		Vector3(size.x * 0.98, 1.0, 0.25),
-		Vector3(center.x, bmax.y + 0.5, bmax.z + 0.02), ledge_mat)
+		Vector3(size.x * 0.98, 1.5, 0.35),
+		Vector3(center.x, bmax.y + 0.75, bmax.z + 0.05), ledge_mat)
 	_add_box(holder, "Greeble_Parapet_1",
-		Vector3(size.x * 0.98, 1.0, 0.25),
-		Vector3(center.x, bmax.y + 0.5, bmin.z - 0.02), ledge_mat)
+		Vector3(size.x * 0.98, 1.5, 0.35),
+		Vector3(center.x, bmax.y + 0.75, bmin.z - 0.05), ledge_mat)
 	_add_box(holder, "Greeble_Parapet_2",
-		Vector3(0.25, 1.0, size.z * 0.98),
-		Vector3(bmax.x + 0.02, bmax.y + 0.5, center.z), ledge_mat)
+		Vector3(0.35, 1.5, size.z * 0.98),
+		Vector3(bmax.x + 0.05, bmax.y + 0.75, center.z), ledge_mat)
 	_add_box(holder, "Greeble_Parapet_3",
-		Vector3(0.25, 1.0, size.z * 0.98),
-		Vector3(bmin.x - 0.02, bmax.y + 0.5, center.z), ledge_mat)
+		Vector3(0.35, 1.5, size.z * 0.98),
+		Vector3(bmin.x - 0.05, bmax.y + 0.75, center.z), ledge_mat)
 	# 4. Antenna/spire on tall buildings — thicker/taller so it resolves as a vertical
-	# silhouette line at capture distance (P0.4).
+	# silhouette line at capture distance (P0.4). 0.5x5.0x0.5 with a 2.5m base pole.
 	if size.y > 20.0:
 		var ax: float = (float(seed % 100) / 100.0 - 0.5) * size.x * 0.3
 		_add_box(holder, "Greeble_Antenna",
-			Vector3(0.3, 3.0, 0.3),
-			Vector3(center.x + ax, bmax.y + 1.5, center.z),
+			Vector3(0.5, 5.0, 0.5),
+			Vector3(center.x + ax, bmax.y + 2.5, center.z),
 			_matte(Color(0.1, 0.1, 0.1, 1.0), 0.4, 0.6))
 	# 5. Entrance canopy on the front face at ground level (most buildings). The dark canopy
 	# gets a warm-gold emissive light strip on its underside (P1.4) so street level reads as
 	# an inhabited, gold-lit entrance — matching the hero's gold accent language.
+	# Scaled up for capture-distance visibility (0.4x building width, 1.0m deep).
 	if seed % 3 != 0:
 		_add_box(holder, "Greeble_Canopy",
-			Vector3(size.x * 0.3, 0.12, 0.7),
-			Vector3(center.x, bmin.y + 1.5, bmin.z - 0.35),
+			Vector3(size.x * 0.4, 0.18, 1.0),
+			Vector3(center.x, bmin.y + 1.5, bmin.z - 0.5),
 			_matte(Color(0.12, 0.12, 0.13, 1.0), 0.6, 0.5))
 		_add_box(holder, "Greeble_CanopyLight",
-			Vector3(size.x * 0.27, 0.05, 0.6),
-			Vector3(center.x, bmin.y + 1.42, bmin.z - 0.35),
+			Vector3(size.x * 0.36, 0.08, 0.85),
+			Vector3(center.x, bmin.y + 1.38, bmin.z - 0.5),
 			_mat(Color(0.909, 0.658, 0.157, 1.0), Color(0.909, 0.658, 0.157, 1.0), 0.5))
 
 # Deterministic facade texture set index for a building, derived from its node name so
